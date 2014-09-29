@@ -8,55 +8,20 @@
 	define   BORDERRED	2
 	define   BORDERGRN	4
 	define	 BORDERWHT	7
-	define   ERR_FLASH	#aa   ; alternate lights
+	define   ERR_FLASH	0xaa   ; alternate lights
 
 ;	ROM checksum values
 
-	define	CRC_48K		0xFD5E
-	define	CRC_128K	0xEFFC
-	define	CRC_PLUS2	0x2AA3
-
-	MACRO PAUSE
-   
-	exx
-	ld bc, #ffff
-
-.pauseloop
-
-	nop
-	nop
-	nop
-	nop
-	nop
-	djnz .pauseloop
-	dec b    ; wrap b
-	dec c
-	jr nz, .pauseloop
-	exx
-
-	ENDM
-
-; Flash the value in A twice
-
-	MACRO FLASH
-
-	ld b, 2
-
-.flashloop      
-
-	out (LED_PORT), a
-	PAUSE
-	ex af, af'
-	ld a, 0
-	out (LED_PORT), a
-	ex af, af'
-	PAUSE
-	djnz .flashloop
-
-	ENDM      
+	define	CRC_48K		0xfd5e
+	define	CRC_128K	0xeffc
+	define	CRC_PLUS2	0x2aa3
 
 
+;
+;	Macro to run a RAM walk test
+;
 	MACRO WALKLOOP start, length
+
 	ld hl, start
 	ld de, length
 
@@ -111,28 +76,9 @@
 
 	ENDM
 
-	MACRO BORKEDFLASH location
-
-.borked
-	ld a, BORDERRED
-	out (ULA_PORT), a
-	ld a, ERR_FLASH
-	FLASH
-	ld b, 4
-
-.borked.loop
-
-	ld a, d
-	out (LED_PORT), a
-	PAUSE
-	ld a, 0
-	out (LED_PORT), a
-	PAUSE
-	djnz .borked.loop
-
-	ENDM
-
-
+;
+;	Macro to blank (or fill) an area of memory
+;
 	MACRO BLANKMEM start, len, pattern
 
 	ld hl, start
@@ -149,6 +95,9 @@
 
 	ENDM
 
+;
+;	Macro used during inversion testing
+;
 	MACRO ALTPATA start,len,fill
 
 	BLANKMEM start, len, fill
@@ -221,7 +170,11 @@
 
 	ENDM
 
+;
+;	Macro used during inversion testing
+;
 	MACRO ALTPATB start,len,fill
+
 	BLANKMEM start, len, fill
 	ld hl, start
 	ld bc, len
@@ -287,13 +240,15 @@
 
 	ENDM
 
+;
 ;	Algorithm March X
 ;	Step1: write 0 with up addressing order;
 ;	Step2: read 0 and write 1 with up addressing order;
 ;	Step3: read 1 and write 0 with down addressing order;
 ;	Step4: read 0 with down addressing order. 
 ;	
-; 	Credit - Karl (PokeMon) on WoS
+; 	Credit - Karl (PokeMon) on WoS for the algorithm description
+;
 
 	MACRO MARCHTEST start, len
 	
@@ -399,9 +354,12 @@
 	
 	ENDM
 
+;
+;	Generate a pseudo random 16-bit number.
 ; 	see http://map.tni.nl/sources/external/z80bits.html#3.2 for the
 ; 	basis of the random fill
 ; 	BC = seed
+;
 
 	MACRO RAND16
 
@@ -428,9 +386,11 @@
 
 	ENDM
 
+;
 ;	Random fill test in increasing order
 ;	Args: addr - base address, reps - half memory size being tested,
 ;	      seed - PRNG seed to use
+;
 
 	MACRO RANDFILLUP addr, reps, seed
 
@@ -513,9 +473,11 @@
 	
 	ENDM
 
+;
 ;	Random fill test in descendingvorder
 ;	Args: addr - base address, reps - half memory size being tested,
 ;	      seed - PRNG seed to use
+;
 
 	MACRO RANDFILLDOWN addr, reps, seed
 
@@ -598,16 +560,29 @@
 	
 	ENDM
 
-
+;
+;	Saves the location of the stack pointer to 
+;	memory
+;
 
 	MACRO SAVESTACK
 	ld (v_stacktmp), sp
 	ENDM
 
+;
+;	Restores the location of the stack pointer from 
+;	memory
+;
+
 	MACRO RESTORESTACK
 	ld sp, (v_stacktmp)
 	ENDM
 	
+;	
+;	Macro to interpret the results of a 48k memory test
+;	and store the result, write result to screen etc
+;
+
 	MACRO TESTRESULT
 	ld bc, ix
 	ld a, b
@@ -632,6 +607,12 @@
 
 	ENDM
 
+
+;	
+;	Macro to interpret the results of a 128k memory test
+;	and store the result
+;
+
 	MACRO TESTRESULT128
 
 	ld bc, ix
@@ -640,6 +621,10 @@
 	ld (v_fail_ic), a
 
 	ENDM
+
+;
+;	Blanks the H register. 
+;
 
 	MACRO PREPAREHREG
 
