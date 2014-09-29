@@ -1,7 +1,27 @@
 ;
+;	ZX Diagnostics - fixing ZX Spectrums in the 21st Century
+;	https://github.com/brendanalford/zx-diagnostics
+;
+;	Original code by Dylan Smith
+;	Modifications and 128K support by Brendan Alford
+;
+;	This code is free software; you can redistribute it and/or
+;	modify it under the terms of the GNU Lesser General Public
+;	License as published by the Free Software Foundation;
+;	version 2.1 of the License.
+;
+;	This code is distributed in the hope that it will be useful,
+;	but WITHOUT ANY WARRANTY; without even the implied warranty of
+;	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;	Lesser General Public License for more details.
+;
+;	128tests.asm
+;	
+
+;
 ;	128K Specific Tests
 ;
-;	Page 5 has already been tested (lower RAM), so just do pages 0,1,2,3,4,6 and 7.
+;	Page 5 has already been tested lower RAM), so just do pages 0,1,2,3,4,6 and 7.
 ;   	Page each one into the top 16K of RAM and perform the standard fill, inversion
 ;   	and random tests.
 ;   	Finally, do a paging test (only if the RAM checks pass, otherwise it
