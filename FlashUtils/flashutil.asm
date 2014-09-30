@@ -7,28 +7,35 @@
 
 ; Includes - various routines.
 ; Note: charset needs to be near the start of a page
-      include "charset.asm"
-      include "print5by8.asm"
+      include "vars.asm"
+      include "..\charset.asm"
+      include "..\print.asm"
+
 
 start
       di                ; we're paging roms in and out at random
-      xor a
+      ld a, 7           ; White border
       out (ULA_PORT), a
 
-      call F_cls
+      ld a, 56        ; Black text on white paper
+      ld (v_attr), a
+      call cls
 
       xor a
       ld (v_column), a
-      ld hl, 16384
-      ld (v_row), hl
-      ld hl, STR_header
-      call F_print
+      ld (v_row), a
+      ld (v_bold), a
+      ld hl, str_banner
+      call print
+
       ld hl, STR_run
-      call F_print
+      call print
+
+      halt
       ld hl, STR_p1
-      call F_print
+      call print
       ld hl, STR_others
-      call F_print
+      call print
       call F_pollkeys
 
       ; check for options
@@ -55,11 +62,11 @@ start
 .progpage
       call F_cls
       ld hl, STR_prog
-      call F_print
+      call print
       ld hl, STR_p1
-      call F_print
+      call print
       ld hl, STR_back
-      call F_print
+      call print
       call F_pollkeys
       cp 31
       jp p, start
@@ -72,8 +79,8 @@ start
       cp #ff      ; unused flash memory is set to all 1s
       jr nz, .progpage.inuse
       ld hl, STR_writing
-      call F_print
-      
+      call print
+
 .progpage.program
       ld hl, #8000
       ld de, 0
@@ -90,34 +97,34 @@ start
       jr nz, .progpage.loop
 
       ld hl, STR_done
-      call F_print
+      call print
       ld hl, STR_anykey
-      call F_print
+      call print
       call F_pollkeys
       jp start
-.progpage.borked      
+.progpage.borked
       ld hl, STR_borked
-      call F_print
+      call print
       ld hl, STR_anykey
-      call F_print
+      call print
       call F_pollkeys
       jp start
 .progpage.inuse
       ld hl, STR_inuse
-      call F_print
+      call print
       call F_pollkeys
       cp 34    ; 'y'
       jr nz, .progpage
       ld hl, STR_hgn
-      call F_print
+      call print
       jr .progpage.program
-      
+
 
 .erasesector
       call F_cls
       ld hl, STR_erasetxt
-      call F_print
-.repoll      
+      call print
+.repoll
       call F_pollkeys
       cp 33    ; X
       jp z, start
@@ -127,28 +134,28 @@ start
       jr z, .yourekillingme
 .doerase
       ld hl, STR_erasing
-      call F_print
+      call print
       call F_FlashEraseSector
       jr c, .eraseborked
-.erasedone      
+.erasedone
       ld hl, STR_done
-      call F_print
+      call print
       ld hl, STR_anykey
-      call F_print
+      call print
       call F_pollkeys
       jp start
 .eraseborked
       ld hl, STR_borked
-      call F_print
+      call print
       ld hl, STR_anykey
-      call F_print
+      call print
       call F_pollkeys
       jp start
 .yourekillingme
       push af     ; save intended sector
       call F_cls
       ld hl, STR_delp4
-      call F_print
+      call print
       call F_pollkeys
       cp 34       ; Y = keep me
       jr z, .keep
@@ -168,12 +175,12 @@ start
       ld bc, 16384
       ldir
       ld hl, STR_erasing
-      call F_print
+      call print
       pop af
       call F_FlashEraseSector
       jr c, .eraseborked
       ld hl, STR_reprogramming
-      call F_print
+      call print
       ld a, #24   ; page 4 with bit 5 set for /romcs
       ld (v_page), a
       ld hl, 32768
@@ -184,9 +191,9 @@ start
 .copypage
       call F_cls
       ld hl, STR_copyhdr
-      call F_print
+      call print
       ld hl, STR_p1
-      call F_print
+      call print
       call F_pollkeys
 
       cp 33       ; 'X'
@@ -196,18 +203,18 @@ start
       or 32       ; set /ROMCS bit
       out (ROMPAGE_PORT), a
       ld hl, STR_copying
-      call F_print
+      call print
       ld hl, 0
       ld de, 32768
       ld bc, 16384
       ldir
       ld hl, STR_done
-      call F_print
+      call print
       ld hl, STR_anykey
-      call F_print
+      call print
       call F_pollkeys
       jp start
-      
+
 ; EraseSector subroutine erases a 64K Flash ROM sector. It's designed
 ; for 4 megabit chips like the Am29F040.
 ; This function will page in the sector and erase it.
@@ -256,7 +263,7 @@ EraseSector.complete
 		or 0		; clear carry flag
 		ret
 
-EraseSector.borked	
+EraseSector.borked
 		scf		; carry flag = error
 		ret
 
@@ -292,15 +299,15 @@ F_FlashWriteByte
 WriteData.wait
 		ld a, (de)	; read programmed address
 		ld b, a		; save status
-		xor c		
-		bit 7, a	; If bit 7 = 0 then bit 7 = data	
+		xor c
+		bit 7, a	; If bit 7 = 0 then bit 7 = data
 		jr z, writeData.byteComplete
 
 		bit 5, b	; test DQ5
 		jr z, WriteData.wait
 
 		ld a, (de)	; read programmed address
-		xor c		
+		xor c
 		bit 7, a	; Does DQ7 = programmed data? 0 if true
 		jr nz, writeData.borked
 
@@ -312,21 +319,8 @@ writeData.byteComplete
 writeData.borked
 		pop bc
 		scf		; error = set carry flag
-		ret      
+		ret
 
-; This prints a null terminated string. HL=string pointer
-F_print
-      push af
-.loop      
-      ld a, (hl)
-      cp 0
-      jr z, .exit
-      call putc_5by8
-      inc hl
-      jr .loop
-.exit
-      pop af
-      ret
 
 ; This clears the screen and sets the attributes.
 F_cls
@@ -340,7 +334,7 @@ F_cls
       ld bc, 6143
       ld (hl), a
       ldir
-      
+
       ; Not the fastest way to set up the attrs, but that isn't really
       ; important for this routine.
 
@@ -358,14 +352,14 @@ F_cls
       ld (hl), a
       ldir
 
-      ret 
+      ret
 
 ; Use the Speccy rom plus a lookup table to turn a keypress (0-z)
 ; into an option.
 F_pollkeys
       xor a
       out (ROMPAGE_PORT), a   ; page in Spectrum ROM (deassert /ROMCS)
-.poll      
+.poll
       call #28e      ; Spectrum ROM key poll routine
       ld a, e        ; result is in E, move to A to test
       cp #ff         ; No key pressed
@@ -381,12 +375,18 @@ F_pollkeys
       ld d, 0
       add hl, de
       ld a, (hl)
-      ret      
+      ret
 
-      
 
-STR_header defb "      ZX SPECTRUM FLASH ROM UTILITY\n\n",0
-STR_run  defb "Press a key to boot the ROM page listed:\n",0
+str_banner
+
+  defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Diag Board Flash Utility "
+  defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
+  defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
+
+STR_run
+  defb "Press a key to boot the ROM\n page listed:\n",0
+
 STR_p1   defb "0...Page 0     1...Page 1    2...Page 2\n"
 STR_p2   defb "3...Page 3     4...Page 4    5...Page 5\n"
 STR_p3   defb "6...Page 6     7...Page 7    8...Page 8\n"
@@ -411,7 +411,7 @@ STR_writing defb "Writing flash chip...\n", 0
 
 STR_copyhdr defb "      COPY A 16K FLASH PAGE TO RAM\n\n"
             defb "Press a key to copy the following page:\n", 0
-STR_copying defb "Copying ROM image to address 32768...\n", 0            
+STR_copying defb "Copying ROM image to address 32768...\n", 0
 
 STR_borked  defb "Sorry, the operation failed.\n", 0
 STR_done    defb "Done!\n", 0
@@ -430,7 +430,7 @@ STR_sectors defb "Sector 0  ->  Pages  0 to 3\n"
          defb  "Sector 5  ->  Pages 20 to 23\n"
          defb  "Sector 6  ->  Pages 24 to 27\n"
          defb  "Sector 7  ->  Pages 28 to 31\n\n", 0
-STR_erasing defb "Erasing...\n", 0         
+STR_erasing defb "Erasing...\n", 0
 STR_reprogramming defb "Reprogramming flash util to page 4\n", 0
 
 STR_delp4   defb "     ERASING SECTOR 1 (PAGES 4 -> 7)\n\n"
@@ -441,7 +441,7 @@ STR_delp4   defb "     ERASING SECTOR 1 (PAGES 4 -> 7)\n\n"
             defb "flash utility.\n"
             defb "Any other key aborts.\n\n", 0
 
-STR_warning defb "         WARNING!\n\n", 0            
+STR_warning defb "         WARNING!\n\n", 0
 STR_unused  defb "This flash page looks unused... are you really\n"
             defb "sure you want to select it? (Y/N)\n\n", 0
 STR_hgn     defb "Well, OK...here goes nothing...\n",0
@@ -457,9 +457,3 @@ LK_keys  defb 11, 17, 34, 6, 5, 29, 16, 31    ; 0-7
          defb 255, 21, 24, 9, 2, 32, 28, 35   ; 24-31
          defb 255, 255, 25, 0, 1, 26, 10         ; 32-38
          block $+32-$, #ff
-
-
-; various other things
-v_column equ #CF00
-v_row    equ #CF01
-v_page   equ #CF03

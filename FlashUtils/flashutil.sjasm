@@ -1,0 +1,6 @@
+; SjASMPlus source file for Diag board test rom
+  define ORG 0xE000
+  define LENGTH 2000
+  device zxspectrum48
+  include flashutil.asm
+  savebin "flashutil.bin",ORG,LENGTH

@@ -11,8 +11,8 @@
 interrupt
          reti
 flashutil
-         incbin "flashutil.out"
-flashutilend         
+         incbin "flashutil.bin"
+flashutilend
 
          block #1E7F-$, 0
 copyflashutil
@@ -23,3 +23,6 @@ copyflashutil
          ldir
          jp #E000
 
+fillspare
+         block #4000-$,0
+         
