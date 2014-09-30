@@ -29,7 +29,7 @@ start
       call print
       ld hl, STR_others
       call print
-
+      halt
       call F_pollkeys
 
       ; check for options
@@ -351,25 +351,31 @@ str_banner
 STR_run
   defb  AT, 2, 0, "Select ROM page to boot:", 0
 
-STR_p1   defb "0...Page 0     1...Page 1    2...Page 2\n"
-STR_p2   defb "3...Page 3     4...Page 4    5...Page 5\n"
-STR_p3   defb "6...Page 6     7...Page 7    8...Page 8\n"
-STR_p4   defb "9...Page 9     a...Page 10   b...Page 11\n"
-STR_p5   defb "c...Page 12    d...Page 13   e...Page 14\n"
-STR_p6   defb "f...Page 15    g...Page 16   h...Page 17\n"
-STR_p7   defb "i...Page 18    j...Page 19   k...Page 20\n"
-STR_p8   defb "l...Page 21    m...Page 22   n...Page 23\n"
-STR_p9   defb "o...Page 24    p...Page 25   q...Page 26\n"
-STR_p10  defb "r...Page 27    s...Page 28   t...Page 29\n"
-STR_p11  defb "u...Page 30    v...Page 31\n\n",0
+STR_p1   defb AT, 4, 0, "0:Page 0   1:Page 1   2:Page 2\n"
+STR_p2   defb "3:Page 3   4:Page 4   5:Page 5\n"
+STR_p3   defb "6:Page 6   7:Page 7   8:Page 8\n"
+STR_p4   defb "9:Page 9   a:Page 10  b:Page 11\n"
+STR_p5   defb "c:Page 12  d:Page 13  e:Page 14\n"
+STR_p6   defb "f:Page 15  g:Page 16  h:Page 17\n"
+STR_p7   defb "i:Page 18  j:Page 19  k:Page 20\n"
+STR_p8   defb "l:Page 21  m:Page 22  n:Page 23\n"
+STR_p9   defb "o:Page 24  p:Page 25  q:Page 26\n"
+STR_p10  defb "r:Page 27  s:Page 28  t:Page 29\n"
+STR_p11  defb "u:Page 30  v:Page 31\n\n",0
 STR_others  defb "Other options:\n"
-STR_burn defb "w...Program a 16K flash page\n"
-STR_erase   defb "x...Erase a 64K flash sector\n"
-;STR_cerase  defb "y...Erase entire chip\n"
-STR_copy    defb "y...Copy a 16K page to RAM at 32768\n"
-STR_reboot  defb "z...Exit to ZX BASIC\n", 0
+STR_burn defb "w:Program a 16K flash page\n"
+STR_erase   defb "x:Erase a 64K flash sector\n"
+;STR_cerase  defb "y:Erase entire chip\n"
+STR_copy    defb "y:Copy 16K page to RAM at 32768\n"
+STR_reboot  defb "z:Exit to ZX BASIC\n", 0
 
-STR_prog    defb "      PROGRAM A 16K FLASH PAGE\n\n"
+STR_prog
+
+  defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Program 16K Flash Page   "
+  defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
+  defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
+
+
 STR_progopt defb "Press a key to program the following page:\n", 0
 STR_writing defb "Writing flash chip...\n", 0
 
