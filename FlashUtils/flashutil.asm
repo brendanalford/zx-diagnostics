@@ -1,16 +1,11 @@
       org #E000
 
-      define ULA_PORT   #fe
-      define ROMPAGE_PORT  31
+      include "vars.asm"
+
+      define ULA_PORT       0xfe
+      define ROMPAGE_PORT   31
 
       jp start
-
-; Includes - various routines.
-; Note: charset needs to be near the start of a page
-      include "vars.asm"
-      include "..\charset.asm"
-      include "..\print.asm"
-
 
 start
       di                ; we're paging roms in and out at random
@@ -27,15 +22,14 @@ start
       ld (v_bold), a
       ld hl, str_banner
       call print
-
       ld hl, STR_run
       call print
 
-      halt
       ld hl, STR_p1
       call print
       ld hl, STR_others
       call print
+
       call F_pollkeys
 
       ; check for options
@@ -60,7 +54,7 @@ start
       ret
 
 .progpage
-      call F_cls
+      call cls
       ld hl, STR_prog
       call print
       ld hl, STR_p1
@@ -121,7 +115,7 @@ start
 
 
 .erasesector
-      call F_cls
+      call cls
       ld hl, STR_erasetxt
       call print
 .repoll
@@ -153,7 +147,7 @@ start
       jp start
 .yourekillingme
       push af     ; save intended sector
-      call F_cls
+      call cls
       ld hl, STR_delp4
       call print
       call F_pollkeys
@@ -189,7 +183,7 @@ start
       jp .progpage.loop
 
 .copypage
-      call F_cls
+      call cls
       ld hl, STR_copyhdr
       call print
       ld hl, STR_p1
@@ -322,38 +316,6 @@ writeData.borked
 		ret
 
 
-; This clears the screen and sets the attributes.
-F_cls
-      xor a
-      ld (v_column), a
-      ld hl, 16384
-      ld (v_row), hl
-
-      ld hl, 16384
-      ld de, 16385
-      ld bc, 6143
-      ld (hl), a
-      ldir
-
-      ; Not the fastest way to set up the attrs, but that isn't really
-      ; important for this routine.
-
-      ld a, 23    ; red paper/white ink/bright 0/flash 0
-      ld hl, 22528
-      ld de, 22529
-      ld bc, 31
-      ld (hl), a
-      ldir
-
-      ld a, 5     ; black paper/cyan ink/bright 0/flash 0
-      ld hl, 22560
-      ld de, 22561
-      ld bc, 735
-      ld (hl), a
-      ldir
-
-      ret
-
 ; Use the Speccy rom plus a lookup table to turn a keypress (0-z)
 ; into an option.
 F_pollkeys
@@ -377,6 +339,8 @@ F_pollkeys
       ld a, (hl)
       ret
 
+      include "../charset.asm"
+      include "../print.asm"
 
 str_banner
 
@@ -385,7 +349,7 @@ str_banner
   defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
 
 STR_run
-  defb "Press a key to boot the ROM\n page listed:\n",0
+  defb  AT, 2, 0, "Select ROM page to boot:", 0
 
 STR_p1   defb "0...Page 0     1...Page 1    2...Page 2\n"
 STR_p2   defb "3...Page 3     4...Page 4    5...Page 5\n"
