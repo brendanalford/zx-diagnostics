@@ -29,12 +29,16 @@ start
       call print
       ld hl, STR_others
       call print
-      halt
-      call F_pollkeys
+
+      ld a, 0
+      out (ULA_PORT), a
+      call get_key
 
       ; check for options
-      cp 31
+      cp "W"
       jp p, .options
+      ld a, 7
+      out (ULA_PORT), a
       or 32          ; bit 5 = /ROMCS line - bit 5 should be high
                      ; to assert it with the jumper in 'SPECTRUM' pos
       out (ROMPAGE_PORT), a
@@ -339,8 +343,9 @@ F_pollkeys
       ld a, (hl)
       ret
 
-      include "../charset.asm"
-      include "../print.asm"
+     	include "../charset.asm"
+ 	include "../print.asm"
+	include "input.asm"
 
 str_banner
 
