@@ -70,7 +70,7 @@ key_next
 	
 	pop bc
 	pop hl
-	ccf
+	and a 	; reset carry flag
 	ret
 	
 ;
@@ -80,14 +80,15 @@ key_next
 
 get_key
 	push bc
+get_key_scan
 	call scan_keys
-	jr c, get_key
+	jr nc, get_key_scan
 	ld b, a
 
 debounce_key
 	
 	call scan_keys
-	jr nc, debounce_key
+	jr c, debounce_key
 	ld a, b
 	pop bc
 	ret

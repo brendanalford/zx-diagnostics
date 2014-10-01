@@ -30,28 +30,29 @@ start
       ld hl, STR_others
       call print
 
-      ld a, 0
-      out (ULA_PORT), a
+get_option	
       call get_key
-
+      
       ; check for options
       cp "W"
-      jp p, .options
-      ld a, 7
-      out (ULA_PORT), a
+      jp z, .progpage
+      cp "X"
+      jp z, .erasesector
+      cp "Y"
+      jp z, .copypage
+      cp "Z"
+      jr z, .reset
+
+      cp "0"
+      jr nc, get_option
+      
+	; If we get here we've selected a ROM to boot
       or 32          ; bit 5 = /ROMCS line - bit 5 should be high
                      ; to assert it with the jumper in 'SPECTRUM' pos
       out (ROMPAGE_PORT), a
       jp 0
-.options
-      cp 32
-      jp z, .progpage
-      cp 33
-      jp z, .erasesector
-      cp 34
-      jp z, .copypage
 
-      ; if we get here Z was pressed
+.reset
       xor a
       out (ROMPAGE_PORT), a   ; page in Speccy ROM
       ei
@@ -59,6 +60,9 @@ start
 
 .progpage
       call cls
+      ld hl, str_banner
+      call print
+      halt
       ld hl, STR_prog
       call print
       ld hl, STR_p1
