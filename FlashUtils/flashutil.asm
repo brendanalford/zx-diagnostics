@@ -62,17 +62,17 @@ get_option
       call cls
       ld hl, str_banner
       call print
-      halt
+
       ld hl, STR_prog
       call print
       ld hl, STR_p1
       call print
       ld hl, STR_back
       call print
-      call F_pollkeys
-      cp 31
-      jp p, start
+      call get_key
 
+	cp "Z"
+	jp z, start	
       ; now try to program the page - first do some checks
       or 32       ; set /ROMCS flag
       out (ROMPAGE_PORT), a
@@ -102,20 +102,20 @@ get_option
       call print
       ld hl, STR_anykey
       call print
-      call F_pollkeys
+      call get_key
       jp start
 .progpage.borked
       ld hl, STR_borked
       call print
       ld hl, STR_anykey
       call print
-      call F_pollkeys
+      call get_key
       jp start
 .progpage.inuse
       ld hl, STR_inuse
       call print
-      call F_pollkeys
-      cp 34    ; 'y'
+      call get_key
+      cp "Y"    ; 'y'
       jr nz, .progpage
       ld hl, STR_hgn
       call print
@@ -124,11 +124,13 @@ get_option
 
 .erasesector
       call cls
-      ld hl, STR_erasetxt
+      ld hl, str_erasehdr
+      call print
+      ld hl, STR_chooseerase
       call print
 .repoll
-      call F_pollkeys
-      cp 33    ; X
+      call get_key
+      cp "X"    
       jp z, start
       cp 8
       jp p, .repoll
@@ -144,21 +146,21 @@ get_option
       call print
       ld hl, STR_anykey
       call print
-      call F_pollkeys
+      call get_key
       jp start
 .eraseborked
       ld hl, STR_borked
       call print
       ld hl, STR_anykey
       call print
-      call F_pollkeys
+      call get_key
       jp start
 .yourekillingme
       push af     ; save intended sector
       call cls
       ld hl, STR_delp4
       call print
-      call F_pollkeys
+      call get_key
       cp 34       ; Y = keep me
       jr z, .keep
       cp 23       ; N = delete me
@@ -192,11 +194,12 @@ get_option
 
 .copypage
       call cls
-      ld hl, STR_copyhdr
+      ld hl, str_copyhdr
       call print
       ld hl, STR_p1
       call print
-      call F_pollkeys
+      
+      call get_key
 
       cp 33       ; 'X'
       jp z, start
@@ -214,7 +217,7 @@ get_option
       call print
       ld hl, STR_anykey
       call print
-      call F_pollkeys
+      call get_key
       jp start
 
 ; EraseSector subroutine erases a 64K Flash ROM sector. It's designed
@@ -324,29 +327,6 @@ writeData.borked
 		ret
 
 
-; Use the Speccy rom plus a lookup table to turn a keypress (0-z)
-; into an option.
-F_pollkeys
-      xor a
-      out (ROMPAGE_PORT), a   ; page in Spectrum ROM (deassert /ROMCS)
-.poll
-      call #28e      ; Spectrum ROM key poll routine
-      ld a, e        ; result is in E, move to A to test
-      cp #ff         ; No key pressed
-      jr z, .poll
-      push de        ; save for later
-.pollkeyup
-      call #28e
-      ld a, e
-      cp #ff
-      jr nz, .pollkeyup
-      pop de
-      ld hl, LK_keys ; Look up the key that was pressed
-      ld d, 0
-      add hl, de
-      ld a, (hl)
-      ret
-
      	include "../charset.asm"
  	include "../print.asm"
 	include "input.asm"
@@ -371,6 +351,7 @@ STR_p8   defb "l:Page 21  m:Page 22  n:Page 23\n"
 STR_p9   defb "o:Page 24  p:Page 25  q:Page 26\n"
 STR_p10  defb "r:Page 27  s:Page 28  t:Page 29\n"
 STR_p11  defb "u:Page 30  v:Page 31\n\n",0
+
 STR_others  defb "Other options:\n"
 STR_burn defb "w:Program a 16K flash page\n"
 STR_erase   defb "x:Erase a 64K flash sector\n"
@@ -385,19 +366,30 @@ STR_prog
   defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
 
 
-STR_progopt defb "Press a key to program the following page:\n", 0
+STR_progopt defb "Select a page to program:\n", 0
 STR_writing defb "Writing flash chip...\n", 0
 
-STR_copyhdr defb "      COPY A 16K FLASH PAGE TO RAM\n\n"
-            defb "Press a key to copy the following page:\n", 0
-STR_copying defb "Copying ROM image to address 32768...\n", 0
+str_copyhdr
+
+  defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Copy 16K Page to RAM     "
+  defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
+  defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56
+
+  defb AT, 2, 0, "Select a page to copy:\n", 0
+
+STR_copying defb "Copying page to address 32768..\n", 0
 
 STR_borked  defb "Sorry, the operation failed.\n", 0
 STR_done    defb "Done!\n", 0
 STR_back    defb "Press z to go back\n", 0
 STR_anykey  defb "Press 0-9 or a-z to exit", 0
 
-STR_erasetxt   defb "       ERASE A 64K FLASH SECTOR\n\n"
+str_erasehdr
+
+  defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Erase 64K Flash Sector   "
+  defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
+  defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
+
 STR_chooseerase   defb "Press 0 to 7 to choose the sector to\n"
             defb "erase, or press X to exit\n\n"
 STR_eraseinfo  defb "Information: Sectors map to pages as \nfollows:\n\n"
@@ -412,7 +404,7 @@ STR_sectors defb "Sector 0  ->  Pages  0 to 3\n"
 STR_erasing defb "Erasing...\n", 0
 STR_reprogramming defb "Reprogramming flash util to page 4\n", 0
 
-STR_delp4   defb "     ERASING SECTOR 1 (PAGES 4 -> 7)\n\n"
+STR_delp4   defb "ERASING SECTOR 1 (PAGES 4 -> 7)\n\n"
             defb "You will delete me by deleting sector 1\n"
             defb "since I live in page 4. Press Y if you\n"
             defb "want to re-write the utility back into\n"
@@ -420,13 +412,12 @@ STR_delp4   defb "     ERASING SECTOR 1 (PAGES 4 -> 7)\n\n"
             defb "flash utility.\n"
             defb "Any other key aborts.\n\n", 0
 
-STR_warning defb "         WARNING!\n\n", 0
-STR_unused  defb "This flash page looks unused... are you really\n"
+STR_warning defb "WARNING!\n\n", 0
+STR_unused  defb "This flash page seems to be\n"
+	    defb "unused... are you really\n"
             defb "sure you want to select it? (Y/N)\n\n", 0
 STR_hgn     defb "Well, OK...here goes nothing...\n",0
-STR_inuse   defb "This flash page looks to be used. Trying\n"
-            defb "to program it will probably fail (and may\n"
-            defb "corrupt the first few bytes of the page).\n"
+STR_inuse   defb "This flash page seems used.\n"
             defb "Continue anyway? (Y/N)\n", 0
 
          ; Key value lookup table. Key 0 = 0, Key Z = 35
