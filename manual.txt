@@ -51,7 +51,7 @@ The firmware will then execute some memory tests on the lower 16K of RAM which a
 As the lower RAM of a Spectrum is used for display, we cannot assume that the machine can produce
 a correct display nor rely on it for output. Therefore lower RAM testing will produce some test patterns
 on the display that exercise the RAM in various ways, and if a failure is found, will report the result
-by way of a series of stripe in the border.
+by way of a series of stripes in the border.
 
 There will be eight of these stripes, representing bits 0 to 7 in downward order. These correspond to memory
 IC's IC6 to IC13 (which are 4116 IC's) in that order. A green stripe indicates a healthy IC, and a red one 
@@ -127,8 +127,8 @@ There are four distinct types of memory test performed on each block of memory, 
 This is a very simple test - all it does is set each bit and reset each bit in memory, checking the memory 
 holds the desired value on each iteration. If the test fails here, it means the failed RAM chip simply isn't
 reliably (or at all) able to be set to a given value. This can be caused by a failed chip or a bad solder 
-joint or broken PCB track. (If upper memory is OK, and the on-screen tests commence, you can often see this
-by vertical lines 1 pixel wide running down the screen)
+joint or broken PCB track. (When testing lower RAM, you can often see this once tests halt, 
+by vertical lines 1 pixel wide running down the screen being visible)
 
 This test will also show up failures in logic caused by data bus lines being shorted together.
 
