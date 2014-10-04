@@ -50,7 +50,6 @@ flashutilend
 copyflashutil
  
 	di
-        ld sp, 0xffff
         ld hl, flashutil
         ld de, #E000   ; Decimal 57344
         ld bc, flashutilend-flashutil

@@ -621,7 +621,7 @@ page_speccy_rom
 
 	ld hl, start_pagein
 	ld de, do_pagein
-	ld bc, end_pagein-do_pagein
+	ld bc, end_pagein-start_pagein
 	ldir
 
 ; 	Jump to page in routine, never to return
@@ -654,7 +654,7 @@ testdiaghw
 
 	ld hl, start_testdiaghw
 	ld de, do_testdiaghw
-	ld bc, end_testdiaghw-do_testdiaghw
+	ld bc, end_testdiaghw-start_testdiaghw
 	ldir
 
 ;	Call our test routine

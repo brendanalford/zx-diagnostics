@@ -73,6 +73,9 @@ get_option
      	jr nc, get_option
       
 ; 	If we get here we've selected a ROM to boot
+	
+	call map_key_to_page
+	
       	or 32          	; bit 5 = /ROMCS line - bit 5 should be high
                      	; to assert it with the jumper in 'SPECTRUM' pos
       	out (ROMPAGE_PORT), a
@@ -116,7 +119,10 @@ get_option
 	cp "Z"
 	jp z, start	
 
+	call map_key_to_page
+
 ; 	Now try to program the page - first do some checks
+
      	or 32       ; set /ROMCS flag
       	out (ROMPAGE_PORT), a
       	ld (v_page), a    ; save the flash page number
