@@ -634,8 +634,8 @@ map_dev_next
 ;
 ;	Chip string table	
 ;
-chip_am29040b
-	defb "AMIC AM29040B", 0
+chip_a29040b
+	defb "AMIC A29040B", 0
 ;
 ;	Map info table - each entry is six bytes long
 ;	Bytes 0-1: Mfr Id/Device ID
@@ -644,9 +644,9 @@ chip_am29040b
 ;	Byte 5: Sector size in KB
 ;
 map_info_table
-;	AM29F040B - 32 pages, 64K sectors
+;	A29040B - 32 pages, 64K sectors
 	defb 0x37, 0x86
-	defw chip_am29040b
+	defw chip_a29040b
 	defb 32, 64
 	
 	defb 0x00, 0x00, 0x00, 0x00, 0x00 ,0x00
