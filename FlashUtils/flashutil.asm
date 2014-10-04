@@ -67,10 +67,6 @@ get_option
       	cp "Z"
       	jr z, .reset
 
-;	Was this a ROM selection keypress?
-     
-     	cp "0"
-     	jr nc, get_option
       
 ; 	If we get here we've selected a ROM to boot
 	
@@ -86,10 +82,11 @@ get_option
 ;
 .reset
       
-      xor a
-      out (ROMPAGE_PORT), a   ; page in Speccy ROM
-      ei
-      ret
+      	call cls
+     	xor a
+     	out (ROMPAGE_PORT), a   ; page in Speccy ROM
+     	ei
+     	ret
 
 ;
 ;	Programs a flash page.
