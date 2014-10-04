@@ -413,16 +413,31 @@ F_FlashReadId
 	push af
 	ld a, 32
 	out (ROMPAGE_PORT), a
+
+;	Initiate autoselect command sequence
+
 	ld a, 0xaa
 	ld (0x555), a
 	ld a, 0x55
 	ld (0x2aa), a
 	ld a, 0x90
 	ld (0x555), a
+
+;	Read Manufacturer ID
+
 	ld a, (0x0)
 	ld h, a
+
+;	Read Device ID
+
 	ld a, (0x1)
 	ld l,a
+
+;	Issue reset command to exit autoselect mode
+
+	ld a, 0xf0
+	ld (0x00), a
+	
 	pop af
 	ret
 
