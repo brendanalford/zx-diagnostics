@@ -63,12 +63,26 @@ start
       	call print
       	
       	call F_FlashReadId
+      	call map_device_id
+      	jr nc, flash_not_identified
+      	
+      	ld l, (ix+2)
+      	ld h, (ix+3)
+      	call print
+      	
+      	jr get_option
+      	
+flash_not_identified
+      	push hl
+      	ld hl, chip_unknown
+      	call print
+      	pop hl
       	ld de, v_printbuf
       	call Num2Hex
       	ld hl, v_printbuf
       	call print
-
-
+	ld hl, chip_unknown2
+	call print
 
 ;	Wait for a user selection
 
@@ -581,9 +595,72 @@ map_key_to_page
 	sub 9
 	ret
 	
+
+;
+;	Maps the given device id to an information block describing
+;	the flash capabilities.
+;	Input: Device/Mfr ID in HL
+;	Output: Info block in IX, carry set if found
+;		Carry reset if no match
+;
+map_device_id
+	ld ix, map_info_table
+map_dev_loop
+	ld a, (ix)
+	cp h
+	jr nz, map_dev_next
+	ld a, (ix+1)
+	cp l
+	jr nz, map_dev_next
+
+;	Found match, return with current value of ix
+
+	scf
+	ret
+	
+map_dev_next
+	ld de, 6
+	add ix, de
+	ld a, (ix)
+	ld b, (ix+1)
+	or a
+	jr nz, map_dev_loop
+	
+;	Not found a match
+	and a
+	ret
+	
+	
+;
+;	Chip string table	
+;
+chip_am29040b
+	defb "AMIC AM29040B", 0
+;
+;	Map info table - each entry is six bytes long
+;	Bytes 0-1: Mfr Id/Device ID
+;	Bytes 2-3: Pointer to device type string
+;	Byte 4: Number of 16K pages supported by this device
+;	Byte 5: Sector size in KB
+;
+map_info_table
+;	AM29F040B - 32 pages, 64K sectors
+	defb 0x37, 0x86
+	defw chip_am29040b
+	defb 32, 64
+	
+	defb 0x00, 0x00, 0x00, 0x00, 0x00 ,0x00
+
+
+	
      	include "../charset.asm"
  	include "../print.asm"
 	include "input.asm"
+
+chip_unknown
+	defb "Unknown (", 0
+chip_unknown2
+	defb ")",0
 	
 str_banner
 	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Diag Board Flash Utility "
@@ -721,4 +798,4 @@ str_inuse
         defb "Continue anyway? (Y/N)\n", 0
 
 str_mfrdevice
-	defb AT, 23, 0, "Mfr/Device ID: ", 0
+	defb AT, 23, 0, "Flash type: ", 0
