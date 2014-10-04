@@ -87,6 +87,7 @@ flash_not_identified
 ;	Wait for a user selection
 
 get_option	
+	call beep
       	call get_key
       
 	cp "W"
@@ -98,7 +99,9 @@ get_option
       	cp "Z"
       	jr z, .reset
 
-      
+      	call is_alphanumeric
+      	jr nc, get_option
+      	
 ; 	If we get here we've selected a ROM to boot
 	
 	call map_key_to_page
@@ -141,12 +144,17 @@ get_option
       	
 ;	Wait for the user to pick a page or option.
 
+.progpage_getpage
+	call beep
       	call get_key
 
 ;	Did the user want to exit?
 	cp "Z"
 	jp z, start	
 
+	call is_alphanumeric
+	jr nc, .progpage_getpage
+	
 	call map_key_to_page
 
 ; 	Now try to program the page - first do some checks
@@ -241,8 +249,9 @@ get_option
       	call print
       	ld hl, str_chooseerase
       	call print
+      	
 .repoll
-      
+      	call beep
       	call get_key
 
 ;	User can hit X to return to the main menu.
@@ -307,7 +316,15 @@ get_option
       	push af     ; save intended sector
       	call cls
       	ld hl, str_delp4
+
       	call print
+
+;	Emit a long beep
+	ld b, 10
+.killbeep
+	call beep
+	djnz .killbeep
+	
       	call get_key
       	
 ;	Y = keep me
@@ -389,10 +406,15 @@ get_option
       	ld hl, str_back
       	call print
       
+.copypage_getpage
+      	call beep
       	call get_key
 
       	cp "Z"      
       	jp z, start
+      	call is_alphanumeric
+      	jr nc, .copypage_getpage
+      	
 	call map_key_to_page
 	
 ; 	Page number now in A
@@ -584,9 +606,72 @@ writeData.borked
 	ret
 
 ;
+;	Emits a short beep.
+;	Assumes a white border
+;
+beep
+	push hl
+	push de
+	push bc
+	
+	ld a, 7
+	ld l, a
+	ld de, 0x50				
+
+.tone.duration
+
+	ld bc, 0x20			; bc = twice tone freq in Hz
+
+.tone.period
+
+	dec bc
+	ld a, b
+	or c
+	jr nz, .tone.period
+
+;	Toggle speaker output, preserve border
+
+	ld a, l
+	xor 0x10				
+	ld l, a 
+	out (0xfe), a
+
+;	Generate tone for desired duration
+
+	dec de					
+	ld a, d
+	or e
+	jr nz, .tone.duration
+
+	pop bc
+	pop de
+	pop hl
+	ret
+
+;
+;	Checks if the given ASCII value in A is alphanumeric
+;	Carry flag set if true, reset otherwise.
+;
+is_alphanumeric
+	cp '0'
+	jr c, not_alphanum
+	cp 'Z'
+	jr nc, not_alphanum
+	
+	cp '9'
+	jr c, is_alpha
+	cp 'A'
+	jr nc, is_alpha
+not_alphanum
+	and a
+	ret
+is_alpha
+	scf
+	ret
+
+;
 ;	Translates a pressed key to a page number
 ;
-
 map_key_to_page
 	
 	sub '0'
@@ -705,6 +790,9 @@ str_copy
 str_reboot  
 	defb "z:Exit to ZX BASIC\n", 0
 
+str_mfrdevice
+	defb AT, 23, 0, "Flash type: ", 0
+	
 str_prog
  	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Program 16K Flash Page   "
  	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
@@ -736,8 +824,7 @@ str_back
 	defb "Press ", TEXTBOLD, BRIGHT, 1, "Z", TEXTNORM, BRIGHT, 0," to go back\n", 0
 
 str_anykey  
-	defb "Press ", TEXTBOLD, BRIGHT, 1, "0-9", TEXTNORM, BRIGHT, 0
-	defb " or ", TEXTBOLD, BRIGHT, 1, "A-Z", TEXTNORM, BRIGHT, 0," to exit", 0
+	defb "Press any key to exit", 0
 
 str_erasehdr
 	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Erase 64K Flash Sector   "
@@ -796,6 +883,3 @@ str_prog_anyway
 str_inuse   
 	defb "This flash page seems used.\n"
         defb "Continue anyway? (Y/N)\n", 0
-
-str_mfrdevice
-	defb AT, 23, 0, "Flash type: ", 0
