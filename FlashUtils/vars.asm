@@ -5,3 +5,5 @@
 
     define v_page     0xff04
     
+    define v_printbuf 0xff05
+    

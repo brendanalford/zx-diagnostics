@@ -39,7 +39,13 @@ start
       	xor a
       	ld (v_column), a
       	ld (v_row), a
+      	
       	ld (v_bold), a
+      	ld (v_printbuf), a
+	ld hl, v_printbuf
+	ld de, v_printbuf + 1
+	ld bc, 6
+	ldir
       
 ;	Main Menu screen
 
@@ -52,6 +58,17 @@ start
       	call print
       	ld hl, str_others
       	call print
+
+      	ld hl, str_mfrdevice
+      	call print
+      	
+      	call F_FlashReadId
+      	ld de, v_printbuf
+      	call Num2Hex
+      	ld hl, v_printbuf
+      	call print
+
+
 
 ;	Wait for a user selection
 
@@ -387,6 +404,28 @@ get_option
       	call get_key
       	jp start
 
+F_FlashReadId
+;
+;	Read manufacturer id/device id from Flash.
+;	Returns H = Mfr ID, L = Device ID. 
+;
+
+	push af
+	ld a, 32
+	out (ROMPAGE_PORT), a
+	ld a, 0xaa
+	ld (0x555), a
+	ld a, 0x55
+	ld (0x2aa), a
+	ld a, 0x90
+	ld (0x555), a
+	ld a, (0x0)
+	ld h, a
+	ld a, (0x1)
+	ld l,a
+	pop af
+	ret
+
 ;
 ; 	EraseSector subroutine erases a 64K Flash ROM sector. It's designed
 ; 	for 4 megabit chips like the Am29F040.
@@ -530,7 +569,7 @@ map_key_to_page
      	include "../charset.asm"
  	include "../print.asm"
 	include "input.asm"
-
+	
 str_banner
 	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Diag Board Flash Utility "
 	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
@@ -666,3 +705,5 @@ str_inuse
 	defb "This flash page seems used.\n"
         defb "Continue anyway? (Y/N)\n", 0
 
+str_mfrdevice
+	defb AT, 23, 0, "Mfr/Device ID: ", 0
