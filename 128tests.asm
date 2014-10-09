@@ -361,6 +361,7 @@ test_paging_fail
 	jr z, plus2_pal_msg
 	ld hl, str_check_128_hal
 	call print
+
 	ret
 
 plus2_pal_msg

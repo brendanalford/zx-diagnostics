@@ -28,6 +28,7 @@
 	define   ROMPAGE_PORT   31
 	define   BORDERRED	2
 	define   BORDERGRN	4
+	define 	 BORDERYEL	6
 	define	 BORDERWHT	7
 	define   ERR_FLASH	0xaa   ; alternate lights
 
@@ -415,7 +416,7 @@
 
 	MACRO RANDFILLUP addr, reps, seed
 
-	ld iy, addr
+	ld sp, addr
 	exx
 	ld bc, seed  
 	exx
@@ -425,9 +426,12 @@
 
 	exx
 	RAND16
-	ld (iy), hl
-	inc iy
-	inc iy
+	ld de, hl
+	ld hl, 0
+	add hl, sp
+	ld (hl), de
+	inc sp
+	inc sp
 	exx
 	dec bc
 	ld a, b
@@ -436,7 +440,7 @@
 
 .randfill.up.test      
 
-	ld iy, addr
+	ld sp, addr
 	exx
 	ld bc, seed      
 	exx
@@ -446,9 +450,7 @@
 
 	exx
 	RAND16	; byte pair to test now in HL
-	ld de, (iy) ; get corresponding pair of bytes from RAM
-	inc iy
-	inc iy
+	pop de	; Pop memory off the stack to test into DE
 	ld a, h
 	cp d
 	jp nz, .randfill.up.borked1
@@ -502,19 +504,23 @@
 
 	MACRO RANDFILLDOWN addr, reps, seed
 
-	ld iy, addr
+	ld sp, addr
 	exx
 	ld bc, seed  
 	exx
 	ld bc, reps
 	
+	; Adjust stack pointer as we won't be popping values off in 
+	; the normal sense when testing
+	
+	inc sp
+	inc sp
+	
 .randfill.down.loop      
 
 	exx
 	RAND16
-	ld (iy), hl
-	dec iy
-	dec iy
+	push hl
 	exx
 	dec bc
 	ld a, b
@@ -523,7 +529,7 @@
 
 .randfill.down.test      
 
-	ld iy, addr
+	ld sp, addr
 	exx
 	ld bc, seed      
 	exx
@@ -532,10 +538,13 @@
 .randfill.down.testloop
 
 	exx
-	RAND16	; byte pair to test now in HL
-	ld de, (iy) ; get corresponding pair of bytes from RAM
-	dec iy
-	dec iy
+	RAND16		; byte pair to test now in HL
+	pop de		; corresponding memory in DE
+	dec sp
+	dec sp		; Adjust stack pointer back downwards
+	dec sp		
+	dec sp
+	
 	ld a, h
 	cp d
 	jp nz, .randfill.down.borked1

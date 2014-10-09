@@ -115,6 +115,26 @@ tuning of VR1/VR2 pots on Issue 1 or 2 machines.
 Holding down the Break key (or Caps Shift/Space) will reset to BASIC (on DiagBoard hardware) or 
 restart the firmware (other devices).
 
+4.2  SOAK TEST
+
+If the 'S' key is held down when the machine is powered on, the firmware enters soak test mode 
+(signified by a third high pitched tone immediately after the initialisation tones). This performs
+repeated memory testing, looping back to the start after each successful test.
+
+If a lower RAM failure is detected, soak test mode is indicated by a narrow yellow border 
+stripe at the bottom of the screen.
+
+When testing upper RAM (48K) or 128K memory, soak test mode is indicated by a four digit hex number
+in the bottom right of the screen, this denotes the current soak test iteration. This may be used as
+a guide to how long soak testing has been running for.
+
+All tests are executed identically and in the same order as in normal test mode.
+
+Following each successful test iteration, a message 'Soak test iteration complete' is displayed and
+the firmware commences the next test iteration after a short delay.
+
+If the ROM checksum test fails (and therefore the machine type cannot be determined), the firmware 
+assumes 48K hardware and continues testing as such.
 
 
 5. TESTING DETAILS

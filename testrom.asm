@@ -55,18 +55,32 @@
 
 ; 	Only interested in SPACE key
 
-	and 0x1
-	cp 1
-
-	jp nz, testcard
+	bit 0, a
+	jp z, testcard
 	
 ;	Set up for tests
 
 	xor a
 	ld b, a		; using ixh to store a flag to tell us whether upper
                 	; ram is good (if it is we continue testing)
-	ld c, a		; ixl is our test type failure indicator
-	ld ix, bc
+	ld c, a		
+	ld ix, bc	
+	ld iy, bc 	; iy is our soak test status register
+			; 0 - no soak test being performed; else
+			; holds the current iteration of the test
+	
+;	Test if the S key is being pressed, if true then go into soaktest mode
+	
+	ld a, 0xfd
+	ld b, a
+	in a, (c)
+	bit 1, a
+	jr nz, start_testing
+	
+	ld iy, 1	; Soak testing - start at iteration 1
+	BEEP 0x10, 0x300
+	
+start_testing
 
 ;	Blue border - signal no errors (yet)
 	
@@ -226,9 +240,9 @@ fail_border_5
 	cp 8
 	jr nz, fail_border_2
 	
-; Done, now delay until floating bus indicates we're off screen
+; Done, now delay a little
 
-	ld bc, 0xff
+	ld bc, 0x40
 
 fail_border_6
 
@@ -237,20 +251,33 @@ fail_border_6
 	or b
 	jr nz, fail_border_6
 
-	ld a, 0xff
-	ld c, a
-	ld a, 0
-	ld b, a
-
 fail_border_7
 
-	in a, (c)
-	cp 0xff
-	jr nz, fail_border_7
+;
+;	Check if we're doing a soak test
+;
+	ld a, iyh
+	or iyl
+	jr z, fail_border_end
+;
+;	Yes, output an additional yellow stripe to signify this
+;	
+	ld a, BORDERYEL
+	out (ULA_PORT), a
+	ld a, 0x8a
+	ld b, a
+	
+fail_border_8
+	
+	djnz fail_border_8
+	ld a, 0
+	out (ULA_PORT), a
 	
 ; And repeat for next frame - enable ints and wait for and interrupt
 ; to carry us back
-	
+
+fail_border_end
+
 	ld de, ix
 	ei
 	halt
@@ -304,6 +331,22 @@ hexstr_init
 	ld hl, str_lowerrampass 
 	call print
 
+;	Are we in a soak test?
+
+	ld a, iyh
+	or iyl
+	jr z, rom_test
+	
+;	Yes, print the current iteration
+	
+	ld hl, str_soaktest
+	call print
+	ld hl, iy
+	ld de, v_hexstr
+	call Num2Hex
+	ld hl, v_hexstr
+	call print
+	
 rom_test	  
 
 ;	Perform some ROM checksum testing to determine what
@@ -397,7 +440,7 @@ check_grey_plus2
 ; Unknown ROM, say so and prompt the user for manual selection
 
 rom_unknown
-	
+
 	push hl
 	ld hl, str_romunknown
 	call print
@@ -409,17 +452,32 @@ rom_unknown
       	ld hl, v_hexstr
       	call print
 
+; 	Check if we're in soak test mode, if so assume 48K mode
+
+	ld a, iyh
+	or iyl
+	jr z, rom_unknown_2
+
+;	ROM unknown and in soak test, assume 48K
+
+	ld hl, str_assume48k
+	call print
+	call test_48k
+	jr testinterrupts	
+	
+rom_unknown_2
+	
 ; 	Uncomment to disable user selection
 
 	;call test_48k
 	;jr testinterrupts
 
 ; 	end disable user selection
+	
+; 	Allow user to choose model if ROM version can't be determined
 
 	ld hl, str_testselect
 	call print
-	
-; 	Allow user to choose model if ROM version can't be determined
 
 select_test
 	  
@@ -457,7 +515,7 @@ select_test_2
 	ld hl, str_selectplus2
 	call print
 	call test_128k
-
+	
 testinterrupts
 
 ; 	Test ULA's generation of interrupts
@@ -528,7 +586,6 @@ intloop
 	di
 	ld hl, 0
 	ld (v_intcount), hl
-	ei
 
 ;	Did we encounter any failures?
 
@@ -542,7 +599,7 @@ intloop
 	ld b, a
 	ld a, (v_fail_ic_uncontend)
 	or b
-	jr z, diaghw_present
+	jr z, soak_test_check
 
 ;	Yes we did - say so and halt
 	
@@ -550,6 +607,41 @@ intloop
 	call print
 	di 
 	halt
+
+soak_test_check
+
+;	All tests passed.
+;	Are we in a soak test situation?
+
+	ld a, iyh
+	or iyl
+	jr z, diaghw_present
+	
+	ld hl, str_soakcomplete
+	call print
+
+;	A short delay before recommencing testing
+
+	ld hl, 0x08
+innerdelay_1
+	ld bc, 0xffff
+innerdelay_2
+	dec bc
+	ld a, b
+	or c
+	jr nz, innerdelay_2
+	
+	dec hl
+	ld a, h
+	or l
+	jr nz, innerdelay_1
+
+; 	Bump soak test iteration count and restart
+
+	inc iy
+	im 0
+	jp start_testing
+
 
 ;	Check if we have diagboard hardware - if not, we're done here
 
@@ -577,7 +669,8 @@ diaghw_ok
 ;	Print countdown
 
 	ld b, 9
-
+	ei
+	
 waitloop
 
 	call check_spc_key
@@ -783,6 +876,9 @@ str_lowerrampass
 
 	defb	AT, 2, 0, "Lower 16K RAM tests passed\n\n", 0
 
+str_soaktest
+	defb 	AT, 23, 28,0
+	
 str_test4
 
 	defb	"\nUpper RAM Walk test...      ", 0 
@@ -841,6 +937,9 @@ str_testselect
 
 	defb	AT, 5, 0, "Press  1..48K 2..128K 3..Grey +2", 0 
 
+str_assume48k
+	defb 	AT, 5, 0, "Assuming 48K mode...\n", 0
+	
 str_select48k
 
 	defb	AT, 5, 7, BRIGHT, 1, "1..48K\n", TEXTNORM, ATTR, 56, 0
@@ -906,6 +1005,9 @@ str_interrupt_tab
 
 	defb	TAB, 28, 0
 
+str_soakcomplete
+	defb	"\n  Soak test iteration complete  ", 0
+	
 str_halted
 
 	defb	TEXTBOLD, "\n   *** Testing Completed ***    ", TEXTNORM, 0 
