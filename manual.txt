@@ -59,6 +59,21 @@ that a fault was encountered. The computer will then halt.
 
 If a DiagBoard is being used, then the LEDs will be lit to reflect failed memory IC's in the same pattern.
 
+NOTE: If testing a 128K machine, these tests will by default exercise page 5 of RAM. In this case, the memory 
+IC's corresponding to bits 0-7 are as follows:
+
+ Bit  IC (128K)   IC (+2) 
++---+-----------+---------+
+| 0 | IC6       | IC32    |
+| 1 | IC7       | IC31    |
+| 2 | IC8       | IC30    |
+| 3 | IC9       | IC29    |
+| 4 | IC10      | IC28    |
+| 5 | IC11      | IC27    |
+| 6 | IC12      | IC26    |
+| 7 | IC13      | IC25    |
++---+-----------+---------+
+
 
 3.2  FURTHER TESTS
 
