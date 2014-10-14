@@ -345,7 +345,7 @@ decstr_init
 
 	ld a, iyh
 	or iyl
-	jr z, rom_test
+	jr z, print_footer
 	
 ;	Yes, print the current iteration
 	
@@ -355,6 +355,12 @@ decstr_init
 	ld de, v_decstr
 	call Num2Dec
 	ld hl, v_decstr
+	call print
+	jr rom_test
+	
+print_footer
+
+	ld hl, str_footer
 	call print
 	
 rom_test	  
@@ -888,11 +894,16 @@ str_banner
 	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
 	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
 
+str_footer			
+	
+	defb	AT, 23, 0, "    v0.2 D. Smith, B. Alford    ", 0
+	
 str_lowerrampass
 
 	defb	AT, 2, 0, "Lower 16K RAM tests passed\n\n", 0
 
 str_soaktest
+	
 	defb 	AT, 23, 3, "Soak test: iteration ", INK, 0, 0
 	
 str_test4
@@ -1134,7 +1145,6 @@ intvec2
 
 	BLOCK #4000-$,#FF
 
-;	Finally add the system variable locations in upper RAM.
+;	Define the system variable locations in upper RAM
 
-	org 32768
 	include "vars.asm"
