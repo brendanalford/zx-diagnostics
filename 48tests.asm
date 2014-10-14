@@ -107,6 +107,11 @@ print_upperresult
 	cp 0xff
 	jr nz, print_upper_ic
 
+;	Reset the error bitmap in ix
+	
+	xor a
+	ld ixh, 0
+	
 	ld hl, str_isthis16k
 	call print
 	

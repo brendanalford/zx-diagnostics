@@ -326,8 +326,6 @@ hexstr_init
 	call cls
     	ld hl, str_banner
     	call print
-	ld hl, str_footer
-	call print
 	ld hl, str_lowerrampass 
 	call print
 
@@ -515,11 +513,18 @@ select_test_2
 	ld hl, str_selectplus2
 	call print
 	call test_128k
-	
+
 testinterrupts
 
 ; 	Test ULA's generation of interrupts
 
+;	Are we in a soak test situation?
+;	Skip interrupt test if so
+
+	ld a, iyh
+	or iyl
+	jr nz, tests_complete
+	
 	ld hl, str_interrupttest
 	call print
 
@@ -573,16 +578,19 @@ intloop
 
 	jr nz, intloop
 
-;
-;	All testing complete.
-;
-
 	ld a, b
 	ld (v_row), a
 	ld hl, str_interrupt_tab
 	call print
 	ld hl, str_testpass
 	call print
+
+;
+;	All testing complete.
+;
+
+tests_complete
+
 	di
 	ld hl, 0
 	ld (v_intcount), hl
@@ -868,16 +876,12 @@ str_banner
 	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
 	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
 
-str_footer
-
-	defb	AT, 23, 5,"v0.2 D.Smith/B.Alford", 0
-
 str_lowerrampass
 
 	defb	AT, 2, 0, "Lower 16K RAM tests passed\n\n", 0
 
 str_soaktest
-	defb 	AT, 23, 28,0
+	defb 	AT, 23, 4, "Soak test iteration ", INK, 0, 0
 	
 str_test4
 
