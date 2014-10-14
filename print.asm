@@ -443,7 +443,7 @@ set_print_pos
 	ret
 
 ;
-;	Prints a 16-bit hex number to the screen.
+;	Prints a 16-bit hex number to the buffer pointed to by DE.
 ;	Inputs: HL=number to print.
 ;
 
@@ -471,6 +471,37 @@ Num2
 	daa
 	add	a,#A0
 	adc	a,#40
+
+	ld	(de),a
+	inc	de
+	ret
+
+;
+;	Prints a 16-bit decimal number to the buffer pointed to by DE.
+;	Inputs: HL=number to print.
+;
+Num2Dec	
+	
+	ld	bc, -10000
+	call	Num1D
+	ld	bc, -1000
+	call	Num1D
+	ld	bc, -100
+	call	Num1D
+	ld	c, -10
+	call	Num1D
+	ld	c, b
+
+Num1D	
+
+	ld	a, '0'-1
+
+Num2D	
+
+	inc	a
+	add	hl,bc
+	jr	c, Num2D
+	sbc	hl,bc
 
 	ld	(de),a
 	inc	de

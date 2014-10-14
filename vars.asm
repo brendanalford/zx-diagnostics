@@ -33,17 +33,18 @@ v_bold			equ #7d03; 1
 
 v_hexstr		equ #7d10; 5
 v_intcount		equ #7d1a; 2
+v_decstr		equ #7d20; 6
 
 ;	Testing variables
 
-v_stacktmp		equ #7d20; Temporary stack location when calling routines that assume no lower ram
-v_curpage		equ #7d22; Currently paged location
-v_paging		equ #7d23; Bank Paging status (output)
-v_fail_ic		equ #7d26; Failed IC bitmap (48K)
-v_fail_ic_uncontend	equ #7d27; Failed IC bitmap, uncontended memory banks 0,2,4,8 (128k)
-v_fail_ic_contend	equ #7d28; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
-v_toastrack		equ #7d29; Non-zero if this is a 128K toastrack
-v_testcard		equ #7d2a; Workspace for testcard string
+v_stacktmp		equ #7d30; Temporary stack location when calling routines that assume no lower ram
+v_curpage		equ #7d32; Currently paged location
+v_paging		equ #7d33; Bank Paging status (output)
+v_fail_ic		equ #7d36; Failed IC bitmap (48K)
+v_fail_ic_uncontend	equ #7d37; Failed IC bitmap, uncontended memory banks 0,2,4,8 (128k)
+v_fail_ic_contend	equ #7d38; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
+v_toastrack		equ #7d39; Non-zero if this is a 128K toastrack
+v_testcard		equ #7d3a; Workspace for testcard string
 
 ;	Relocation addresses for routines that need the original ROM paged
 

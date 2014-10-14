@@ -314,6 +314,15 @@ hexstr_init
 	inc hl
 	djnz hexstr_init
 	
+	ld b, 6
+	ld hl, v_decstr
+	xor a
+	
+decstr_init
+	ld (hl), a
+	inc hl
+	djnz decstr_init
+	
     	ld a, BORDERWHT
     	out (ULA_PORT), a
 
@@ -340,9 +349,9 @@ hexstr_init
 	ld hl, str_soaktest
 	call print
 	ld hl, iy
-	ld de, v_hexstr
-	call Num2Hex
-	ld hl, v_hexstr
+	ld de, v_decstr
+	call Num2Dec
+	ld hl, v_decstr
 	call print
 	
 rom_test	  
@@ -881,7 +890,7 @@ str_lowerrampass
 	defb	AT, 2, 0, "Lower 16K RAM tests passed\n\n", 0
 
 str_soaktest
-	defb 	AT, 23, 4, "Soak test iteration ", INK, 0, 0
+	defb 	AT, 23, 3, "Soak test: iteration ", INK, 0, 0
 	
 str_test4
 
