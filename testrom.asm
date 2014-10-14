@@ -73,6 +73,9 @@
 	
 	ld a, 0xfd
 	ld b, a
+	ld a, 0xfe
+	ld c, a
+	
 	in a, (c)
 	bit 1, a
 	jr nz, start_testing
