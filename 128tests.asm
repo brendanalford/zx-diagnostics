@@ -67,6 +67,7 @@ test_ram_page
 
 	xor a
 	ld (v_fail_ic), a
+	ld ixh, a
 
 ;	Run the walk, inversion and random fill tests on the 
 ;	target page. Save BC beforehand as we're using that
