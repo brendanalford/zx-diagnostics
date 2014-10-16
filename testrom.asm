@@ -44,10 +44,13 @@
 ;	Sound a brief tone to indicate tests are starting.
 ;	This also verifies that the CPU and ULA are working.
 
-	ld l, 1					; Border colour to preserve
+	ld l, 1				; Border colour to preserve
 	BEEP 0x48, 0x0300
 	BEEP 0x23, 0x0150
 
+	xor a
+	out (LED_PORT), a		; Extinguish the LED's
+	
 ;	Tone done, check if space is being pressed
 
 	ld bc, 0x7ffe
