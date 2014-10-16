@@ -740,7 +740,7 @@ map_info_table
 	
      	include "../charset.asm"
  	include "../print.asm"
-	include "input.asm"
+	include "../input.asm"
 
 chip_unknown
 	defb "Unknown (", 0

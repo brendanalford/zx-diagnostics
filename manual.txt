@@ -130,6 +130,7 @@ tuning of VR1/VR2 pots on Issue 1 or 2 machines.
 Holding down the Break key (or Caps Shift/Space) will reset to BASIC (on DiagBoard hardware) or 
 restart the firmware (other devices).
 
+
 4.2  SOAK TEST
 
 If the 'S' key is held down when the machine is powered on, the firmware enters soak test mode 
@@ -154,6 +155,31 @@ working; this will be the case if testing a 16K Spectrum).
 
 If the ROM checksum test fails (and therefore the machine type cannot be determined), the firmware 
 assumes 48K hardware and continues testing as such.
+
+
+4.3  ULA TEST
+
+If the 'U' key is held down when the machine is powered on, following the initialisation tones the
+ULA Test screen will be shown. This is a rudimentary facility to allow basic ULA functionality to
+be verified.
+
+The values read from Port 0xFE are displayed following the 'ULA READ' message, set bits are rendered
+as white ink on black paper, reset bits as the inverse. Also, the value of the EAR bit (bit 6) is 
+additionally displayed as if it were driving loading stripes, in a 3x2 block.
+
+Pressing keys on the keyboard influences the values of bits 0-4 as you would expect, and allow the 
+full keyboard to be verified.
+
+Holding down the 1 key will output a tone via the MIC port of the ULA, accompanied by red/cyan stripes.
+This can be used to verify tape saving output.
+
+Holding down the 2 key will output a tone via the EAR port of the ULA, accompanied by blue/yellow
+stripes. This can be used to verify speaker output (a little redundant perhaps)
+
+Holding down the 3 key will output all possible colours as a rainbow border pattern, and to verify
+that this functionality is operating successfully.
+
+The machine will need to be reset or powered off to exit this mode.
 
 
 5. TESTING DETAILS

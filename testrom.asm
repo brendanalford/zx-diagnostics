@@ -53,10 +53,17 @@
 	ld bc, 0x7ffe
 	in a, (c)
 
-; 	Only interested in SPACE key
+; 	Only interested in SPACE key, start testcard if pressed
 
 	bit 0, a
 	jp z, testcard
+
+;	Jump to ULA test routine if U key is pressed
+
+	ld bc, 0xdffe
+	in a, (c)
+	bit 3, a
+	jp z, ulatest
 	
 ;	Set up for tests
 
@@ -70,12 +77,8 @@
 			; holds the current iteration of the test
 	
 ;	Test if the S key is being pressed, if true then go into soaktest mode
-	
-	ld a, 0xfd
-	ld b, a
-	ld a, 0xfe
-	ld c, a
-	
+
+	ld bc, 0xfdfe	
 	in a, (c)
 	bit 1, a
 	jr nz, start_testing
@@ -870,6 +873,7 @@ ic_ok
 	include "print.asm"
 	include "paging.asm"
 	include "testcard.asm"
+	include "ulatest.asm"
 	
 ;
 ;	Checks to see if the SPACE key was pressed.

@@ -699,3 +699,18 @@
 	jr nz, .tone.duration
 
 	ENDM
+	
+;	A quick macro to write a value in a to four consecutive
+;	memory locations starting at HL.
+
+	MACRO LDHL4TIMES
+	
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	
+	ENDM
