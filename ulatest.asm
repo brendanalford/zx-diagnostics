@@ -50,6 +50,8 @@ ulatest
 	call print
 	ld hl, str_ulaselecttest
 	call print
+	ld hl, str_ulaexit
+	call print
 	
 ulatest_loop
 	
@@ -114,7 +116,20 @@ ear_notset
 	bit 2, a
 	jr z, test_border
 	
-	jp ulatest_loop
+	
+;	Check for Break (Caps Shift+Space)
+
+	ld bc, 0x7ffe
+	in a, (c)
+	bit 0, a
+	jr nz, ulatest_loop		; Space not pressed
+	ld bc, 0xfefe
+	in a, (c)
+	bit 0, a
+	jr nz, ulatest_loop		; Caps shift not pressed
+
+	jp restart			; Page out and restart the machine	
+
 	
 out_mictone
 	
@@ -215,7 +230,6 @@ test_border2
 	out (0xfe), a
 	jp ulatest_loop
 	
-	
 str_ulatest
 
 	defb AT, 2, 9, TEXTBOLD, "* ULA TEST *", TEXTNORM, 0
@@ -231,6 +245,10 @@ str_loadingstripe
 str_ulaselecttest
 
 	defb AT, 6, 0, "Select:"
-	defb AT, 7, 0, "1) Output tone to MIC port"
-	defb AT, 8, 0, "2) Output tone to EAR port"
-	defb AT, 9, 0, "3) Test border generation", 0
+	defb AT, 8, 0, "1) Output tone to MIC port"
+	defb AT, 9, 0, "2) Output tone to EAR port"
+	defb AT, 10, 0, "3) Test border generation", 0
+
+str_ulaexit
+
+	defb AT, 13, 7, "Hold BREAK to exit", 0
