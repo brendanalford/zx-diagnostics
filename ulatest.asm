@@ -195,7 +195,7 @@ test_border1
 	and 0x7
 	ld c, a
 	
-	ld b, 0x30
+	ld b, 0xa2
 
 test_border2
 
