@@ -179,7 +179,8 @@ stripes. This can be used to verify speaker output (a little redundant perhaps)
 Holding down the 3 key will output all possible colours as a rainbow border pattern, and to verify
 that this functionality is operating successfully.
 
-The machine will need to be reset or powered off to exit this mode.
+As with the test card, holding down the Break key (or Caps Shift/Space) will reset to BASIC 
+(on DiagBoard hardware) or restart the firmware (other devices).
 
 
 5. TESTING DETAILS
