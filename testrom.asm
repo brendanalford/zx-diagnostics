@@ -42,12 +42,18 @@
 	di
 	jr start
 
-;	Define a version string
+;	Define a version string in the dead space between the ROM start and the
+;	NMI/start vector
 
 str_build
-
+	BLOCK #0010-$, #FF
 	defb	"DiagBoard Test ROM v0.2 built ", BUILD_TIMESTAMP , 0
+	BLOCK #0066-$, #FF
 		
+nmi
+
+;	Arranged so that the NMI vector happens to be the start of the 
+;	diagnostic routines proper
 
 start
 
