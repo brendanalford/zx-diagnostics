@@ -27,12 +27,29 @@
 
 	include "defines.asm"
 
+;
+;	Define a build timestamp
+;
+	LUA ALLPASS
+	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
+	ENDLUA
+
 	org 0
 
 ; 	Ints must be disabled as we don't have 
 ; 	anywhere reliable to put a stack yet
 
-	di			
+	di
+	jr start
+
+;	Define a version string
+
+str_build
+
+	defb	"DiagBoard Test ROM v0.2 built ", BUILD_TIMESTAMP , 0
+		
+
+start
 
 ;	Blank the screen
 
@@ -847,11 +864,15 @@ fail_print_ic_loop
 	call print
 	ld hl, ix
 
-;	Strings are page aligned, so we can just replace the LSB
+;	Strings are aligned to nearest 32 bytes, so we can just replace
+;	this much the LSB
 
-	ld l, b
-	rlc l
-	rlc l
+	ld a, b
+	rlca
+	rlca
+	or l
+	ld l, a
+	
 	call print
 	ld a, 5
 	call check_end_of_line
@@ -1079,13 +1100,13 @@ str_ic
 ;	Align the ISR for interrupt checking at location 0x2F2F.
 ;	
 
-	BLOCK #2E2E-$, #FF
+	BLOCK #3535-$, #FF
 	
 failurebars_intservice
 
 	jp fail_border
 
-	BLOCK #2F2F-$, #FF
+	BLOCK #3636-$, #FF
 
 ; The ISR just increments the v_intcount system variable and exits.
 
@@ -1100,28 +1121,25 @@ intservice
 	reti
 
 ;	Page align the IC strings to make calcs easier
+;	Each string block needs to be aligned to 32 bytes
 
-	BLOCK #3000-$, #FF
+	BLOCK #3700-$, #FF
 
 str_48_ic
 
 	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0	
-	BLOCK #3100-$, #FF
 
 str_128k_ic_contend
 
 	defb "6  ",0, "7  ",0, "8  ",0, "9  ",0, "10 ",0, "11 ",0, "12 ",0, "13 ", 0
-	BLOCK #3200-$, #FF
 
 str_128k_ic_uncontend
 
 	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0	
-	BLOCK #3300-$, #FF
 
 str_plus2_ic_contend
 
 	defb "32 ",0, "31 ",0, "30 ",0, "29 ",0, "28 ",0, "27 ",0, "26 ",0, "25 ", 0
-	BLOCK #3400-$, #FF
 
 str_plus2_ic_uncontend
 
@@ -1140,9 +1158,9 @@ str_rommagicstring
 
 	BLOCK #3800-$, #FF
 intvec1      
-	BLOCK #3A00-$, #2E 
+	BLOCK #3A00-$, #35 
 intvec2
-	BLOCK #3C00-$, #2F
+	BLOCK #3C00-$, #36
 
 ;	Character set at 0x3C00
       
