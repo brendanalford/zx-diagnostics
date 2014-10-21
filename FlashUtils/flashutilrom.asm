@@ -42,7 +42,7 @@ flashutil
 
 flashutilend
 
-        block #1E7F-$, 0
+        block #1E80-$, 0
 
 ;
 ;	Relocate the flash utility to RAM, then run from there
