@@ -1,0 +1,160 @@
+Diagnostic Board Flash Utility
+==============================
+
+By Brendan Alford
+brendanalford@eircom.net
+
+Original version by Dylan Smith
+and archived at http://www.comportec.de/diag/www.alioth.net/Projects/Spectrum-Diag/
+
+
+1.  INTRODUCTION
+
+The Diagnostic Board, as it uses Flash memory, is capable of being programmed by
+the Spectrum it is connected to. The Flash utility is provided to aid users in 
+managing ROM images written to the flash memory.
+
+
+2.  HOW TO BUILD
+
+The utility is structured such that it can be built using the sjasmplus assembler.
+Assuming sjasmplus is on your path, all that needs to be done is to run the build.bat 
+batch file which will build the flash utility, which will be named 'flashutil.bin', 
+and a version designed to live in the flash memory itself, named 'flashutilrom.bin'.
+
+
+3.  HOW TO USE
+
+You'll need either a tape containing an audio version of flashutil.tap, flashutilrom.tap
+(from the FlashUtils/bin directory) and testrom.tap (from the /bin directory), or you'll 
+need to hook up a PC to your Spectrum with a set of audio leads, and use PlayTZX to send 
+those three files to the Spectrum.
+
+Before you plug the board into the Spectrum you want to use to program, set the 
+Spectrum/Flash jumper to SPECTRUM (pins 2 to 3). This means the Spectrum will start with 
+its own ROM. Plug the board into the machine, and power it up. You should see the familiar 
+(c) message (or menu on 128K machines). 
+
+If instead you see vertical stripes up the screen - 
+the jumper is on the wrong pins. Power the machine down and move the jumper. (The vertical 
+lines are caused by the Spectrum executing RST #38 instructions - 0xFF - in an infinte loop, 
+and the stack overwriting screen memory. Unused or freshly erased flash memory has the 
+value 0xFF).
+
+Next, enter CLEAR 32767 to confine BASIC to lower memory so that what you load next won't 
+get overwritten. Then type LOAD "" CODE. Play the flashutil.tap file. Then type LOAD "" CODE 
+again, and play the flashutilrom.tap file. The first loads at address 57344 (hex 0xE000), 
+and the second at address 32768 (hex 0x8000). Assuming you don't witness the terror of 
+R: Tape loading error, next type:
+
+RANDOMIZE USR 57344
+
+You should now see the following:
+
+(TODO: Flash utility menu)
+
+Now press W. A new menu will appear, with a listing of 16K pages. The flash utility is designed
+to live in page 4, so press 4. Now the flash utility is in ROM...
+
+The last step put the flash utility in page 4, so it's always there whenever you want to change 
+the contents of ROM pages. Start the flash utility from ZX BASIC by typing:
+
+OUT 31,36
+
+This works from either 48K or 128K BASIC. Note that it copies the flash utility to RAM at 
+address 57344 (and will overwrite anything that's sitting there). The flash utility will not 
+work with the Spectrum/Flash jumper set to Flash. This is because this inverts the ROMCS bit 
+(to determine which ROM - the Spectrum's ROM, or page 0 of the flash chip) - so when the flash 
+utility tries to page in a new ROM page, it falls over). 
+
+This is important to note in case you feel like invoking the flash utility if you have something 
+like the Gosh Wonderful ZX BASIC ROM in page 0, and have set the jumper to Flash so the Spectrum 
+initializes from this instead of its own ROM.
+
+It probably looks very odd that the flash utility is invoked with OUT 31,36 - rather than 
+RANDOMIZE USR. But there's a method to the madness. Port 31 for output selects the ROM page. 
+36 is binary 00100100 (or hex 24). So bit 5 is set (which is connected to the ROMCS transistor, 
+so ROMCS is nailed high, paging out the Spectrum's ROM), and flash page 4 is selected. 
+
+This happens immediately the moment the Z80 places address 31 on the lower half of the address bus, 
+and 36 on the data bus. So the next instruction it executes will not be the Spectrum ROM's RET 
+instruction to return from the BASIC interpreter's OUT routine, but whatever is in that address in 
+page 4 of the flash ROM. The address in question is 0x1E7F. At this point in page 4, there is a routine 
+that copies the flash utility to RAM, and then jumps to it. Before you ask, port 31 doesn't conflict 
+with a Kempston joystick - the Kempston interface only responds to an IN 31 instruction. The diags 
+board only responds to an OUT 31 instruction. Therefore, if you have a Kempston interface 
+(that conforms to the Kempston spec and pays attention to the /RD line) that has a through connector,
+you can load the interface 2 Jetpac cartridge into a flash page and enjoy it with your joystick! 
+
+Incidentally, if you program a flash page with the Jetpac IF2 ROM, it can be invoked with an OUT 31 
+command from BASIC - and it runs properly. I wonder if Ultimate put valid code in at 0x1E7F just 
+for this very eventuality ... It's probably easier to start ROM games with the flash utility though, 
+so you don't need to work out the proper OUT command!
+
+
+3.1.  LOADING THE TEST ROM
+
+Next, LOAD "" CODE again, and play the testrom.tap file. Invoke the flash utility with 
+OUT 31,36, and choose W to write a page. Choose page 0. This will write the contents of RAM at 
+address 32768 (which now contain the 48K test ROM) to page 0.
+
+
+3.2. ADDING NEW ROMS TO THE FLASH CHIP
+
+You can now put any ROM image you like in any of the pages. This can be alternative BASIC ROMs, 
+or Interface 2 game ROMs, or other testing ROMs such as the Spectrum 128K memory tester. You 
+need to load them at address 32768. Once a new ROM is loaded, all you need to do to invoke it 
+is to OUT 31,36 - then just press the key corresponding to the page that it is in. 
+
+As it stands, the flash utility is extremely simple, and doesn't record what you put where, so 
+just keep a note of it. Next some common tasks you may want to do are listed.
+
+
+3.3. ERASING SECTORS 
+
+Flash doesn't work like RAM - you can't just arbitrarily change values in memory. It's more like 
+EPROM - you have to erase it before you can change it. For example, if you want to change the 
+ROM image in page 0, so you can boot with a different tester, you will need to erase sector 0 
+first. 
+
+Note that on a 512K chip, each sector is 64K in size, and so covers four 16K pages. This means 
+you'll lose anything in page 1, 2 and 3 as well. (There are solutions - more on that later).
+
+To erase a sector, choose item X. Then select the sector you wish to delete. The menu looks 
+like this, and reminds you which pages are affected by the sector erase:
+
+(TODO: Erase sector menu)
+
+Enter the corresponding key, and the erase operation will start. If you erase sector 1, you'll 
+be asked if you want to keep the flash utility, since this lives in page 4 (which is about to 
+get blown away). If you choose Y here, it will copy the contents of page 4 to RAM 
+(at address 32768), erase sector 1, then reprogram page 4 with the flash utility. You will 
+normally want to press Y, unless you're replacing the flash utility with a new version.
+
+If you need to save the contents of one or more pages in the sector that you want to erase, 
+you need to have some free pages in the flash chip. You can copy the contents of the page to 
+RAM at address 32768, and use the normal programming menu to program a new page with the contents. 
+Do this for as many pages as you need to copy.
+
+
+3.4 PROGRAMMING A PAGE WITH A USABLE ROM 
+
+The 'w' option on the main menu will write a 16K page. It writes whatever is in RAM at address 
+32768 and 16K long into the selected flash page. You just need to turn whatever it is you want 
+to write into a TZX or TAP file, which you then play to the Spectrum, loading at address 32768. 
+
+
+3.5. CHANGING THE BOOTABLE ROM IMAGE
+
+The ROM that gets booted if the jumper is set to 'Flash' is whatever is in page 0. You may want 
+to change this at some point, either to update the test ROM designed for this board, or to use 
+some other test ROM image. A suggested method is to keep various test ROMs in other pages, 
+for example having the 48K tester in page 8, and a 128K tester in page 9. 
+
+When the need to change the ROM in page 0 arises, the following procedure can be used:
+
+    Erase sector 0
+    Use option 'y' (Copy a 16K page to RAM) with the desired ROM image.
+    Use option 'w' to program a 16K flash page.
+
+
