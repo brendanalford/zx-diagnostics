@@ -18,6 +18,12 @@ They are designed for use with Dylan Smith's diagnostic board (described in the 
 but can be utilised with any device that can replace the Spectrum's built in ROM with this 
 image.
 
+The Diagnostic Board hardware's original layout and gerber files are available at the above
+(archived) link, however these are in the process of being updated for a more modern layout
+and component availability. Those with the ability to construct their own may make use 
+of the schematic and layout in the 'hardware' subdirectory to do this.
+
+
 2.  HOW TO BUILD
 
 
