@@ -36,6 +36,9 @@ in this case some familiarity with the tools must be assumed.
 
 3.  HOW TO USE
 
+If you simply want to use the firmware as is, a ready to program version of the diagnostic 
+firmware is provided in the 'bin' directory, named 'testrom.bin'.
+
 Since there are many different hardware devices capable of providing the ability to replace
 the Spectrum's ROM image with the diagnostic firmware, that process will not be outlined and is 
 left as an exercise for the reader. To be fair, if you own any of these devices and are 
