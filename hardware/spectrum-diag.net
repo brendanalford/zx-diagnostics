@@ -1,0 +1,81 @@
+unnamed_net55	ZD1-1 R12-1 
+unnamed_net54	LEDP12V-1 R12-2 
+unnamed_net53	LEDP9V-1 R11-2 
+unnamed_net52	LEDN5V-2 R10-2 
+unnamed_net51	LEDP5V-1 R9-2 
+unnamed_net50	Q2-1 J3-2 
+unnamed_net49	ZD1-2 CN1-B22 
+unnamed_net48	R11-1 CN1-A4 
+unnamed_net47	R10-1 CN1-B20 
+unnamed_net46	J3-1 CN1-A15 
+unnamed_net45	CN1-B4 Q1-1 CN1-A25 
+unnamed_net44	R8-2 D8-1 
+unnamed_net43	R7-2 D7-1 
+unnamed_net42	R6-2 D6-1 
+unnamed_net41	R5-2 D5-1 
+unnamed_net40	R4-2 D4-1 
+unnamed_net39	R3-2 D3-1 
+unnamed_net38	R2-2 D2-1 
+unnamed_net37	R1-2 D1-1 
+A10	CN1-B27 U5-23 
+unnamed_net36	CN1-B18 U5-24 
+A11	CN1-A28 U5-25 
+A9	CN1-A27 U5-26 
+A8	CN1-B26 U5-27 
+A13	CN1-B2 U5-28 
+A0	CN1-A9 U5-12 
+A1	CN1-A10 U5-11 
+A2	CN1-A11 U5-10 
+A3	CN1-A12 U5-9 
+A4	CN1-A24 U5-8 
+A12	CN1-A2 U5-4 
+unnamed_net35	CN1-B24 J2-3 
+unnamed_net34	U6-4 J1-1 
+unnamed_net33	R8-1 H1-15 U4-19 
+unnamed_net32	R7-1 H1-13 U4-16 
+unnamed_net31	R6-1 H1-11 U4-15 
+unnamed_net30	R5-1 H1-9 U4-12 
+unnamed_net29	R4-1 H1-7 U4-9 
+unnamed_net28	R3-1 H1-5 U4-6 
+unnamed_net27	R2-1 H1-3 U4-5 
+unnamed_net26	R1-1 H1-1 U4-2 
+unnamed_net25	U1-7 
+unnamed_net24	U1-9 
+unnamed_net23	U1-10 
+unnamed_net22	U1-11 
+unnamed_net21	U1-12 
+unnamed_net20	U1-13 
+unnamed_net19	U4-11 U1-14 
+unnamed_net18	J2-2 U1-6 
+unnamed_net17	CN1-B19 U5-31 U1-5 
+unnamed_net16	CN1-B17 U1-4 
+A7	CN1-A21 U5-5 U1-3 
+A6	CN1-A22 U5-6 U1-2 
+A5	CN1-A23 U5-7 U1-1 
+unnamed_net15	U5-22 U2-6 
+unnamed_net14	U2-5 U2-8 
+unnamed_net13	Q2-2 Q1-2 J1-2 U2-10 
+unnamed_net12	CN1-B16 U2-9 
+unnamed_net11	U2-4 U2-3 
+A15	CN1-B1 U2-2 
+A14	CN1-A1 U2-1 
+GND	LEDP12V-2 LEDP9V-2 LEDN5V-1 LEDP5V-2 U6-3 CN1-A14 CN1-A7 CN1-A6 D1-2 D2-2 D3-2 D4-2 D5-2 D6-2 D7-2 D8-2 H1-12 H1-14 H1-16 H1-6 H1-8 H1-10 H1-4 H1-2 U5-16 U4-10 U1-8 U2-7 U3-10 
+Vcc	U6-5 Q2-3 Q1-3 R9-1 CN1-A3 U5-32 J2-1 U4-20 U1-16 U2-14 U3-20 
+unnamed_net10	U3-19 
+unnamed_net9	U3-16 
+unnamed_net8	U6-2 J1-3 U3-15 
+unnamed_net7	U5-1 U3-12 
+unnamed_net6	U5-30 U3-9 
+unnamed_net5	U5-2 U3-6 
+unnamed_net4	U5-3 U3-5 
+unnamed_net3	U5-29 U3-2 
+unnamed_net2	CN1-A20 U4-1 U3-1 
+D7	U5-21 CN1-B3 U4-18 U3-18 
+D6	U5-20 CN1-B9 U4-17 U3-17 
+D5	U5-19 CN1-B10 U4-14 U3-14 
+D4	U5-18 CN1-B12 U4-13 U3-13 
+D3	U5-17 CN1-B11 U4-8 U3-8 
+D2	U5-15 CN1-B8 U4-7 U3-7 
+D1	U5-14 CN1-B7 U4-4 U3-4 
+D0	U5-13 CN1-B6 U4-3 U3-3 
+unnamed_net1	U1-15 U3-11 

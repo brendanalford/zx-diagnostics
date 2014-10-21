@@ -1138,7 +1138,7 @@ value=180R
 C 40900 33800 1 0 0 led-2.sym
 {
 T 41600 34000 5 10 1 1 0 0 1
-refdes=LED+5V
+refdes=LEDP5V
 T 41000 34400 5 10 0 0 0 0 1
 device=LED
 T 40900 33800 5 10 0 1 0 0 1
@@ -1147,7 +1147,7 @@ footprint=1206
 C 40900 33000 1 0 0 led-2.sym
 {
 T 41600 33200 5 10 1 1 0 0 1
-refdes=LED+9V
+refdes=LEDP9V
 T 41000 33600 5 10 0 0 0 0 1
 device=LED
 T 40900 33000 5 10 0 1 0 0 1
@@ -1156,7 +1156,7 @@ footprint=1206
 C 40900 32600 1 0 0 led-2.sym
 {
 T 41600 32800 5 10 1 1 0 0 1
-refdes=LED+12V
+refdes=LEDP12V
 T 41000 33200 5 10 0 0 0 0 1
 device=LED
 T 40900 32600 5 10 0 1 0 0 1
@@ -1165,7 +1165,7 @@ footprint=1206
 C 41800 33400 1 0 1 led-2.sym
 {
 T 42200 33600 5 10 1 1 0 6 1
-refdes=LED-5V
+refdes=LEDN5V
 T 41700 34000 5 10 0 0 0 6 1
 device=LED
 T 41800 33400 5 10 0 1 0 6 1
