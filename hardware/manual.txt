@@ -1,0 +1,136 @@
+Diagnostic Board Hardware Manual
+================================
+
+By Brendan Alford
+brendanalford@eircom.net
+
+Original version by Dylan Smith
+and archived at http://www.comportec.de/diag/www.alioth.net/Projects/Spectrum-Diag/
+
+1.  INTRODUCTION
+
+First things first: the Spectrum just isn't hot pluggable. To avoid killing your machine 
+even harder (or killing a working machine if you're making other uses of the board), make 
+sure you do the following before plugging the board into the Spectrum. This may seem like 
+old hat, but just some reminders:
+
+* Make sure that the power really is turned off on the Spectrum. I always make sure the 9v supply 
+  is physically unplugged from the machine.
+* Ensure that all the jumper blocks on the diagnostics board are actually jumpered, otherwise 
+  inputs they control will be left floating and odd things will happen.
+* Observe anti static precautions, especially if the relative humidity is low - the risk is 
+  highest in the winter. Be especially cautious if you regularly experience static shocks! Both 
+  the Spectrum and the diagnostic board use chips with MOSFETs, whose gate oxide is easily 
+  destroyed by a shock you can't even feel. Handling the board by the edges is helpful, and 
+  avoid wearing clothing made from synthetics, because they turn you into a pretty good 
+  Whimshurst machine.
+* Double check that the chips in the diagnostic board are all connected the right way around, 
+  especially ones you may remove frequently like the flash memory. While the flash chip can 
+  survive reverse orientation, it will short the Spectrum's 7805 voltage regulator but leave 
+  the switch mode power supply working - meaning the Spectrum's 4116 RAM will have some supply 
+  rails working and others not. This sort of thing kills 4116 RAM.
+* If you've constructed the board yourself - don't forget to test the board for shorts and open 
+  circuits before using it for the first time, even if you got the board made by a PCB factory.
+
+
+2.  HOW TO USE
+
+The board is very simple to use. For diagnostics work, check that:
+
+    J1 is set to pins 1 and 2 (to page in the flash on power up)
+    J2 is set to pins 1 and 2 (don't use the M1 signal)
+
+The reason for jumpering out the M1 signal is that if you have a machine that has a Z80 with a 
+poorly functioning M1 line, the board won't work properly. Normally, you should leave the M1 
+jumper in this position, and only move it to pins 2-3 when you specifically want to test the function 
+of the Z80's M1 line. Many Spectrums were sold with Z80s that had bad M1 lines.
+
+Once you power the machine up with the board plugged in, so long as the Z80 is working, LED1 
+(the leftmost one) should begin to flash indicating the first test is about to start. 
+If the ULA is functioning, you should see the screen showing a blue, then green border and 
+black paper on start up (assuming you're using the Diagnostics ROM from this site also).
+
+
+2.  HARDWARE DETAILS 
+
+The board is commanded by two Z80 I/O ports - port 31 to change the selected flash ROM memory page 
+(and map in and out the Spectrum's ROM), and port 63 to light up the LEDs. To describe how this 
+actually works on the hardware level, we'll start from the address decoding and work inwards from there.
+
+
+2.1.  HOW THE Z80 COMMANDS THE BOARD
+
+When the Z80 CPU executes an IN or OUT instruction, the following things happen. Firstly, the Z80 
+places the I/O port address on the address bus - for the instruction OUT (63), A - the lower 7 
+bits of the address bus are set to 63 (3F in hex). Then the /IORQ line goes active (low voltage 
+level), and the /WR line goes active (also logic low).
+
+The board senses an OUT instruction with the chip U1 - a 74HC138. This is a 3-to-8 line decoder. 
+Address lines A5, A6 and A7 are connected to the three address lines on the '138. You can count 
+from 0 to 7 with three binary bits, and what the '138 does is activate output 0 to 7 depending 
+on what 3 bit number arrives on its inputs. So really - what's important is what the Z80's 
+address lines A5, A6 and A7 are outputting during an I/O cycle. We're only using 2 outputs on 
+this chip - output 0 for the memory bank selection, and output 1. So if the pattern on A5, A6, A7 
+from the Z80 is 000, then the memory is selected. If the pattern on these three address lines is 001, 
+then the LED register is selected.
+
+As well as the right pattern being on the address bus, we've got to be able to determine that the 
+Z80 is making an I/O request, and not a memory request or an interrupt acknowledge. The '138 has 
+three Enable pins for this purpose. Indeed, it doesn't matter what the state is on the three address 
+pins on this chip if the enable pins aren't set to the right levels - all outputs will remain inactive. 
+To tell whether the Z80 is making an I/O request, two pins must be monitored - IORQ and M1. IORQ must 
+be low and M1 must be high. (Why must M1 be monitored? This is because the Z80 acknowledges a maskable 
+interrupt by a special M1 cycle, with IORQ low and M1 low. Spurious address decodes can occur if only 
+IORQ is used for an enable). Additionally, we also look at the state of WR to make sure we're getting 
+an OUT instruction, not an IN instruction, since this board only requires I/O writes and not reads.
+
+Of course, it would be simple if large numbers of Spectrums hadn't shipped with Z80s with faulty M1 
+lines. A faulty M1 line doesn't seem to affect a Spectrum at all if it's used stand alone, but it 
+can stop some peripherals from working properly. Therefore, a jumper is provided on the board to 
+ignore M1, so that the I/O decoding relies just on IORQ and WR being active together (which is 
+also only the case during an OUT instruction, not an interrupt acknowledge). If you change the jumper 
+so that M1 is used, you can write a short BASIC program to test the functioning of M1:
+
+10 OUT 63, 255
+20 PAUSE 5
+30 OUT 63, 0
+40 PAUSE 5
+50 GO TO 10
+
+If the LEDs all rapidly blink on and off in a stable and consistent manner, M1 works. However, if 
+the blinking is somewhat erratic, then M1 is faulty.
+
+So all being well, the 74HC138 looks for an instruction for the board by monitoring the state of IORQ, 
+WR and M1 to recognise an I/O write instruction, and uses the state of A5, A6 and A7 to select either 
+the memory page register or the LED register. The output of the '138 goes low when it's selected.
+
+The 74HC273 is not level triggered - rather, it latches the contents of the data bus on the rising edge 
+of the signal on the CP pin. When the Z80 de-asserts IORQ, the active low output of the 74HC138 will 
+return high. The Z80 keeps the contents of the address bus live for about half a clock cycle after it 
+has de-asserted IORQ - this is to allow edge triggered devices to read the contents of the data bus 
+without needing any additional glue logic. This timing means the rising edge of the 74HC138's output 
+can be used to latch the value being sent by the OUT instruction that's running on the CPU.
+
+
+2.2.  MEMORY PAGING
+
+The 74HC273 octal flip flop, U5, performs the function of being the memory page register. The board 
+can take flash ROMs from 128K to 512K, which is far larger than the address space that a Z80 can 
+access. Therefore, this chip controls the state of address lines A14 to A18 on the flash memory. 
+This chip also has a reset pin, so on power up or when the reset button is pressed, A14 to A18 are 
+all at logic low, so the first 16K page of ROM is selected. Additionally, bit 5 of this chip is 
+used to control whether the Spectrum's ROM is paged in, or whether the flash is paged in. The Spectrum 
+provides a line called ROMCS at the edge connector. There is a resistor between the ULA's ROM chip 
+select decoding logic and the ROM itself, and ROMCS is connected on the ROM's side of this resistor.
+Since the Spectrum's ROM is enabled when ROMCS is low, holding this line high will prevent it from 
+being selected.
+
+This is accomplished on the diagnostics board by bit 5 of the rom page register U5 being connected 
+to the gate of a P-channel MOSFET. The MOSFET connects the +5v line to ROMCS when it is turned on. 
+It is turned on by bit 5 of U5 being set to logic low with the jumper on J1 on pins 1 and 2. 
+If the jumper on J1 is on pins 2 and 3, the output of bit 5 is inverted before being sent to the 
+gate of this transistor, which means bit 5 needs to be set to logic 1 for the flash to be paged in.
+
+This allows the board also to be used as a general purpose ROM board, so that different ROMs can be 
+paged in at will. Also, programs can be written to copy a program to RAM, for example, a snapshot 
+taken on an emulator and written to the flash chip.
