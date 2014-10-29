@@ -51,7 +51,30 @@ RANDOMIZE USR 57344
 
 You should now see the following:
 
-(TODO: Flash utility menu)
++--------------------------------+
+|[Diag Board Flash Utility  ////]|
+|				 |
+|Select ROM page to boot:	 |
+|0:Page 0   1:Page 1   2:Page 2  |
+|3:Page 3   4:Page 4   5:Page 5  |
+|6:Page 6   7:Page 7   8:Page 8  |
+|9:Page 9   a:Page 10  b:Page 11 |
+|c:Page 12  d:Page 13  e:Page 14 |
+|f:Page 15  g:Page 16  h:Page 17 |
+|i:Page 18  j:Page 19  k:Page 20 |
+|l:Page 21  m:Page 22  n:Page 23 |
+|o:Page 24  p:Page 25  q:Page 26 |
+|r:Page 27  s:Page 28  t:Page 29 |
+|u:Page 30  v:Page 31            |
+|				 |
+|Other options:                  |
+|w:Program a 16K flash page      |
+|x:Erase a 16K flash sector	 |
+|y:Copy 16K page to RAM at 32768 |
+|z:Exit to ZX Basic		 |
+|				 |
+|Flash type: XXXXXX  		 |
++--------------------------------+
 
 Now press W. A new menu will appear, with a listing of 16K pages. The flash utility is designed
 to live in page 4, so press 4. Now the flash utility is in ROM...
@@ -123,7 +146,30 @@ you'll lose anything in page 1, 2 and 3 as well. (There are solutions - more on 
 To erase a sector, choose item X. Then select the sector you wish to delete. The menu looks 
 like this, and reminds you which pages are affected by the sector erase:
 
-(TODO: Erase sector menu)
++--------------------------------+
+|[Erase 64K Flash Sector    ////]|
+|				 |
+|Press 0 to 7 to choose the      |
+|sector to erase, or X to exit.  |
+|                                |
+|Sectors map to pages as follows:|
+|                                |
+|Sector 0  ->  Pages 0 to 3      |
+|Sector 1  ->  Pages 4 to 7      |
+|Sector 2  ->  Pages 8 to 11     |
+|Sector 3  ->  Pages 12 to 15    |
+|Sector 4  ->  Pages 16 to 19    |
+|Sector 5  ->  Pages 20 to 23    |
+|Sector 6  ->  Pages 24 to 27    |
+|Sector 7  ->  Pages 28 to 31    |
+|                                |
+|                                |
+|                          	 |
+|                                |
+|	                   	 |
+|				 |
+|                    		 |
++--------------------------------+
 
 Enter the corresponding key, and the erase operation will start. If you erase sector 1, you'll 
 be asked if you want to keep the flash utility, since this lives in page 4 (which is about to 
