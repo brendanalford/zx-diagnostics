@@ -20,6 +20,8 @@
 
 testcard
 
+	ld sp, 0x7fff
+	
 ; Relocate the test card attribute string
 
 	ld hl, str_testcardattr

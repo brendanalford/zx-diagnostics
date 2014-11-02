@@ -22,8 +22,9 @@ ulatest
 
 ;	Assume RAM is working, this isn't going to end well if not.
 
-; 	Initialize system variables
+; 	Initialize stack system variables
 
+	ld sp, 0x7fff
 	xor a
 	ld (v_fail_ic), a
 	ld (v_fail_ic_contend), a
@@ -32,8 +33,20 @@ ulatest
 	ld (v_column), a
     	ld (v_row), a
 	ld (v_bold), a
+	
 	ld a, 56
 	ld (v_attr), a
+	
+	ld hl, 0
+	ld (v_intcount), hl
+	
+;	IX will be used as the last recorded interrupt counter value
+;	IY will be the number of cycles that IX was the same
+;	If IY exceeds 100 cycles then interrupts are considered to have
+;	failed
+
+	ld ix, hl
+	ld iy, hl
 	
 	call cls
 	ld a, BORDERWHT
@@ -48,10 +61,21 @@ ulatest
 	call print
 	ld hl, str_loadingstripe
 	call print
+
+	ld hl, str_ulainterrupt
+	call print
+	
 	ld hl, str_ulaselecttest
 	call print
 	ld hl, str_ulaexit
 	call print
+	
+;	Start the interrupt clock
+
+	ld a, intvec2 / 256
+	ld i, a
+	im 2
+	ei
 	
 ulatest_loop
 	
@@ -104,7 +128,49 @@ ear_notset
 	LDHL4TIMES
 	ld hl, 0x58bc
 	LDHL4TIMES
+
+;	Check how we're doing with the interrupt count
 	
+	ld hl, (v_intcount)
+	ld de, ix
+	sub hl, de
+	ld a, h
+	or l
+	jr nz, interrupts_ok
+
+;	Uh-oh, no increase, bump IY and see if the high
+;	byte is non zero
+
+	inc iy
+	ld a, iyh
+	cp 0
+	jr z, check_input
+	
+;	More than 100 cycles have occurred since an interrupt,
+;	something's failed to do with interrupt generation. Flag it.
+
+	ld hl, str_ulaintfail
+	call print
+	jr check_input
+	
+interrupts_ok
+
+;	Counter's ok, reset the counters and print the latest
+
+	ld ix, (v_intcount)
+	ld iy, 0
+
+	ld hl, (v_intcount)
+	ld de, v_hexstr
+	call Num2Hex
+
+	ld hl, str_ulacounter
+	call print
+	ld hl, v_hexstr
+	call print
+
+check_input
+		
 ;	Check input for keys 1, 2 or 3.
 
 	ld bc, 0xf7fe
@@ -122,11 +188,11 @@ ear_notset
 	ld bc, 0x7ffe
 	in a, (c)
 	bit 0, a
-	jr nz, ulatest_loop		; Space not pressed
+	jp nz, ulatest_loop		; Space not pressed
 	ld bc, 0xfefe
 	in a, (c)
 	bit 0, a
-	jr nz, ulatest_loop		; Caps shift not pressed
+	jp nz, ulatest_loop		; Caps shift not pressed
 
 	jp restart			; Page out and restart the machine	
 
@@ -134,7 +200,10 @@ ear_notset
 out_mictone
 	
 ;	Test effectiveness of outputting sound via bit 3 (MIC).
-	
+
+	di	
+	ld hl, str_ulacounterblank
+	call print
 	ld c, 0x0a
 
 out_mictone1
@@ -146,6 +215,7 @@ out_mictone1
 	ld b, 0x30
 
 out_mictone2
+
 	djnz out_mictone2
 	
 ;	Check if we're holding any keys down, keep going if so
@@ -160,12 +230,16 @@ out_mictone2
 
 	ld a, BORDERWHT	
 	out (0xfe), a
+	ei
 	jp ulatest_loop
 	
 out_eartone
 	
 ;	Test effectiveness of outputting sound via bit 4 (EAR).
 	
+	di
+	ld hl, str_ulacounterblank
+	call print
 	ld c, 0x11
 
 out_eartone1
@@ -178,6 +252,7 @@ out_eartone1
 	ld b, 0x30
 
 out_eartone2
+
 	djnz out_eartone2
 	
 ;	Check if we're holding any keys down, keep going if so
@@ -192,12 +267,16 @@ out_eartone2
 
 	ld a, BORDERWHT	
 	out (0xfe), a
+	ei
 	jp ulatest_loop
 
 test_border
 
 ;	Test that the border colour can be changed successfully.
-
+	
+	di
+	ld hl, str_ulacounterblank
+	call print
 	ld c, 0
 
 test_border1
@@ -228,6 +307,7 @@ test_border2
 
 	ld a, BORDERWHT	
 	out (0xfe), a
+	ei
 	jp ulatest_loop
 	
 str_ulatest
@@ -242,13 +322,30 @@ str_loadingstripe
 
 	defb AT, 4, 20, "EAR IN:", 0
 
+str_ulainterrupt
+
+	defb AT, 7, 0, "Interrupt counter: ", 0
+	
+str_ulacounter
+
+	defb AT, 7, 28, 0
+	
+str_ulacounterblank
+
+	defb AT, 7, 28, "----", 0
+	
+str_ulaintfail
+
+	defb AT, 7, 28, INK, 2, TEXTBOLD, "FAIL", TEXTNORM, ATTR, 56, 0
+	
 str_ulaselecttest
 
-	defb AT, 6, 0, "Select:"
-	defb AT, 8, 0, "1) Output tone to MIC port"
-	defb AT, 9, 0, "2) Output tone to EAR port"
-	defb AT, 10, 0, "3) Test border generation", 0
+	defb AT, 9, 0, "Select:"
+	defb AT, 11, 0, "1) Output tone to MIC port"
+	defb AT, 12, 0, "2) Output tone to EAR port"
+	defb AT, 13, 0, "3) Test border generation", 0
+
 
 str_ulaexit
 
-	defb AT, 13, 7, "Hold BREAK to exit", 0
+	defb AT, 15, 7, "Hold BREAK to exit", 0
