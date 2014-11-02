@@ -136,7 +136,8 @@ ear_notset
 	sub hl, de
 	ld a, h
 	or l
-	jr nz, interrupts_ok
+	jr nz, interrupt_detected
+
 
 ;	Uh-oh, no increase, bump IY and see if the high
 ;	byte is non zero
@@ -153,9 +154,22 @@ ear_notset
 	call print
 	jr check_input
 	
-interrupts_ok
+interrupt_detected
 
+;	Check how many interrupts have passed - we wouldn't ever
+;	expect more than one - so flag a fail if we've detected
+;	multiples.
+
+	ld a, l
+	cp 1
+	jr z, interrupt_ok
+	
+	ld hl, str_ulaintfail
+	call print
+	
 ;	Counter's ok, reset the counters and print the latest
+
+interrupt_ok
 
 	ld ix, (v_intcount)
 	ld iy, 0
@@ -336,7 +350,7 @@ str_ulacounterblank
 	
 str_ulaintfail
 
-	defb AT, 7, 28, INK, 2, TEXTBOLD, "FAIL", TEXTNORM, ATTR, 56, 0
+	defb AT, 7, 23, INK, 2, TEXTBOLD, "FAIL", TEXTNORM, ATTR, 56, 0
 	
 str_ulaselecttest
 
