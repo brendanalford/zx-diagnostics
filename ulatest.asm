@@ -26,6 +26,7 @@ ulatest
 
 	ld sp, 0x7fff
 	xor a
+	
 	ld (v_fail_ic), a
 	ld (v_fail_ic_contend), a
 	ld (v_fail_ic_uncontend), a
@@ -37,9 +38,14 @@ ulatest
 	ld a, 56
 	ld (v_attr), a
 	
+	ld a, 1
+	ld (v_rtcenable), a
+	
 	ld hl, 0
 	ld (v_intcount), hl
 	ld (v_intcount + 2), hl
+	ld (v_rtc), hl
+	ld (v_rtc + 2), hl
 	
 ;	IX will be used as the last recorded interrupt counter value
 ;	IY will be the number of cycles that IX was the same
@@ -59,8 +65,6 @@ ulatest
 	call print
 	
 	ld hl, str_ulainresult
-	call print
-	ld hl, str_loadingstripe
 	call print
 
 	ld hl, str_ulainterrupt
@@ -87,7 +91,7 @@ ulatest_loop
 	xor a
 	in a, (0xfe)
 	ld c, a
-	ld hl, 0x588a 	; Start of 76543210 on screen
+	ld hl, 0x5898 	; Start of 76543210 on screen
 	ld de, 0x4778	; D = B/W attrs, E = W/B
 	ld b, 8
 	
@@ -108,28 +112,6 @@ inval_print2
 	sll c
 	djnz inval_print
 	
-;	Check and specifically output EAR port as if
-;	it were striped in the paper region.
-	
-	ld c, 0x08
-	xor a
-	in a, (0xfe)
-	bit 6, a
-	jr z, ear_notset
-	ld c, 0x30
-
-ear_notset
-
-;	Write to a 2x3 block of attributes as quickly as possible
-
-	ld a, c
-	ld hl, 0x587c
-	LDHL4TIMES
-	ld hl, 0x589c
-	LDHL4TIMES
-	ld hl, 0x58bc
-	LDHL4TIMES
-
 ;	Check how we're doing with the interrupt count
 	
 	ld hl, (v_intcount)
@@ -146,14 +128,14 @@ ear_notset
 	inc iy
 	ld a, iyh
 	cp 0
-	jr z, check_input
+	jp z, check_input
 	
 ;	More than 100 cycles have occurred since an interrupt,
 ;	something's failed to do with interrupt generation. Flag it.
 
 	ld hl, str_ulaintfail
 	call print
-	jr check_input
+	jp check_input
 	
 interrupt_detected
 
@@ -177,7 +159,9 @@ interrupt_ok
 
 	ld hl, str_ulacounter
 	call print
-	
+
+;	Print the 32-bit counter
+
 	ld hl, (v_intcount + 2)
 	ld de, v_hexstr
 	call Num2Hex
@@ -188,6 +172,56 @@ interrupt_ok
 	ld de, v_hexstr
 	call Num2Hex	
 	ld hl, v_hexstr
+	call print
+
+; 	Do the real time counter print
+
+	ld hl, str_rtccounter
+	call print
+
+;	Print hours
+
+	xor a
+	ld h, a
+	ld a, (v_rtc)
+	ld l, a
+	ld de, v_decstr
+	call Num2Dec
+	ld hl, v_decstr + 3
+	call print
+	ld hl, str_colon
+	call print
+	
+;	Print minutes
+
+	xor a
+	ld h, a
+	ld a, (v_rtc + 1)
+	ld l, a	
+	ld de, v_decstr
+	call Num2Dec
+	ld hl, v_decstr + 3
+	call print
+
+	ld hl, str_colon
+	ld a, (v_rtc + 3)
+	cp 25
+	jr c, blink_colon
+	ld hl, str_nocolon
+	
+blink_colon
+
+	call print
+
+;	Print seconds
+
+	xor a
+	ld h, a
+	ld a, (v_rtc + 2)
+	ld l, a
+	ld de, v_decstr
+	call Num2Dec
+	ld hl, v_decstr + 3
 	call print
 
 check_input
@@ -337,27 +371,36 @@ str_ulatest
 	
 str_ulainresult
 
-	defb AT, 4, 0, "ULA READ: 76543210", 0
+	defb AT, 4, 0, "ULA Read............... 76543210", 0
 	
-str_loadingstripe
-
-	defb AT, 4, 20, "EAR IN:", 0
-
 str_ulainterrupt
 
-	defb AT, 7, 0, "Interrupt counter: ", 0
+	defb AT, 6, 0, "Interrupt counter......", AT, 7, 0, "Real time elapsed......", 0
 	
 str_ulacounter
 
-	defb AT, 7, 24, 0
+	defb AT, 6, 24, 0
 	
 str_ulacounterblank
 
+	defb AT, 6, 24, "--------"
 	defb AT, 7, 24, "--------", 0
+	
+str_rtccounter
+
+	defb AT, 7, 24, 0
+		
+str_colon
+	
+	defb ":", 0
+
+str_nocolon
+	
+	defb " ", 0
 	
 str_ulaintfail
 
-	defb AT, 7, 19, INK, 2, TEXTBOLD, "FAIL", TEXTNORM, ATTR, 56, 0
+	defb AT, 6, 18, INK, 2, TEXTBOLD, " FAIL", TEXTNORM, ATTR, 56, 0
 	
 str_ulaselecttest
 

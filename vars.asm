@@ -34,6 +34,8 @@ v_bold			equ #7d03; 1
 v_hexstr		equ #7d10; 5
 v_intcount		equ #7d1a; 4
 v_decstr		equ #7d20; 6
+v_rtcenable		equ #7d28; 1
+v_rtc			equ #7d29; 4 - h:m:s:50
 
 ;	Testing variables
 

@@ -57,9 +57,9 @@ nmi
 
 start
 
-;	Blank the screen
+;	Blank the screen, (and all lower RAM)
 
-	BLANKMEM 16384,6912, 0
+	BLANKMEM 16384, 16384, 0
 
 	ld a, 0xff
 	out (LED_PORT), a		; Light all LED's on startup
@@ -1116,8 +1116,13 @@ failurebars_intservice
 
 	BLOCK #3636-$, #FF
 
-; The ISR just increments the v_intcount system variable and exits.
-; v_intcount is a 32-bit number.
+; 	The ISR increments the v_intcount system variable and
+; 	if v_rtcenable contains 0x1, increments the real time
+; 	clock in v_rtc. Neither counter are related.
+;
+; 	v_intcount is a 32-bit number.
+; 	v_rtc is 4 bytes representing hours, minutes, seconds and 
+; 	50ths of a second.
 
 intservice
 	
@@ -1128,11 +1133,60 @@ intservice
 	ld (v_intcount), hl
 	ld a, h
 	or l
-	jr nz, intservice_exit
+	jr nz, intservice_checkrtc
 	
 	ld hl, (v_intcount + 2)
 	inc hl
 	ld (v_intcount + 2), hl
+	
+intservice_checkrtc
+	
+	ld a, (v_rtcenable)
+	cp 1
+	jr nz, intservice_exit
+	
+;	50ths of a second
+	
+	ld a, (v_rtc + 3)
+	inc a
+	ld (v_rtc + 3), a
+	cp 50
+	jr nz, intservice_exit
+	
+;	Seconds
+	
+	xor a
+	ld (v_rtc + 3), a
+	ld a, (v_rtc + 2)
+	inc a
+	ld (v_rtc + 2), a
+	cp 60
+	jr nz, intservice_exit
+	
+;	Minutes
+	
+	xor a
+	ld (v_rtc + 2), a
+	ld a, (v_rtc + 1)
+	inc a
+	ld (v_rtc + 1), a
+	cp 60
+	jr nz, intservice_exit
+	
+;	Hours
+	
+	xor a
+	ld (v_rtc + 1), a
+	ld a, (v_rtc)
+	inc a
+	ld (v_rtc), a
+	cp 100
+	jr nz, intservice_exit
+
+;	Hours exceeded 100 - roll back
+
+	xor a
+	ld (v_rtc), a
 	
 intservice_exit
 
