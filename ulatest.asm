@@ -39,6 +39,7 @@ ulatest
 	
 	ld hl, 0
 	ld (v_intcount), hl
+	ld (v_intcount + 2), hl
 	
 ;	IX will be used as the last recorded interrupt counter value
 ;	IY will be the number of cycles that IX was the same
@@ -174,12 +175,18 @@ interrupt_ok
 	ld ix, (v_intcount)
 	ld iy, 0
 
-	ld hl, (v_intcount)
-	ld de, v_hexstr
-	call Num2Hex
-
 	ld hl, str_ulacounter
 	call print
+	
+	ld hl, (v_intcount + 2)
+	ld de, v_hexstr
+	call Num2Hex
+	ld hl, v_hexstr
+	call print
+	
+	ld hl, (v_intcount)
+	ld de, v_hexstr
+	call Num2Hex	
 	ld hl, v_hexstr
 	call print
 
@@ -342,15 +349,15 @@ str_ulainterrupt
 	
 str_ulacounter
 
-	defb AT, 7, 28, 0
+	defb AT, 7, 24, 0
 	
 str_ulacounterblank
 
-	defb AT, 7, 28, "----", 0
+	defb AT, 7, 24, "--------", 0
 	
 str_ulaintfail
 
-	defb AT, 7, 23, INK, 2, TEXTBOLD, "FAIL", TEXTNORM, ATTR, 56, 0
+	defb AT, 7, 19, INK, 2, TEXTBOLD, "FAIL", TEXTNORM, ATTR, 56, 0
 	
 str_ulaselecttest
 

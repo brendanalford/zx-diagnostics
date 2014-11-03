@@ -582,6 +582,7 @@ testinterrupts
 
 	ld hl, 0
 	ld (v_intcount), hl
+	ld (v_intcount + 2), hl
 	ld a, intvec2 / 256
 	ld i, a
 	im 2
@@ -740,6 +741,7 @@ waitloop
 	call putchar
 
 ; 	Wait 50 frames (or 1 second, depending how you count it)
+;	Just use the least significant word of v_intcount for this.
 
 	halt
 	ld a, (v_intcount)
@@ -1115,13 +1117,26 @@ failurebars_intservice
 	BLOCK #3636-$, #FF
 
 ; The ISR just increments the v_intcount system variable and exits.
+; v_intcount is a 32-bit number.
 
 intservice
 	
 	push hl
+	push af
 	ld hl, (v_intcount)
 	inc hl
 	ld (v_intcount), hl
+	ld a, h
+	or l
+	jr nz, intservice_exit
+	
+	ld hl, (v_intcount + 2)
+	inc hl
+	ld (v_intcount + 2), hl
+	
+intservice_exit
+
+	pop af
 	pop hl
 	ei
 	reti

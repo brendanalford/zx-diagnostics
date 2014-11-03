@@ -32,7 +32,7 @@ v_bold			equ #7d03; 1
 ;	Miscellaneous
 
 v_hexstr		equ #7d10; 5
-v_intcount		equ #7d1a; 2
+v_intcount		equ #7d1a; 4
 v_decstr		equ #7d20; 6
 
 ;	Testing variables
