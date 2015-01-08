@@ -29,6 +29,23 @@
 ;
 
 test_128k
+	
+	xor a
+	ld (v_128type), a
+	jr begin_128_tests
+	
+test_plus2
+	
+	ld a, 1
+	ld (v_128type), a
+	jr begin_128_tests
+
+test_plus3
+
+	ld a, 2
+	ld (v_128type), a
+	
+begin_128_tests
 
 	ld hl, str_testingbank
 	call print
@@ -107,12 +124,27 @@ test_ram_page
 	
 	ld c, ixh
 
-; 	Was this in a contended bank (1,3,5,7)?
+	ld a, (v_128type)
+	cp 2
+	jr nz, odd_contend
+	
+;	+2a/+3 - Was this in a contented bank (4,5,6,7)?
+
+	ld a, b
+	cp 4
+	jr c, test_ram_fail_contend
+	jr test_ram_fail_uncontend
+	
+; 	128/+2 - Was this in a contended bank (1,3,5,7)?
+
+odd_contend
 
 	bit 0, b
 	jr nz, test_ram_fail_contend
 
-; 	No (0,2,4,8), store in appropriate sysvar
+; 	Store result in appropriate sysvar
+
+test_ram_fail_uncontend
 
 	ld a, (v_fail_ic_uncontend)
 	or ixh
@@ -172,11 +204,13 @@ test_ram_page_skip
 	ld hl, str_check_ic
 	call print
 
-; 	Are we a toastrack?
+; 	Are we a +2 or +3?
 
-	ld a, (v_toastrack)
+	ld a, (v_128type)
 	cp 1
-	jr nz, not_a_toastrack
+	jr z, ic_fail_plus2
+	cp 2
+	jr z, ic_fail_plus3 
 
 ; 	Output failing IC's with Toastrack IC references
 
@@ -193,7 +227,7 @@ test_ram_page_skip
 
 ; 	Output failing IC's with Grey +2 IC references
 
-not_a_toastrack
+ic_fail_plus2
 
 	ld a, (v_fail_ic_uncontend)
 	ld d, a
@@ -204,6 +238,20 @@ not_a_toastrack
 	ld d, a
 	ld ix, str_plus2_ic_contend
 	call print_fail_ic
+	jr test_ram_fail_end
+
+ic_fail_plus3
+
+	ld a, (v_fail_ic_uncontend)
+	ld d, a
+	ld ix, str_plus3_ic_uncontend
+	call print_fail_ic_4bit
+
+	ld a, (v_fail_ic_contend)
+	ld d, a
+	ld ix, str_plus3_ic_contend
+	call print_fail_ic_4bit
+	jr test_ram_fail_end	
 
 ;	Abandon test at this point
 
@@ -353,13 +401,16 @@ test_paging_fail
 	ld hl, str_128kpagingfail
 	call print
 
-;	A paging fault is most likely the PAL/HAL chip so identify
-;	whether we're a toastrack or not, then use this info to
+;	A paging fault is most likely the PAL/HAL/ULA chip so identify
+;	what type of machine we are running on, then use this info to
 ;	inform the user which IC to check
 
-	ld a, (v_toastrack)
-	cp 0
+	ld a, (v_128type)
+	cp 1
 	jr z, plus2_pal_msg
+	cp 2
+	jr z, plus3_ula_msg
+	
 	ld hl, str_check_128_hal
 	call print
 
@@ -371,6 +422,11 @@ plus2_pal_msg
 	call print
 	ret
 
+plus3_ula_msg
+
+	ld hl, str_check_plus3_ula
+	call print
+	ret
 ;
 ;	Overpaints attribute of page number to indicate previous pass/fail
 ;	Inputs: A=attribute to paint

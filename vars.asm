@@ -45,7 +45,7 @@ v_paging		equ #7d33; Bank Paging status (output)
 v_fail_ic		equ #7d36; Failed IC bitmap (48K)
 v_fail_ic_uncontend	equ #7d37; Failed IC bitmap, uncontended memory banks 0,2,4,8 (128k)
 v_fail_ic_contend	equ #7d38; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
-v_toastrack		equ #7d39; Non-zero if this is a 128K toastrack
+v_128type		equ #7d39; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
 v_testcard		equ #7d3a; Workspace for testcard string
 
 ;	Relocation addresses for routines that need the original ROM paged

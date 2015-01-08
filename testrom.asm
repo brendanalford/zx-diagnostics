@@ -397,10 +397,10 @@ rom_test
 ;	Perform some ROM checksum testing to determine what
 ;	model we're running on
 
-; 	Not a toastrack (so far)
+; 	Assume 128K toastrack (so far)
 
 	xor a 
-	ld (v_toastrack), a    
+	ld (v_128type), a    
 	
 	ld hl, str_romcrc
     	call print
@@ -417,70 +417,66 @@ rom_test
 
     	call do_romcrc
 
-; Check for 48K rom
-
-	ld bc, CRC_48K
-	ld a, h
-	xor b
-	jr nz, check_128k_toaster
-	ld a, l
-	xor c
-	jr nz, check_128k_toaster
-
-; We're a 48K machine, say so and just do the 48k specific tests
+;	Save it in DE temporarily
 	
-	ld hl, str_rom48k
+	ld de, hl
+	
+; Check for a matching ROM
+
+	ld hl, rom_signature_table
+
+rom_check_loop
+
+;	Check for 0000 end marker
+
+	ld bc, (hl)
+	ld a, b
+	or c
+	jr z, rom_unknown
+	
+;	Check saved ROM CRC in DE against value in table
+	
+	ld a, d
+	xor b
+	jr nz, rom_check_next
+	ld a, e
+	xor c
+	jr nz, rom_check_next
+
+rom_check_found
+
+;	Print the appropriate ROM type to screen
+
+	push hl
+	inc hl
+	inc hl
+	ld de, (hl)
+	ld hl, de
 	call print
 	ld hl, str_testpass
 	call print
-	call test_48k
-	jp testinterrupts
+	pop hl
 
-; Check for 128K Toastrack ROM
+;	Call the appropriate testing routine
 
-check_128k_toaster
-
-	ld bc, CRC_128K
-	ld a, h
-	xor b
-	jr nz, check_grey_plus2
-	ld a, l
-	xor c
-	jr nz, check_grey_plus2
-
-; 128k toastrack found
-
-	ld a, 1
-	ld (v_toastrack), a
+	ld de, 4
+	add hl, de
 	
-	ld hl, str_rom128k
-	call print
-	ld hl, str_testpass
-	call print
-	call test_128k
-	jp testinterrupts
+;	Set up return address to be the testinterrupts label
 
-; Check for Grey +2 ROM
-
-check_grey_plus2
-
-	ld bc, CRC_PLUS2
-	ld a, h
-	xor b
-	jr nz, rom_unknown
-	ld a, l
-	xor c
-	jr nz, rom_unknown
-
-; Grey plus 2 ROM found
+	ld de, testinterrupts
+	push de
 	
-	ld hl, str_romplus2
-	call print
-	ld hl, str_testpass
-	call print	
-	call test_128k
+	jp hl
+	
+test_routine_return
 	jp testinterrupts
 
+rom_check_next
+
+	ld de, 12
+	add hl, de
+	jr rom_check_loop
 
 ; Unknown ROM, say so and prompt the user for manual selection
 
@@ -529,38 +525,48 @@ select_test
 	ld bc, 0xf7fe
 	in a, (c)
 
-; 	Only interested in keys 1,2,3
+; 	Only interested in keys 1,2,3 and 4
 
-	and 0x7
-	cp 7
+	and 0xf
+	cp 0xf
 	jr z, select_test
 
-	bit 0, a
-	jr nz, select_test_1
-	ld hl, str_select48k
-	call print
-	call test_48k
-	jr testinterrupts
+;	Scan the test vector table and call the appropriate routine
 
+	ld hl, test_vector_table
+	ld b, a
+	
 select_test_1
 
-	bit 1, a
-	jr nz,select_test_2
-	ld a, 1
-	ld (v_toastrack), a
-	ld hl, str_select128k
+	ld de, (hl)
+	ld a, d
+	or e
+	jr z, select_test
+	
+	bit 0, b
+	jr nz, select_test_2
+	
+	push hl
+	ld de, (hl)
+	ld hl, de
 	call print
-	call test_128k
-	jr testinterrupts
-
+	
+	pop hl
+	inc hl
+	inc hl
+	ld de, (hl)
+	ld hl, de
+	ld de, testinterrupts
+	push de
+	jp hl
+	
 select_test_2
 
-	bit 2, a
-	jr nz, testinterrupts
-	ld hl, str_selectplus2
-	call print
-	call test_128k
-
+	ld de, 4
+	add hl, de
+	rr b
+	jr select_test_1
+	
 testinterrupts
 
 ; 	Test ULA's generation of interrupts
@@ -900,6 +906,56 @@ ic_ok
 	jr nz, fail_print_ic_loop
 
 	ret
+
+;
+;	Subroutines to print a list of failing IC's for 4 bit wide
+;	memories (+2A/+3).
+;   	Inputs: D=bitmap of failed IC's, IX=start of IC number list
+;
+
+print_fail_ic_4bit
+
+
+	ld a, d
+	and 0x0f
+	jr z, next_4_bits
+
+;	Bad IC, print out the correspoding location 
+
+	ld hl, str_ic
+	call print
+	ld hl, ix
+	call print
+	
+next_4_bits
+	
+	ld bc, 4
+	add ix, bc
+	
+	ld a, d
+	and 0xf0
+	jr z, bit4_check_done
+
+	ld hl, str_ic
+	call print
+	ld hl, ix
+	call print
+	
+bit4_check_done
+
+	ret
+
+;
+;	Checks to see if the SPACE key was pressed.
+;	Result: Z set if pressed, reset otherwise
+;
+	
+check_spc_key
+
+	ld a, 0x7f
+	in a, (0xfe)
+	bit 0, a
+	ret 
   
 	include "crc16.asm" 
 	include "print.asm"
@@ -908,16 +964,69 @@ ic_ok
 	include "ulatest.asm"
 	
 ;
-;	Checks to see if the SPACE key was pressed.
-;	Result: Z set if pressed, reset otherwise
+;	Table to define ROM signatures
 ;
 
-check_spc_key
+rom_signature_table
 
-	ld a, 0x7f
-	in a, (0xfe)
-	bit 0, a
-	ret 
+	defw 0xfd5e, str_rom48k, test_48k
+	defw 0xeffc, str_rom128k, test_128k
+	defw 0x3a18, str_rom128esp, test_128k
+	defw 0x2aa3, str_romplus2, test_plus2
+	defw 0x3567, str_romplus2esp, test_plus2
+	defw 0xd3b4, str_romplus2fra, test_plus2
+	defw 0x3998, str_romplus2a, test_plus3
+	defw 0x88f9, str_romplus3, test_plus3
+	defw 0x5a18, str_romplus3esp, test_plus3
+	defw 0x0000
+
+str_rom48k
+
+	defb	AT, 4, 0, "Spectrum 16/48K ROM...      ", 0
+
+str_rom128k
+
+	defb	AT, 4, 0, "Spectrum 128K ROM...        ", 0
+
+str_rom128esp
+
+	defb	AT, 4, 0, "Spectrum 128K (Esp) ROM...  ", 0
+	
+str_romplus2
+
+	defb	AT, 4, 0, "Spectrum +2 (Grey) ROM...   ", 0
+
+str_romplus2esp
+
+	defb	AT, 4, 0, "Spectrum +2 (Esp) ROM...    ", 0
+
+str_romplus2fra
+
+	defb	AT, 4, 0, "Spectrum +2 (Fra) ROM...    ", 0
+	
+str_romplus3
+
+	defb	AT, 4, 0, "Spectrum +3 (v4.0) ROM...   ", 0
+	
+str_romplus2a
+
+	defb    AT, 4, 0, "Spectrum +2A (v4.1) ROM...  ", 0
+	
+str_romplus3esp
+
+	defb	AT, 4, 0, "Spec +2A/+3 Spanish ROM...  ", 0
+;
+;	Table to define pointers to test routines
+;
+
+test_vector_table
+
+	defw str_select48k, test_48k
+	defw str_select128k, test_128k
+	defw str_selectplus2, test_plus2
+	defw str_selectplus3, test_plus3
+	defw 0x0000
+
 ;
 ;	String tables
 ;
@@ -980,41 +1089,33 @@ str_romcrc
 
 	defb	AT, 4, 0, "Checking ROM version...     ", 0
 
-str_rom48k
-
-	defb	AT, 4, 0, "Spectrum 16/48K ROM...      ", 0
-
-str_rom128k
-
-	defb	AT, 4, 0, "Spectrum 128K ROM...        ", 0
-
-str_romplus2
-
-	defb	AT, 4, 0, "Spectrum +2 (Grey) ROM...   ", 0
-
 str_romunknown
 
 	defb	AT, 4, 0, INK, 2, TEXTBOLD, "Unknown ROM", INK, 0, TEXTNORM, "                 ", ATTR, 56, 0
 
 str_testselect
 
-	defb	AT, 5, 0, "Press  1..48K 2..128K 3..Grey +2", 0 
+	defb	AT, 5, 0, "Press 1:48K 2:128K 3:+2 4:+2A/+3", 0 
 
 str_assume48k
+
 	defb 	AT, 5, 0, "Assuming 48K mode...\n", 0
 	
 str_select48k
 
-	defb	AT, 5, 7, BRIGHT, 1, "1..48K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 6, BRIGHT, 1, "1:48K\n", TEXTNORM, ATTR, 56, 0
 
 str_select128k
 
-	defb	AT, 5, 14, BRIGHT, 1, "2..128K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 12, BRIGHT, 1, "2:128K\n", TEXTNORM, ATTR, 56, 0
 
 str_selectplus2
 
-	defb	AT, 5, 22, BRIGHT, 1, "3..Grey +2", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 19, BRIGHT, 1, "3:+2\n", TEXTNORM, ATTR, 56, 0
 
+str_selectplus3
+
+	defb	AT, 5, 24, BRIGHT, 1, "4:+2A/+3", TEXTNORM, ATTR, 56, 0
 
 str_dblbackspace
 
@@ -1047,10 +1148,6 @@ str_testingpaging
 str_bankm
 
 	defb	"x ", 0
-
-str_16ktestspass
-
-	defb	"\n", PAPER, 4, INK, 7, BRIGHT, 1, TEXTBOLD, "      16K RAM Tests Passed      ", TEXTNORM, ATTR, 56, 0
 
 str_48ktestspass
 
@@ -1096,6 +1193,10 @@ str_check_plus2_hal
 
 	defb	"Check IC7 (HAL10H8ACN)\n", 0
 
+str_check_plus3_ula
+
+	defb	"Check IC1 (ULA 40077)\n", 0
+	
 str_check_ic
 
 	defb	"Check the following IC's:\n", 0
@@ -1219,6 +1320,14 @@ str_plus2_ic_contend
 str_plus2_ic_uncontend
 
 	defb "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ",0, "23 ",0, "24 ", 0
+
+str_plus3_ic_contend
+
+	defb "3  ", 0, "4  ", 0
+	
+str_plus3_ic_uncontend
+
+	defb "5  ", 0, "6  ", 0
 
 ;	Magic string to tell if we can page out our ROM (so that we can
 ;	tell the difference between Diagboard hardware and generic external
