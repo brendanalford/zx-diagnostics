@@ -467,6 +467,8 @@ rom_check_found
 	ld de, testinterrupts
 	push de
 	
+	ld de, (hl)
+	ld hl, de
 	jp hl
 	
 test_routine_return
@@ -474,8 +476,8 @@ test_routine_return
 
 rom_check_next
 
-	ld de, 12
-	add hl, de
+	ld bc, 6
+	add hl, bc
 	jr rom_check_loop
 
 ; Unknown ROM, say so and prompt the user for manual selection

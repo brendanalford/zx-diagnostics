@@ -132,7 +132,7 @@ test_ram_page
 
 	ld a, b
 	cp 4
-	jr c, test_ram_fail_contend
+	jr nc, test_ram_fail_contend
 	jr test_ram_fail_uncontend
 	
 ; 	128/+2 - Was this in a contended bank (1,3,5,7)?
