@@ -32,6 +32,25 @@
 	define	 BORDERWHT	7
 	define   ERR_FLASH	0xaa   ; alternate lights
 
+;	AY register defines
+	
+	define	 AY_REG		0xfffd
+	define	 AY_DATA	0xbffd
+	
+	define	 AYREG_A_LO	0x00
+	define	 AYREG_A_HI	0x01
+	define	 AYREG_B_LO	0x02
+	define	 AYREG_B_HI	0x03
+	define	 AYREG_C_LO	0x04
+	define	 AYREG_C_HI	0x05
+	define	 AYREG_MIX	0x07
+	define	 AYREG_A_VOL	0x08
+	define	 AYREG_B_VOL	0x09
+	define	 AYREG_C_VOL	0x0a
+
+	define	 AYCMD_DELAY	0xf0
+	define 	 AYCMD_LOOP	0xff
+
 ;	ROM checksum values
 
 	define	CRC_48K		0xfd5e
