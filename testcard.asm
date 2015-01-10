@@ -261,7 +261,7 @@ ay_test_data
 	defb AYREG_B_VOL, 0x00
 	defb AYCMD_DELAY, 0x05
 
-	defb AYREG_A_LO, 0x70, AYREG_B_LO, 0x70, AYREG_C_LO, 0x70
+	defb AYREG_A_LO, 0x6f, AYREG_B_LO, 0x6f, AYREG_C_LO, 0x6f
 	defb AYREG_A_VOL, 0x0f, AYREG_B_VOL, 0x0f, AYREG_C_VOL, 0x0f
 	defb AYCMD_DELAY, 0x28
 	
@@ -277,7 +277,7 @@ ay_test_data
 	
 	defb AYCMD_DELAY, 0x20
 	defb AYREG_A_VOL, 0x0, AYREG_B_VOL, 0x0, AYREG_C_VOL, 0x00
-	defb AYCMD_DELAY, 0x20
+	defb AYCMD_DELAY, 0x10
 	
 	defb AYCMD_LOOP
 
