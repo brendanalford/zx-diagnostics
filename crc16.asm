@@ -23,12 +23,37 @@
 ;	Slightly modified by Dylan Smith for the tester.
 ;	'romcrc' code needs to be shifted into RAM to be run since we're going
 ;	to page out the testing rom while doing it.
+;	Returns carry flag set if ROM could not be paged out, reset otherwise.
 ;	
 
 romcrc
 
 	ld a, %00100000 ; bit 5 controls /ROMCS
 	out (ROMPAGE_PORT), a
+
+;	Check if diagboard ROM is still paged
+
+	ld hl, str_rommagicstring
+	ld a, (hl)
+	cp 'T'
+	jr nz, startcrc
+	inc hl
+	ld a, (hl)
+	cp 'R'
+	jr nz, startcrc
+	inc hl
+	ld a, (hl)
+	cp 'O'
+	jr nz, startcrc
+	inc hl
+	ld a, (hl)
+	cp 'M'
+	jr nz, startcrc
+	scf
+	ret
+	
+startcrc
+
 	ld de, 0
 
 ;	Note: byte counter is modified compared to orginal code.

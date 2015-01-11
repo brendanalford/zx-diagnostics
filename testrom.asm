@@ -58,7 +58,7 @@ nmi
 start
 
 ;	Blank the screen, (and all lower RAM)
-
+	
 	BLANKMEM 16384, 16384, 0
 
 	ld a, 0xff
@@ -420,10 +420,17 @@ rom_test
 ;	Save it in DE temporarily
 	
 	ld de, hl
-	
-; Check for a matching ROM
-
 	ld hl, rom_signature_table
+	
+;	Did paging out ROM fail?	
+
+	jr nc, rom_check_loop
+	
+	ld hl, str_romdiagboard
+	call print
+	jr rom_unknown_2
+	
+; 	Check for a matching ROM
 
 rom_check_loop
 
@@ -484,7 +491,7 @@ rom_check_next
 
 rom_unknown
 
-	push hl
+	push de
 	ld hl, str_romunknown
 	call print
 	pop hl
@@ -1016,7 +1023,11 @@ str_romplus2a
 	
 str_romplus3esp
 
-	defb	AT, 4, 0, "Spec +2A/+3 Spanish ROM...  ", 0
+	defb	AT, 4, 0, "Spectrum +2A/+3 (Esp) ROM.. ", 0
+
+str_romdiagboard
+
+	defb	AT, 4, 0, "DiagBoard not found             ", 0
 ;
 ;	Table to define pointers to test routines
 ;
