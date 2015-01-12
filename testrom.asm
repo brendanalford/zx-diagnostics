@@ -982,7 +982,7 @@ rom_signature_table
 
 	defw 0xfd5e, str_rom48k, test_48k
 	defw 0xeffc, str_rom128k, test_128k
-	defw 0x3a18, str_rom128esp, test_128k
+	defw 0x3a1f, str_rom128esp, test_128k
 	defw 0x2aa3, str_romplus2, test_plus2
 	defw 0x3567, str_romplus2esp, test_plus2
 	defw 0xd3b4, str_romplus2fra, test_plus2
