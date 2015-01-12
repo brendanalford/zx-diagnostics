@@ -768,6 +768,8 @@ waitloop
 	ld a, b
 	cp 0xff
 	jr nz, waitloop
+	
+	im 0
 	di 
 
 ; 	WAIT message - about to page ROM in
