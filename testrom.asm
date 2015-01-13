@@ -459,6 +459,8 @@ rom_check_found
 	inc hl
 	ld de, (hl)
 	ld hl, de
+	xor a
+	ld (v_column), a
 	call print
 	ld hl, str_testpass
 	call print
@@ -989,47 +991,58 @@ rom_signature_table
 	defw 0x3998, str_romplus2a, test_plus3
 	defw 0x88f9, str_romplus3, test_plus3
 	defw 0x5a18, str_romplus3esp, test_plus3
+;	Some +3E ROM sets that might be out there
+	defw 0x8dfe, str_romplus3e_v1_38, test_plus3
+	defw 0xcaf2, str_romplus3e_v1_38esp, test_plus3
 	defw 0x0000
 
 str_rom48k
 
-	defb	AT, 4, 0, "Spectrum 16/48K ROM...      ", 0
+	defb	"Spectrum 16/48K ROM...      ", 0
 
 str_rom128k
 
-	defb	AT, 4, 0, "Spectrum 128K ROM...        ", 0
+	defb	"Spectrum 128K ROM...        ", 0
 
 str_rom128esp
 
-	defb	AT, 4, 0, "Spectrum 128K (Esp) ROM...  ", 0
+	defb	"Spectrum 128K (Esp) ROM...  ", 0
 	
 str_romplus2
 
-	defb	AT, 4, 0, "Spectrum +2 (Grey) ROM...   ", 0
+	defb	"Spectrum +2 (Grey) ROM...   ", 0
 
 str_romplus2esp
 
-	defb	AT, 4, 0, "Spectrum +2 (Esp) ROM...    ", 0
+	defb	"Spectrum +2 (Esp) ROM...    ", 0
 
 str_romplus2fra
 
-	defb	AT, 4, 0, "Spectrum +2 (Fra) ROM...    ", 0
+	defb	"Spectrum +2 (Fra) ROM...    ", 0
 	
 str_romplus3
 
-	defb	AT, 4, 0, "Spectrum +3 (v4.0) ROM...   ", 0
+	defb	"Spectrum +3 (v4.0) ROM...   ", 0
 	
 str_romplus2a
 
-	defb    AT, 4, 0, "Spectrum +2A (v4.1) ROM...  ", 0
+	defb    "Spectrum +2A (v4.1) ROM...  ", 0
 	
 str_romplus3esp
 
-	defb	AT, 4, 0, "Spectrum +2A/+3 (Esp) ROM.. ", 0
+	defb	"Spectrum +2A/+3 (Esp) ROM.. ", 0
+
+str_romplus3e_v1_38
+
+	defb 	"Spectrum +3E v1.38 ROM...   ", 0
+	
+str_romplus3e_v1_38esp
+
+	defb	"Spec +3E v1.38 ROM (Esp)... ", 0
 
 str_romdiagboard
 
-	defb	AT, 4, 0, "DiagBoard not found             ", 0
+	defb	"DiagBoard not found             ", 0
 ;
 ;	Table to define pointers to test routines
 ;
