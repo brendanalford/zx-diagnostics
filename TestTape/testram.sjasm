@@ -3,5 +3,5 @@
   define ORG 26000
   define LENGTH 6767
   device zxspectrum48
-  include testtape.asm
-  savebin "testtape.bin",ORG,LENGTH
+  include testram.asm
+  savebin "testram.bin",ORG,LENGTH
