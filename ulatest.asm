@@ -22,9 +22,28 @@ ulatest
 
 ;	Assume RAM is working, this isn't going to end well if not.
 
-; 	Initialize stack system variables
+
+; 	Initialize stack to top of lower RAM
 
 	ld sp, 0x7fff
+
+;
+;	Write some data to Screen 1.
+;	This'll just write to the C000 area on a 48K machine,
+;	which isn't being used anyway.
+;
+
+	ld a, 7
+	call pagein
+	
+	BLANKMEM 0xc000, 0x1800, 0x00
+	BLANKMEM 0xd800, 0x300, 0x20
+	
+	ld a, 0
+	call pagein
+
+;	Init system variables
+
 	xor a
 	
 	ld (v_fail_ic), a
@@ -226,7 +245,7 @@ blink_colon
 
 check_input
 		
-;	Check input for keys 1, 2 or 3.
+;	Check input for keys 1, 2, 3 or 4.
 
 	ld bc, 0xf7fe
 	in a, (c)
@@ -236,7 +255,8 @@ check_input
 	jr z, out_eartone
 	bit 2, a
 	jr z, test_border
-	
+	bit 3, a
+	jp z, test_screen
 	
 ;	Check for Break (Caps Shift+Space)
 
@@ -364,6 +384,49 @@ test_border2
 	out (0xfe), a
 	ei
 	jp ulatest_loop
+
+test_screen
+
+	di
+	ld hl, str_ulacounterblank
+	call print
+
+	ld a, 0x9b
+	ld h, a
+	
+test_screen_loop
+
+	ld a, 4
+	out (0xfe), a
+	ld bc, 0x7ffd
+	ld a, 0x08
+	out (c), a
+	
+	ld b, h
+	
+test_screen_loop1
+	
+	djnz test_screen_loop1
+
+	ld a, 7
+	out (0xfe), a
+	ld bc, 0x7ffd
+	ld a, 0x00
+	out (c), a
+
+	ld b, h
+	
+test_screen_loop2
+	
+	djnz test_screen_loop2
+	
+	in a, (0xfe)
+	and 0x1f
+	cp 0x1f
+	jr nz, test_screen_loop
+	
+	ei
+	jp ulatest_loop
 	
 str_ulatest
 
@@ -407,9 +470,9 @@ str_ulaselecttest
 	defb AT, 9, 0, "Select:"
 	defb AT, 11, 0, "1) Output tone to MIC port"
 	defb AT, 12, 0, "2) Output tone to EAR port"
-	defb AT, 13, 0, "3) Test border generation", 0
-
+	defb AT, 13, 0, "3) Test border generation"
+	defb AT, 14, 0, "4) Test screen switching (128K)", 0
 
 str_ulaexit
 
-	defb AT, 15, 7, "Hold BREAK to exit", 0
+	defb AT, 16, 7, "Hold BREAK to exit", 0
