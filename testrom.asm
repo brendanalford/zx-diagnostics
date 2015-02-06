@@ -16,7 +16,7 @@
 ;	Lesser General Public License for more details.
 ;
 ;	testrom.asm
-;	
+;
 
 ;
 ;	Spectrum Diagnostics ROM
@@ -36,7 +36,7 @@
 
 	org 0
 
-; 	Ints must be disabled as we don't have 
+; 	Ints must be disabled as we don't have
 ; 	anywhere reliable to put a stack yet
 
 	di
@@ -49,21 +49,21 @@ str_build
 	BLOCK #0010-$, #FF
 	defb	"DiagBoard Test ROM v0.2 built ", BUILD_TIMESTAMP , 0
 	BLOCK #0066-$, #FF
-		
+
 nmi
 
-;	Arranged so that the NMI vector happens to be the start of the 
+;	Arranged so that the NMI vector happens to be the start of the
 ;	diagnostic routines proper
 
 start
 
 ;	Blank the screen, (and all lower RAM)
-	
+
 	BLANKMEM 16384, 16384, 0
 
 	ld a, 0xff
 	out (LED_PORT), a		; Light all LED's on startup
-	 
+
 ;	Sound a brief tone to indicate tests are starting.
 ;	This also verifies that the CPU and ULA are working.
 
@@ -73,7 +73,7 @@ start
 
 	xor a
 	out (LED_PORT), a		; Extinguish the LED's
-	
+
 ;	Tone done, check if space is being pressed
 
 	ld bc, 0x7ffe
@@ -90,33 +90,33 @@ start
 	in a, (c)
 	bit 3, a
 	jp z, ulatest
-	
+
 ;	Set up for tests
 
 	xor a
 	ld b, a		; using ixh to store a flag to tell us whether upper
                 	; ram is good (if it is we continue testing)
-	ld c, a		
-	ld ix, bc	
+	ld c, a
+	ld ix, bc
 	ld iy, bc 	; iy is our soak test status register
 			; 0 - no soak test being performed; else
 			; holds the current iteration of the test
-	
+
 ;	Test if the S key is being pressed, if true then go into soaktest mode
 
-	ld bc, 0xfdfe	
+	ld bc, 0xfdfe
 	in a, (c)
 	bit 1, a
 	jr nz, start_testing
-	
+
 	ld iy, 1	; Soak testing - start at iteration 1
 	BEEP 0x10, 0x300
-	
+
 start_testing
 
 ;	Blue border - signal no errors (yet)
-	
-	ld a, BORDERGRN 
+
+	ld a, BORDERGRN
 	out (ULA_PORT), a
 
 ;	Same for LED's - all off signifies no errors
@@ -134,15 +134,15 @@ start_testing
 
 ;	Start lower RAM 'walking bit' test
 
-lowerram_walk      
-    
+lowerram_walk
+
     	WALKLOOP 16384,16384
-	
+
 ;	Then the inversion test
 
 lowerram_inversion
-    
-    	ALTPATA 16384, 16384, 0 
+
+    	ALTPATA 16384, 16384, 0
     	ALTPATA 16384, 16384, 255
     	ALTPATB 16384, 16384, 0
     	ALTPATB 16384, 16384, 255
@@ -152,20 +152,20 @@ lowerram_march
 	MARCHTEST 16384, 16384
 
 ;	Lastly the Random fill test
-	
+
 lowerram_random
-    
+
     	RANDFILLUP 16384, 8192, 0
     	RANDFILLDOWN 32766, 8191, 255
 
-	
+
 ;	This gives the opportunity to visually see what's happening in
 ;	lower memory in case there is a problem with it.
 ;	Conveniently, if there's some lower RAM, then this'll give us
 ;	a pattern to lock onto with the floating bus sync test.
 
     	BLANKMEM 16384, 6144, 0
-	
+
 ;	Attributes - white screen, blank ink.
 
 	BLANKMEM 22528, 768, 56
@@ -197,9 +197,9 @@ lowerram_random
 	ld a, intvec1 / 256
 	ld i, a
 	im 2
-	ei 
+	ei
 	halt
-	
+
 ;	Called from the ISR we just pointed at.
 ;	Start painting border, start with black
 
@@ -213,32 +213,32 @@ fail_border
 	ld a, 0
 	out (ULA_PORT), a
 
-;	Add a small delay so that the stripes begin when 
+;	Add a small delay so that the stripes begin when
 ;	paper begins
-	
+
 	ld a, 0x24
 	ld c, a
 	ld a, 0x2
 	ld b, a
 
-	
+
 fail_border_wait:
 	dec bc
 	ld a, b
 	or c
 	jr nz, fail_border_wait
-	
+
 fail_border_1
-		
-	xor a 
+
+	xor a
 	ld c, a
 
 
-; Change border to green or red depending on whether the current 
+; Change border to green or red depending on whether the current
 ; bit has been determined bad or not
 
 fail_border_2
-	
+
 	ld a, 4
 	bit 0, d
 	jr z, fail_border_3
@@ -247,7 +247,7 @@ fail_border_2
 ; Output the status colour for this bit
 
 fail_border_3
-	
+
 	out (ULA_PORT), a
 	ld a, 0xff
 	ld b, a
@@ -271,14 +271,14 @@ fail_border_5
 	ld a, c
 	cp 8
 	jr nz, fail_border_2
-	
+
 ; Done, now delay a little
 
 	ld bc, 0x40
 
 fail_border_6
 
-	dec bc 
+	dec bc
 	ld a, c
 	or b
 	jr nz, fail_border_6
@@ -293,18 +293,18 @@ fail_border_7
 	jr z, fail_border_end
 ;
 ;	Yes, output an additional yellow stripe to signify this
-;	
+;
 	ld a, BORDERYEL
 	out (ULA_PORT), a
 	ld a, 0x8a
 	ld b, a
-	
+
 fail_border_8
-	
+
 	djnz fail_border_8
 	ld a, 0
 	out (ULA_PORT), a
-	
+
 ; And repeat for next frame - enable ints and wait for and interrupt
 ; to carry us back
 
@@ -313,8 +313,8 @@ fail_border_end
 	ld de, ix
 	ei
 	halt
-	
-; 
+
+;
 ;	Upper / 128K RAM Testing
 ;
 
@@ -338,23 +338,23 @@ use_uppermem
 
 	ld b, 5
 	ld hl, v_hexstr
-	xor a 
+	xor a
 
 hexstr_init
 
 	ld (hl), a
 	inc hl
 	djnz hexstr_init
-	
+
 	ld b, 6
 	ld hl, v_decstr
 	xor a
-	
+
 decstr_init
 	ld (hl), a
 	inc hl
 	djnz decstr_init
-	
+
     	ld a, BORDERWHT
     	out (ULA_PORT), a
 
@@ -367,7 +367,7 @@ decstr_init
 	call cls
     	ld hl, str_banner
     	call print
-	ld hl, str_lowerrampass 
+	ld hl, str_lowerrampass
 	call print
 
 ;	Are we in a soak test?
@@ -375,9 +375,9 @@ decstr_init
 	ld a, iyh
 	or iyl
 	jr z, print_footer
-	
+
 ;	Yes, print the current iteration
-	
+
 	ld hl, str_soaktest
 	call print
 	ld hl, iy
@@ -386,22 +386,22 @@ decstr_init
 	ld hl, v_decstr
 	call print
 	jr rom_test
-	
+
 print_footer
 
 	ld hl, str_footer
 	call print
-	
-rom_test	  
+
+rom_test
 
 ;	Perform some ROM checksum testing to determine what
 ;	model we're running on
 
 ; 	Assume 128K toastrack (so far)
 
-	xor a 
-	ld (v_128type), a    
-	
+	xor a
+	ld (v_128type), a
+
 	ld hl, str_romcrc
     	call print
 
@@ -418,18 +418,19 @@ rom_test
     	call do_romcrc
 
 ;	Save it in DE temporarily
-	
+
 	ld de, hl
 	ld hl, rom_signature_table
-	
-;	Did paging out ROM fail?	
+
+;	Did paging out ROM fail?
 
 	jr nc, rom_check_loop
-	
+	xor a
+	ld (v_column), a
 	ld hl, str_romdiagboard
 	call print
 	jr rom_unknown_2
-	
+
 ; 	Check for a matching ROM
 
 rom_check_loop
@@ -440,9 +441,9 @@ rom_check_loop
 	ld a, b
 	or c
 	jr z, rom_unknown
-	
+
 ;	Check saved ROM CRC in DE against value in table
-	
+
 	ld a, d
 	xor b
 	jr nz, rom_check_next
@@ -470,16 +471,16 @@ rom_check_found
 
 	ld de, 4
 	add hl, de
-	
+
 ;	Set up return address to be the testinterrupts label
 
 	ld de, testinterrupts
 	push de
-	
+
 	ld de, (hl)
 	ld hl, de
 	jp hl
-	
+
 test_routine_return
 	jp testinterrupts
 
@@ -495,6 +496,8 @@ rom_unknown
 
 	push de
 	ld hl, str_romunknown
+		xor a
+		ld (v_column), a
 	call print
 	pop hl
       	ld de, v_hexstr
@@ -504,35 +507,37 @@ rom_unknown
       	ld hl, v_hexstr
       	call print
 
+rom_unknown_2
+
 ; 	Check if we're in soak test mode, if so assume 48K mode
 
 	ld a, iyh
 	or iyl
-	jr z, rom_unknown_2
+	jr z, rom_unknown_3
 
 ;	ROM unknown and in soak test, assume 48K
 
 	ld hl, str_assume48k
 	call print
 	call test_48k
-	jr testinterrupts	
-	
-rom_unknown_2
-	
+	jr testinterrupts
+
+rom_unknown_3
+
 ; 	Uncomment to disable user selection
 
 	;call test_48k
 	;jr testinterrupts
 
 ; 	end disable user selection
-	
+
 ; 	Allow user to choose model if ROM version can't be determined
 
 	ld hl, str_testselect
 	call print
 
 select_test
-	  
+
 	ld bc, 0xf7fe
 	in a, (c)
 
@@ -546,22 +551,22 @@ select_test
 
 	ld hl, test_vector_table
 	ld b, a
-	
+
 select_test_1
 
 	ld de, (hl)
 	ld a, d
 	or e
 	jr z, select_test
-	
+
 	bit 0, b
 	jr nz, select_test_2
-	
+
 	push hl
 	ld de, (hl)
 	ld hl, de
 	call print
-	
+
 	pop hl
 	inc hl
 	inc hl
@@ -570,14 +575,14 @@ select_test_1
 	ld de, testinterrupts
 	push de
 	jp hl
-	
+
 select_test_2
 
 	ld de, 4
 	add hl, de
 	rr b
 	jr select_test_1
-	
+
 testinterrupts
 
 ; 	Test ULA's generation of interrupts
@@ -588,7 +593,7 @@ testinterrupts
 	ld a, iyh
 	or iyl
 	jr nz, tests_complete
-	
+
 	ld hl, str_interrupttest
 	call print
 
@@ -605,11 +610,11 @@ testinterrupts
 	im 2
 	ei
 
-intloop      
+intloop
 
 ; 	We'll start again as soon as an interrupt is raised
 
-	halt     
+	halt
 
 ; 	Print the current counter value to screen. If the number is
 ; 	incrementing, interrupts are being generated correctly.
@@ -630,8 +635,8 @@ intloop
 
 ;	Set LED's to LSB of counter word for visual feedback
 
-	ld a, (v_intcount)   
-	out (LED_PORT), a    
+	ld a, (v_intcount)
+	out (LED_PORT), a
 
 	cp 0
 	jr nz, intloop
@@ -675,10 +680,10 @@ tests_complete
 	jr z, soak_test_check
 
 ;	Yes we did - say so and halt
-	
+
 	ld hl, str_halted_fail
 	call print
-	di 
+	di
 	halt
 
 soak_test_check
@@ -689,7 +694,7 @@ soak_test_check
 	ld a, iyh
 	or iyl
 	jr z, diaghw_present
-	
+
 	ld hl, str_soakcomplete
 	call print
 
@@ -703,7 +708,7 @@ innerdelay_2
 	ld a, b
 	or c
 	jr nz, innerdelay_2
-	
+
 	dec hl
 	ld a, h
 	or l
@@ -743,7 +748,7 @@ diaghw_ok
 
 	ld b, 9
 	ei
-	
+
 waitloop
 
 	call check_spc_key
@@ -770,9 +775,9 @@ waitloop
 	ld a, b
 	cp 0xff
 	jr nz, waitloop
-	
+
 	im 0
-	di 
+	di
 
 ; 	WAIT message - about to page ROM in
 
@@ -782,10 +787,10 @@ waitloop
 	call print
 	ld hl, str_testwait
 	call print
-	  
-;	Copy the page in routine to RAM as we will need some 
+
+;	Copy the page in routine to RAM as we will need some
 ; 	code to init the machine's ROM once we release /ROMCS
-	
+
 page_speccy_rom
 
 	ld hl, start_pagein
@@ -797,11 +802,11 @@ page_speccy_rom
 
 	jp do_pagein
 
-; 	Routine to run from RAM that pages out our ROM and 
+; 	Routine to run from RAM that pages out our ROM and
 ; 	pages in the machine's own
 
 start_pagein
- 
+
 	ld a, %00100000   ; bit 5 = release /ROMCS
 	out (ROMPAGE_PORT), a
 	jp 0
@@ -818,7 +823,7 @@ end_pagein
 
 testdiaghw
 
-;	Copy the page in routine to RAM as we will need some 
+;	Copy the page in routine to RAM as we will need some
 ; 	code to init the machine's ROM once we release /ROMCS
 
 	ld hl, start_testdiaghw
@@ -832,7 +837,7 @@ testdiaghw
 	ret
 
 start_testdiaghw
-	
+
 	ld a, %00100000		; bit 5 = release /ROMCS
 	out (ROMPAGE_PORT), a
 
@@ -885,7 +890,7 @@ fail_print_ic_loop
 	bit 0, d
 	jr z, ic_ok
 
-;	Bad IC, print out the correspoding location for a 48K machine
+;	Bad IC, print out the corresponding location for a 48K machine
 
 	ld hl, str_ic
 	call print
@@ -899,14 +904,14 @@ fail_print_ic_loop
 	rlca
 	or l
 	ld l, a
-	
+
 	call print
 	ld a, 5
 	call check_end_of_line
 
 ic_ok
 
-;	Rotate D register right to line up the next IC result 
+;	Rotate D register right to line up the next IC result
 ;	for checking in bit 0
 
 	rr d
@@ -933,18 +938,18 @@ print_fail_ic_4bit
 	and 0x0f
 	jr z, next_4_bits
 
-;	Bad IC, print out the correspoding location 
+;	Bad IC, print out the correspoding location
 
 	ld hl, str_ic
 	call print
 	ld hl, ix
 	call print
-	
+
 next_4_bits
-	
+
 	ld bc, 4
 	add ix, bc
-	
+
 	ld a, d
 	and 0xf0
 	jr z, bit4_check_done
@@ -953,7 +958,7 @@ next_4_bits
 	call print
 	ld hl, ix
 	call print
-	
+
 bit4_check_done
 
 	ret
@@ -962,20 +967,20 @@ bit4_check_done
 ;	Checks to see if the SPACE key was pressed.
 ;	Result: Z set if pressed, reset otherwise
 ;
-	
+
 check_spc_key
 
 	ld a, 0x7f
 	in a, (0xfe)
 	bit 0, a
-	ret 
-  
-	include "crc16.asm" 
+	ret
+
+	include "crc16.asm"
 	include "print.asm"
 	include "paging.asm"
 	include "testcard.asm"
 	include "ulatest.asm"
-	
+
 ;
 ;	Table to define ROM signatures
 ;
@@ -1007,7 +1012,7 @@ str_rom128k
 str_rom128esp
 
 	defb	"Spectrum 128K (Esp) ROM...  ", 0
-	
+
 str_romplus2
 
 	defb	"Spectrum +2 (Grey) ROM...   ", 0
@@ -1019,15 +1024,15 @@ str_romplus2esp
 str_romplus2fra
 
 	defb	"Spectrum +2 (Fra) ROM...    ", 0
-	
+
 str_romplus3
 
 	defb	"Spectrum +3 (v4.0) ROM...   ", 0
-	
+
 str_romplus2a
 
 	defb    "Spectrum +2A (v4.1) ROM...  ", 0
-	
+
 str_romplus3esp
 
 	defb	"Spectrum +2A/+3 (Esp) ROM.. ", 0
@@ -1035,14 +1040,14 @@ str_romplus3esp
 str_romplus3e_v1_38
 
 	defb 	"Spectrum +3E v1.38 ROM...   ", 0
-	
+
 str_romplus3e_v1_38esp
 
 	defb	"Spec +3E v1.38 ROM (Esp)... ", 0
 
 str_romdiagboard
 
-	defb	"DiagBoard not found             ", 0
+	defb	"DiagBoard not found         ", 0
 ;
 ;	Table to define pointers to test routines
 ;
@@ -1059,7 +1064,7 @@ test_vector_table
 ;	String tables
 ;
 
-; the ZX Spectrum Diagnostics Banner 
+; the ZX Spectrum Diagnostics Banner
 
 str_banner
 
@@ -1067,25 +1072,25 @@ str_banner
 	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
 	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
 
-str_footer			
-	
+str_footer
+
 	defb	AT, 23, 0, "    v0.2 D. Smith, B. Alford    ", 0
-	
+
 str_lowerrampass
 
 	defb	AT, 2, 0, "Lower 16K RAM tests passed\n\n", 0
 
 str_soaktest
-	
+
 	defb 	AT, 23, 3, "Soak test: iteration ", INK, 0, 0
-	
+
 str_test4
 
-	defb	"\nUpper RAM Walk test...      ", 0 
+	defb	"\nUpper RAM Walk test...      ", 0
 
 str_test5
 
-	defb	"Upper RAM Inversion test... ", 0 
+	defb	"Upper RAM Inversion test... ", 0
 
 str_test6
 
@@ -1093,17 +1098,17 @@ str_test6
 
 str_test7
 
-	defb	"Upper RAM Random test...    ", 0 
+	defb	"Upper RAM Random test...    ", 0
 
 
 str_48ktestsfail
 
 	defb	"\n", TEXTBOLD, PAPER, 2, INK, 7,"        48K tests FAILED        \n", TEXTNORM, ATTR, 56, 0
 
-str_isthis16k	
+str_isthis16k
 
-	defb	"   This may be a 16K Spectrum   ", 0	
-	
+	defb	"   This may be a 16K Spectrum   ", 0
+
 str_128ktestsfail
 
 	defb	"\n", TEXTBOLD, PAPER, 2, INK, 7,"       128K tests FAILED        \n", TEXTNORM, ATTR, 56, 0
@@ -1113,22 +1118,22 @@ str_128kpagingfail
 
 	defb	"\n", TEXTBOLD, PAPER, 2, INK, 7,"    128K Paging tests FAILED    \n", TEXTNORM, ATTR, 56, 0
 
-str_romcrc	
+str_romcrc
 
 	defb	AT, 4, 0, "Checking ROM version...     ", 0
 
 str_romunknown
 
-	defb	AT, 4, 0, INK, 2, TEXTBOLD, "Unknown ROM", INK, 0, TEXTNORM, "                 ", ATTR, 56, 0
+	defb	INK, 2, TEXTBOLD, "Unknown ROM", INK, 0, TEXTNORM, "                 ", ATTR, 56, 0
 
 str_testselect
 
-	defb	AT, 5, 0, "Press 1:48K 2:128K 3:+2 4:+2A/+3", 0 
+	defb	AT, 5, 0, "Press 1:48K 2:128K 3:+2 4:+2A/+3", 0
 
 str_assume48k
 
 	defb 	AT, 5, 0, "Assuming 48K mode...\n", 0
-	
+
 str_select48k
 
 	defb	AT, 5, 6, BRIGHT, 1, "1:48K\n", TEXTNORM, ATTR, 56, 0
@@ -1171,7 +1176,7 @@ str_testingbank
 
 str_testingpaging
 
-	defb	"Testing paging    ", 0 
+	defb	"Testing paging    ", 0
 
 str_bankm
 
@@ -1195,14 +1200,14 @@ str_interrupt_tab
 
 str_soakcomplete
 	defb	"\n  Soak test iteration complete  ", 0
-	
+
 str_halted
 
-	defb	TEXTBOLD, "\n   *** Testing Completed ***    ", TEXTNORM, 0 
+	defb	TEXTBOLD, "\n   *** Testing Completed ***    ", TEXTNORM, 0
 
 str_halted_fail
 
-	defb	TEXTBOLD, "\n Failures found, system halted ", TEXTNORM, 0 
+	defb	TEXTBOLD, "\n Failures found, system halted ", TEXTNORM, 0
 
 
 str_pagingin
@@ -1224,7 +1229,7 @@ str_check_plus2_hal
 str_check_plus3_ula
 
 	defb	"Check IC1 (ULA 40077)\n", 0
-	
+
 str_check_ic
 
 	defb	"Check the following IC's:\n", 0
@@ -1235,10 +1240,10 @@ str_ic
 
 ;
 ;	Align the ISR for interrupt checking at location 0x2F2F.
-;	
+;
 
 	BLOCK #3535-$, #FF
-	
+
 failurebars_intservice
 
 	jp fail_border
@@ -1250,11 +1255,11 @@ failurebars_intservice
 ; 	clock in v_rtc. Neither counter are related.
 ;
 ; 	v_intcount is a 32-bit number.
-; 	v_rtc is 4 bytes representing hours, minutes, seconds and 
+; 	v_rtc is 4 bytes representing hours, minutes, seconds and
 ; 	50ths of a second.
 
 intservice
-	
+
 	push hl
 	push af
 	ld hl, (v_intcount)
@@ -1263,27 +1268,27 @@ intservice
 	ld a, h
 	or l
 	jr nz, intservice_checkrtc
-	
+
 	ld hl, (v_intcount + 2)
 	inc hl
 	ld (v_intcount + 2), hl
-	
+
 intservice_checkrtc
-	
+
 	ld a, (v_rtcenable)
 	cp 1
 	jr nz, intservice_exit
-	
+
 ;	50ths of a second
-	
+
 	ld a, (v_rtc + 3)
 	inc a
 	ld (v_rtc + 3), a
 	cp 50
 	jr nz, intservice_exit
-	
+
 ;	Seconds
-	
+
 	xor a
 	ld (v_rtc + 3), a
 	ld a, (v_rtc + 2)
@@ -1291,9 +1296,9 @@ intservice_checkrtc
 	ld (v_rtc + 2), a
 	cp 60
 	jr nz, intservice_exit
-	
+
 ;	Minutes
-	
+
 	xor a
 	ld (v_rtc + 2), a
 	ld a, (v_rtc + 1)
@@ -1301,9 +1306,9 @@ intservice_checkrtc
 	ld (v_rtc + 1), a
 	cp 60
 	jr nz, intservice_exit
-	
+
 ;	Hours
-	
+
 	xor a
 	ld (v_rtc + 1), a
 	ld a, (v_rtc)
@@ -1316,7 +1321,7 @@ intservice_checkrtc
 
 	xor a
 	ld (v_rtc), a
-	
+
 intservice_exit
 
 	pop af
@@ -1331,7 +1336,7 @@ intservice_exit
 
 str_48_ic
 
-	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0	
+	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0
 
 str_128k_ic_contend
 
@@ -1339,7 +1344,7 @@ str_128k_ic_contend
 
 str_128k_ic_uncontend
 
-	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0	
+	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0
 
 str_plus2_ic_contend
 
@@ -1352,7 +1357,7 @@ str_plus2_ic_uncontend
 str_plus3_ic_contend
 
 	defb "3  ", 0, "4  ", 0
-	
+
 str_plus3_ic_uncontend
 
 	defb "5  ", 0, "6  ", 0
@@ -1365,17 +1370,17 @@ str_rommagicstring
 
 	defb "TROM"
 
-;	Fill rest of spare ROM space to 3C00 with 2F (vector table 
+;	Fill rest of spare ROM space to 3C00 with 2F (vector table
 ;	to point at ISR at 0x2F2F)
 
 	BLOCK #3800-$, #FF
-intvec1      
-	BLOCK #3A00-$, #35 
+intvec1
+	BLOCK #3A00-$, #35
 intvec2
 	BLOCK #3C00-$, #36
 
 ;	Character set at 0x3C00
-      
+
 	include "charset.asm"
 
 ;	Fill ROM space up to 0x3FFF with FF's
