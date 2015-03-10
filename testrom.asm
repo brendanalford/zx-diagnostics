@@ -1220,11 +1220,11 @@ str_pagingtab
 
 str_check_128_hal
 
-	defb	"Check IC8 (PAL10H8CN)\n", 0
+	defb	"Check IC29 (PAL10H8CN) and IC31\n(74LS174N)\n", 0
 
 str_check_plus2_hal
 
-	defb	"Check IC7 (HAL10H8ACN)\n", 0
+	defb	"Check IC7 (HAL10H8ACN) and IC6\n(74LS174N)\n", 0
 
 str_check_plus3_ula
 
