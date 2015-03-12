@@ -50,10 +50,159 @@ start
 
 	ld b, 5
 	ld hl, v_hexstr
+	
+; 	Perform some rudimentary lower RAM / page 5 tests.
+;	We'll only be able to test RAM from 16384-25999, or 
+;	9615 bytes - this utility takes up the other 6k (6767 bytes).
+
+	ld a, BORDERGRN
+	out (ULA_PORT), a
+
+	BLANKMEM 22528, 768, 0
+	
+;	Just do the random tests
+
+    	RANDFILLUP 16384, 4806, 0
+    	RANDFILLDOWN 25998, 4806, 255
+    	
+;	Establish a stack
+
+	ld sp, 0x7bff
+
+;	Check if lower ram tests passed
+	
+	ld a, ixh
+	cp 0
+	jr z, use_uppermem
+
+;	Lower memory error detected.
+;	We won't be able to test anything else effectively.
+;	Finish with painting border with bad bits: black border
+;	with red stripes for failed IC's, green for good ones.
+;	Topmost stripe is bit 0, lowermost is bit 7.
+
+;	First blank the screen but with white paper/black ink.
+;	This gives the opportunity to visually see what's happening in
+;	lower memory. This'll also give us a pattern to lock onto with 
+;	the floating bus to sync the border (no room for an IM2 vector table).
+
+    	BLANKMEM 16384, 6144, 0
+
+;	Attributes - white screen, blank ink.
+
+	BLANKMEM 22528, 768, 56
+
+;	Enable interrupts. Hopefully the system is working to an 
+;	extent that we can handle interrupts and use them to sync to the
+;	screen refresh. Let's face it, we wouldn't have got this far if
+;	not :)
+	
+	ei
+	
+fail_border
+
+;	Starting border black until we need stripes
+	
+	halt
+	ld a, 0
+	out (ULA_PORT), a
+
+;	Add a small delay so that the stripes begin when
+;	paper begins
+
+	ld a, 0x00
+	ld c, a
+	ld a, 0x2
+	ld b, a
+
+
+fail_border_wait:
+	dec bc
+	ld a, b
+	or c
+	jr nz, fail_border_wait
+
+fail_border_1
+	
+	ld de, ix
+	xor a
+	ld c, a
+
+; Change border to green or red depending on whether the current
+; bit has been determined bad or not
+
+fail_border_2
+
+	ld a, 4
+	bit 0, d
+	jr z, fail_border_3
+	ld a, 2
+
+; Output the status colour for this bit
+
+fail_border_3
+
+	out (ULA_PORT), a
+	ld a, 0xd0
+	ld b, a
+
+fail_border_4
+
+	djnz fail_border_4
+
+; Change back to black for gap between stripes
+
+	ld a, 0
+	out (ULA_PORT), a
+	ld a, 0x80
+	ld b, a
+
+fail_border_5
+
+	djnz fail_border_5
+	rr d
+	inc c
+	ld a, c
+	cp 8
+	jr nz, fail_border_2
+
+; Done, now delay a little
+
+	ld bc, 0x40
+
+fail_border_6
+
+	dec bc
+	ld a, c
+	or b
+	jr nz, fail_border_6
+
+;	Delay until we're off the screen
+
+	ld a, 0x8a
+	ld b, a
+
+fail_border_8
+
+	djnz fail_border_8
+	ld a, 0
+	out (ULA_PORT), a
+
+; And repeat for next frame - enable ints and wait for and interrupt
+; to carry us back
+
+fail_border_end
+
+	jr fail_border
+
+
+;	Lower tests passed.
+;	Page in ROM 0 (if running on 128 hardware) in preparation
+;	for ROM test.
+
+use_uppermem
+
 	xor a 
-
-;	Page in ROM 0 (if running on 128 hardware)
-
 	ld bc, 0x1ffd
 	out (c), a
 	ld bc, 0x7ffd
@@ -518,7 +667,7 @@ str_footer
 	
 str_lowerramok
 
-	defb 	AT, 2, 0, "Assuming Lower RAM is OK...", 0
+	defb 	AT, 2, 0, "Lower RAM (partial test)... ", TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
 	
 str_test4
 
