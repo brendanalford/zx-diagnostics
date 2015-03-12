@@ -1078,7 +1078,7 @@ str_footer
 
 str_lowerrampass
 
-	defb	AT, 2, 0, "Lower 16K RAM tests passed\n\n", 0
+	defb	AT, 2, 0, "Lower 16K RAM tests...      ", TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
 
 str_soaktest
 
