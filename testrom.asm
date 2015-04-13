@@ -999,6 +999,8 @@ rom_signature_table
 ;	Some +3E ROM sets that might be out there
 	defw 0x8dfe, str_romplus3e_v1_38, test_plus3
 	defw 0xcaf2, str_romplus3e_v1_38esp, test_plus3
+;	Soviet clones that some people are inexplicably fond of :)
+	defw 0xe2ec, str_orelbk08, test_48kgeneric 
 	defw 0x0000
 
 str_rom48k
@@ -1012,7 +1014,7 @@ str_rom128k
 str_rom128esp
 
 	defb	"Spectrum 128K (Esp) ROM...  ", 0
-
+	
 str_romplus2
 
 	defb	"Spectrum +2 (Grey) ROM...   ", 0
@@ -1044,6 +1046,10 @@ str_romplus3e_v1_38
 str_romplus3e_v1_38esp
 
 	defb	"Spec +3E v1.38 ROM (Esp)... ", 0
+
+str_orelbk08
+
+	defb	"Orel BK-08 ROM...           ", 0
 
 str_romdiagboard
 
@@ -1334,6 +1340,10 @@ intservice_exit
 
 	BLOCK #3700-$, #FF
 
+str_bit_ref
+	
+	defb "0 ", 0, 0,  "1 ", 0, 0, "2 ", 0, 0, "3 ", 0, 0, "4 ", 0, 0, "5 ", 0, 0, "6 ", 0, 0, "7 ", 0, 0
+
 str_48_ic
 
 	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0
@@ -1361,6 +1371,7 @@ str_plus3_ic_contend
 str_plus3_ic_uncontend
 
 	defb "5  ", 0, "6  ", 0
+
 
 ;	Magic string to tell if we can page out our ROM (so that we can
 ;	tell the difference between Diagboard hardware and generic external

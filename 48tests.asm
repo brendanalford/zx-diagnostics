@@ -22,12 +22,190 @@
 ;	48K Specific Tests
 ;
 ;	Perform the standard inversion, fill and random tests
-;   	on the top 32K of RAM.
+;   on the top 32K of RAM.
 ;
 	
 ;	Start the Upper RAM walk test.
 		
 test_48k
+
+	call upperram_test
+
+;	Contents of v_fail_ic system variable will be 
+;	non-zero if we have any failures.
+	  
+print_upperresult
+
+	ld a, (v_fail_ic)
+    cp 0
+	jr z, print_upperpass
+	ld hl, str_48ktestsfail
+	call print
+
+;	If all upper RAM IC's tested faulty, then
+;	chances are we're a 16K Spectrum
+
+	cp 0xff
+	jr nz, print_upper_ic
+
+;	Reset the error bitmap in ix
+	
+	xor a
+	ld ixh, 0
+	
+	ld hl, str_isthis16k
+	call print
+	
+;	Don't flag errors if all upper RAM failed
+
+	xor a 
+	ld (v_fail_ic), a
+	ret
+	
+; If possible, output the failing IC's to the screen
+
+print_upper_ic
+
+	ld hl, str_check_ic
+	call print
+
+	ld a, (v_fail_ic)
+	ld d, a
+	ld ix, str_48_ic
+
+	call print_fail_ic
+
+	ld hl, str_newline
+	call print
+	ret 
+
+;	Upper RAM tests passed, give the user the good news
+
+print_upperpass
+
+	ld hl, str_48ktestspass
+	call print
+	
+;	48K tests passed at this point
+
+	ret	
+	
+	
+;
+;	48K Specific Tests
+;
+;	Perform the standard inversion, fill and random tests
+;   on the top 32K of RAM.
+;
+	
+;	Start the Upper RAM walk test for generic machines
+		
+test_48kgeneric
+
+	call upperram_test
+
+;	Contents of v_fail_ic system variable will be 
+;	non-zero if we have any failures.
+	  
+
+	ld a, (v_fail_ic)
+    cp 0
+	jr z, print_upperpass_gen
+	ld hl, str_48ktestsfail
+	call print
+
+;	If all upper RAM IC's tested faulty, then
+;	chances are we're a 16K Spectrum
+
+	cp 0xff
+	jr nz, print_upper_ic_gen
+
+;	Reset the error bitmap in ix
+	
+	xor a
+	ld ixh, 0
+	
+	ld hl, str_isthis16k
+	call print
+	
+;	Don't flag errors if all upper RAM failed
+
+	xor a 
+	ld (v_fail_ic), a
+	ret
+	
+; If possible, output the failing IC's to the screen
+
+print_upper_ic_gen
+
+	ld hl, str_check_bits
+	call print
+
+	ld a, (v_fail_ic)
+	ld d, a
+	ld ix, str_bit_ref
+	ld b, 0
+
+fail_print_bit_loop
+
+	bit 0, d
+	jr z, bit_ok
+
+;	Bad IC, print out the corresponding location for a 48K machine
+
+	ld hl, str_bit
+	call print
+	ld hl, ix
+
+;	Strings are aligned to nearest 32 bytes, so we can just replace
+;	this much the LSB
+
+	ld a, b
+	rlca
+	rlca
+	or l
+	ld l, a
+
+	call print
+	ld a, 5
+	call check_end_of_line
+
+bit_ok
+
+;	Rotate D register right to line up the next IC result
+;	for checking in bit 0
+
+	rr d
+
+;	Loop round if we've got more bits to check
+
+	inc b
+	ld a, b
+	cp 8
+	jr nz, fail_print_bit_loop
+	
+	
+	ld hl, str_newline
+	call print
+	ret 
+
+;	Upper RAM tests passed, give the user the good news
+
+print_upperpass_gen
+
+	ld hl, str_48ktestspass
+	call print
+	
+;	48K tests passed at this point
+
+	ret	
+	
+	
+	
+upperram_test
+
+;	Called to test upper 32K of ram for both 48K spectrums 
+;   and related clones.
 
 	xor a
 	ld (v_fail_ic), a
@@ -89,63 +267,13 @@ upperram_random
 
 	RESTORESTACK
 	TESTRESULT
-
-;	Contents of v_fail_ic system variable will be 
-;	non-zero if we have any failures.
-	  
-print_upperresult
-
-	ld a, (v_fail_ic)
-    	cp 0
-	jr z, print_upperpass
-	ld hl, str_48ktestsfail
-	call print
-
-;	If all upper RAM IC's tested faulty, then
-;	chances are we're a 16K Spectrum
-
-	cp 0xff
-	jr nz, print_upper_ic
-
-;	Reset the error bitmap in ix
 	
-	xor a
-	ld ixh, 0
-	
-	ld hl, str_isthis16k
-	call print
-	
-;	Don't flag errors if all upper RAM failed
-
-	xor a 
-	ld (v_fail_ic), a
 	ret
 	
-; If possible, output the failing IC's to the screen
+str_check_bits
 
-print_upper_ic
+	defb	"Failures found in bits:\n", 0
 
-	ld hl, str_check_ic
-	call print
+str_bit
 
-	ld a, (v_fail_ic)
-	ld d, a
-	ld ix, str_48_ic
-
-	call print_fail_ic
-
-	ld hl, str_newline
-	call print
-	ret 
-
-;	Upper RAM tests passed, give the user the good news
-
-print_upperpass
-
-	ld hl, str_48ktestspass
-	call print
-	
-;	48K tests passed at this point
-
-	ret	
-
+	defb 	"Bit ", 0
