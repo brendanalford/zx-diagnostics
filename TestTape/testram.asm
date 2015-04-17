@@ -28,6 +28,7 @@
 ;
 
 	include "..\defines.asm"
+	include "..\version.asm"
 
 	org 26000
 
@@ -667,10 +668,10 @@ str_banner
 	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
 	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
 
-str_footer			
-	
-	defb	AT, 23, 0, "    v0.2 D. Smith, B. Alford    ", 0
-	
+str_footer
+
+	defb	AT, 23, 0, VERSION_STRING, 0
+
 str_lowerramok
 
 	defb 	AT, 2, 0, "Lower RAM (partial test)... ", TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0

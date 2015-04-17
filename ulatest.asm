@@ -94,6 +94,9 @@ ulatest
 	ld hl, str_ulaexit
 	call print
 	
+	ld hl, str_footer
+	call print
+	
 ;	Start the interrupt clock
 
 	ld a, intvec2 / 256

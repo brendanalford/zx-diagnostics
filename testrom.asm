@@ -26,6 +26,7 @@
 ;
 
 	include "defines.asm"
+	include "version.asm"
 
 ;
 ;	Define a build timestamp
@@ -47,7 +48,7 @@
 
 str_build
 	BLOCK #0010-$, #FF
-	defb	"DiagBoard Test ROM v0.2 built ", BUILD_TIMESTAMP , 0
+	defb	"DiagBoard Test ROM ", VERSION, " built ", BUILD_TIMESTAMP , 0
 	BLOCK #0066-$, #FF
 
 nmi
@@ -1080,7 +1081,7 @@ str_banner
 
 str_footer
 
-	defb	AT, 23, 0, "    v0.2 D. Smith, B. Alford    ", 0
+	defb	AT, 23, 0, VERSION_STRING, 0
 
 str_lowerrampass
 
