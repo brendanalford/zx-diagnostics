@@ -28,29 +28,8 @@
 
 romcrc
 
-	ld a, %00100000 ; bit 5 controls /ROMCS
-	out (ROMPAGE_PORT), a
-
-;	Check if diagboard ROM is still paged
-
-	ld hl, str_rommagicstring
-	ld a, (hl)
-	cp 'T'
-	jr nz, startcrc
-	inc hl
-	ld a, (hl)
-	cp 'R'
-	jr nz, startcrc
-	inc hl
-	ld a, (hl)
-	cp 'O'
-	jr nz, startcrc
-	inc hl
-	ld a, (hl)
-	cp 'M'
-	jr nz, startcrc
-	scf
-	ret
+	ld a, 2
+	call do_rompage_reloc
 	
 startcrc
 
@@ -90,9 +69,9 @@ Next
 
 ;	Page our ROM back in
 	
-	xor a
-	out (ROMPAGE_PORT), a
+	ld a, 1
+	call do_rompage_reloc
 	ret
 	   
-endromcrc   
+romcrc_end   
 

@@ -26,6 +26,7 @@
 	define   LED_PORT	63
 	define   ULA_PORT	254
 	define   ROMPAGE_PORT   31
+	define	 SMART_ROM_PORT 0xfafb
 	define   BORDERRED	2
 	define   BORDERGRN	4
 	define 	 BORDERYEL	6

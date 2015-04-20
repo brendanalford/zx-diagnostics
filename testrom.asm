@@ -332,7 +332,7 @@ use_uppermem
 	ld (v_fail_ic_uncontend), a
 
 	ld (v_column), a
-    	ld (v_row), a
+    ld (v_row), a
 	ld (v_bold), a
 	ld a, 56
 	ld (v_attr), a
@@ -356,18 +356,38 @@ decstr_init
 	inc hl
 	djnz decstr_init
 
-    	ld a, BORDERWHT
-    	out (ULA_PORT), a
+    ld a, BORDERWHT
+    out (ULA_PORT), a
 
 ;	Init stack
 
-    	ld sp, 0x7cff
+    ld sp, 0x7cff
+	
+;	Copy ROMCRC and ROM paging routines to RAM
+;	We'll need them here as ROM code won't be accessible
+;	during ROM checksums etc
+
+	ld hl, romcrc
+	ld de, do_romcrc
+	ld bc, romcrc_end-romcrc
+	ldir
+	
+	ld hl, rompage_reloc
+	ld de, do_rompage_reloc
+	ld bc, end_rompage_reloc-rompage_reloc
+	ldir
+
+;	Check for whatever diagnostic hardware is present.
+;	Result will be stored in system variable v_testhwtype.
+
+	ld a, 0
+	call do_rompage_reloc
 
 ;	Clear the screen and print the top and bottom banners
 
 	call cls
-    	ld hl, str_banner
-    	call print
+    ld hl, str_banner
+    call print
 	ld hl, str_lowerrampass
 	call print
 
@@ -404,33 +424,29 @@ rom_test
 	ld (v_128type), a
 
 	ld hl, str_romcrc
-    	call print
+    call print
 
-; 	Copy CRC routine to RAM - we'll need to page out this ROM
-; 	to run the CRC code on the machine's ROM
+	ld a, (v_testhwtype)
+	cp 0
+	jr nz, rom_test_1
+	
+;	No diagnostic hardware, skip the check
 
-    	ld hl, romcrc
-    	ld de, do_romcrc
-    	ld bc, endromcrc-romcrc
-    	ldir
+	ld (v_column), a
+	ld hl, str_romdiagboard
+	call print
+	jr rom_unknown_2
+	
+rom_test_1
 
 ; 	Call CRC generator in RAM, CRC ends up in HL
 
-    	call do_romcrc
+    call do_romcrc
 
 ;	Save it in DE temporarily
 
 	ld de, hl
 	ld hl, rom_signature_table
-
-;	Did paging out ROM fail?
-
-	jr nc, rom_check_loop
-	xor a
-	ld (v_column), a
-	ld hl, str_romdiagboard
-	call print
-	jr rom_unknown_2
 
 ; 	Check for a matching ROM
 
@@ -497,16 +513,16 @@ rom_unknown
 
 	push de
 	ld hl, str_romunknown
-		xor a
-		ld (v_column), a
+	xor a
+	ld (v_column), a
 	call print
 	pop hl
-      	ld de, v_hexstr
-      	call Num2Hex
-      	xor a
-      	ld (v_hexstr+4), a
-      	ld hl, v_hexstr
-      	call print
+    ld de, v_hexstr
+    call Num2Hex
+    xor a
+    ld (v_hexstr+4), a
+    ld hl, v_hexstr
+    call print
 
 rom_unknown_2
 
@@ -726,7 +742,8 @@ innerdelay_2
 
 diaghw_present
 
-	call testdiaghw
+	ld a, (v_testhwtype)
+	cp 0
 	jr nz, diaghw_ok
 
 ;	No diagboard hw - say so and halt as we can't page system's ROM in
@@ -794,81 +811,15 @@ waitloop
 
 page_speccy_rom
 
-	ld hl, start_pagein
-	ld de, do_pagein
-	ld bc, end_pagein-start_pagein
-	ldir
+;	Passing 0x1234 to the pageout routine forces a jump to 
+;	the system ROM when done
 
-; 	Jump to page in routine, never to return
+	ld a, 2
+	ld bc, 0x1234
 
-	jp do_pagein
+;	We won't ever return from this call
 
-; 	Routine to run from RAM that pages out our ROM and
-; 	pages in the machine's own
-
-start_pagein
-
-	ld a, %00100000   ; bit 5 = release /ROMCS
-	out (ROMPAGE_PORT), a
-	jp 0
-
-end_pagein
-
-
-;
-;	Routine to check if Diagboard hardware (specifically
-;	paging ability (is present).
-;	Returns: zero flag reset if hardware is present, set
-;	otherwise.
-;
-
-testdiaghw
-
-;	Copy the page in routine to RAM as we will need some
-; 	code to init the machine's ROM once we release /ROMCS
-
-	ld hl, start_testdiaghw
-	ld de, do_testdiaghw
-	ld bc, end_testdiaghw-start_testdiaghw
-	ldir
-
-;	Call our test routine
-
-	call do_testdiaghw
-	ret
-
-start_testdiaghw
-
-	ld a, %00100000		; bit 5 = release /ROMCS
-	out (ROMPAGE_PORT), a
-
-	ld hl, str_rommagicstring
-	ld a, (hl)
-	cp 'T'
-	jr nz, testdiaghw_end
-	inc hl
-	ld a, (hl)
-	cp 'R'
-	jr nz, testdiaghw_end
-	inc hl
-	ld a, (hl)
-	cp 'O'
-	jr nz, testdiaghw_end
-	inc hl
-	ld a, (hl)
-	cp 'M'
-
-;	Zero flag will reflect the state of the 'TROM' magic
-;	string check. If it's set, we found the string and
-;	so did not page out successfully.
-
-testdiaghw_end
-
-	ld a, %00000000		; bit 5 = select /ROMCS
-	out (ROMPAGE_PORT), a
-	ret
-
-end_testdiaghw
+	call do_rompage_reloc
 
 ;
 ;	Testing Routines

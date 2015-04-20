@@ -21,8 +21,6 @@
 ulatest
 
 ;	Assume RAM is working, this isn't going to end well if not.
-
-
 ; 	Initialize stack to top of lower RAM
 
 	ld sp, 0x7fff
@@ -73,6 +71,20 @@ ulatest
 
 	ld ix, hl
 	ld iy, hl
+	
+;	Copy ROM paging routines to RAM
+
+	ld hl, rompage_reloc
+	ld de, do_rompage_reloc
+	ld bc, end_rompage_reloc-rompage_reloc
+	ldir
+	
+;	Detect diagnostic board type
+
+	ld a, 0x00
+	call do_rompage_reloc
+	
+
 	
 	call cls
 	ld a, BORDERWHT
@@ -272,7 +284,17 @@ check_input
 	bit 0, a
 	jp nz, ulatest_loop		; Caps shift not pressed
 
-	jp restart			; Page out and restart the machine	
+;	Just do a simple reset if diagboard hardware isn't detected
+
+	ld a, (v_testhwtype)
+	cp 0
+	jp z, 0000
+
+;	Else page the diagnostic ROM out and start the machine's own ROM
+	
+	ld bc, 0x1234
+	ld a, 2
+	call do_rompage_reloc 	; Page out and restart the machine	
 
 	
 out_mictone

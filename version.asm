@@ -21,7 +21,7 @@
 ; 	Define the central version string used throughout the test ROM
 ;	and tape test variants.
 
-	define VERSION	"v0.21"
+	define VERSION	"v0.30"
 	
 	define VERSION_STRING "   ", VERSION, " D. Smith, B. Alford     "
 	
