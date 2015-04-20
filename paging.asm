@@ -37,27 +37,6 @@ pagein
 	pop bc 
 	ret
 
-;
-;	Pages out the diagnostics ROM and restarts the computer
-;
-restart
-
-	ld bc, 0x1234
-	ld a, 1
-	ld hl, brk_page_reloc
-	ld de, 0x7f00				; Won't need system vars again at this point
-	ld bc, end_brk_page_reloc - brk_page_reloc
-	ldir
-	jp 0x7f00
-
-; This bit will be relocated so that we can page in the BASIC ROM
-
-brk_page_reloc
-	ld a, %00100000			; Bit 5 - release /ROMCS
-	out (ROMPAGE_PORT), a
-	jp 0
-end_brk_page_reloc
-
 
 ;
 ;	Handler for external paging operations.
