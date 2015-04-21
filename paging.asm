@@ -78,7 +78,7 @@ romhw_pagein_diagboard
 romhw_pagein_smart
 	
 	ld bc, SMART_ROM_PORT
-	ld a, 0x00
+	ld a, %00000001
 	out (c), a
 	ret
 	
@@ -110,7 +110,7 @@ romhw_pageout_diagboard
 romhw_pageout_smart
 	push bc
 	ld bc, SMART_ROM_PORT
-	ld a, %10000000
+	ld a, %10000001
 	out (c), a
 	pop bc
 	ld a, b
@@ -158,7 +158,7 @@ romhw_found_diagboard
 romhw_test_smart
 
 	ld bc, SMART_ROM_PORT
-	ld a, %10000000
+	ld a, %10000001
 	out (c), a
 	ld hl, str_rommagicstring
 	ld a, (hl)
