@@ -104,12 +104,15 @@ romhw_pageout_diagboard
 	ret nz
 	ld a, c
 	cp 0x34
+	ret nz
 	jp 0
 
 romhw_pageout_smart
+	push bc
 	ld bc, SMART_ROM_PORT
 	ld a, %10000000
 	out (c), a
+	pop bc
 	ld a, b
 	cp 0x12
 	ret nz
