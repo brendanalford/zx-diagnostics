@@ -307,7 +307,7 @@ ay_test_data
 str_testcardattr
 	defb	PAPER, 0, INK, 0, 0
 str_year
-	defb	BRIGHT, 0, "20", BRIGHT, 1, "14", 0
+	defb	BRIGHT, 0, 0x7f, 0x7f, BRIGHT, 1, 0x7f, 0x7f, 0
 
 str_testcard
 	defb	PAPER, 0, "    ", PAPER, 1, "    ", PAPER, 2, "    ", PAPER, 3, "    "
