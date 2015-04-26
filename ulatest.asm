@@ -90,9 +90,7 @@ ulatest
 	ld a, BORDERWHT
 	out (0xfe), a
 	
-	ld hl, str_banner
-	call print
-	ld hl, str_ulatest
+	ld hl, str_ulabanner
 	call print
 	
 	ld hl, str_ulainresult
@@ -125,7 +123,7 @@ ulatest_loop
 	xor a
 	in a, (0xfe)
 	ld c, a
-	ld hl, 0x5898 	; Start of 76543210 on screen
+	ld hl, 0x5858 	; Start of 76543210 on screen
 	ld de, 0x4778	; D = B/W attrs, E = W/B
 	ld b, 8
 	
@@ -452,31 +450,35 @@ test_screen_loop2
 	
 	ei
 	jp ulatest_loop
-	
-str_ulatest
 
-	defb AT, 2, 9, TEXTBOLD, "* ULA TEST *", TEXTNORM, 0
+
+str_ulabanner
+
+	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " ULA Test                 "
+	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
+	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
+	
 	
 str_ulainresult
 
-	defb AT, 4, 0, "ULA Read............... 76543210", 0
+	defb AT, 2, 0, "ULA Read............... 76543210", 0
 	
 str_ulainterrupt
 
-	defb AT, 6, 0, "Interrupt counter......", AT, 7, 0, "Real time elapsed......", 0
+	defb AT, 4, 0, "Interrupt counter......", AT, 5, 0, "Real time elapsed......", 0
 	
 str_ulacounter
 
-	defb AT, 6, 24, 0
+	defb AT, 4, 24, 0
 	
 str_ulacounterblank
 
-	defb AT, 6, 24, "--------"
-	defb AT, 7, 24, "--------", 0
+	defb AT, 4, 24, "--------"
+	defb AT, 5, 24, "--------", 0
 	
 str_rtccounter
 
-	defb AT, 7, 24, 0
+	defb AT, 5, 24, 0
 		
 str_colon
 	
@@ -488,16 +490,16 @@ str_nocolon
 	
 str_ulaintfail
 
-	defb AT, 6, 18, INK, 2, TEXTBOLD, " FAIL", TEXTNORM, ATTR, 56, 0
+	defb AT, 4, 18, INK, 2, TEXTBOLD, " FAIL", TEXTNORM, ATTR, 56, 0
 	
 str_ulaselecttest
 
-	defb AT, 9, 0, "Select:"
-	defb AT, 11, 0, "1) Output tone to MIC port"
-	defb AT, 12, 0, "2) Output tone to EAR port"
-	defb AT, 13, 0, "3) Test border generation"
-	defb AT, 14, 0, "4) Test screen switching (128K)", 0
+	defb AT, 7, 0, "Select:"
+	defb AT, 9, 0, "1) Output tone to MIC port"
+	defb AT, 10, 0, "2) Output tone to EAR port"
+	defb AT, 11, 0, "3) Test border generation"
+	defb AT, 12, 0, "4) Test screen switching (128K)", 0
 
 str_ulaexit
 
-	defb AT, 16, 7, "Hold BREAK to exit", 0
+	defb AT, 14, 7, "Hold BREAK to exit", 0
