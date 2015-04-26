@@ -1069,13 +1069,13 @@ L3D00:  DEFB    %00000000
         DEFB    %01111111
         DEFB    %11111111
 
-; $7F - Character: ' © '        CHR$(127)
+; $7F - Character: ' © '        CHR$(127): Note - used for dot pattern character
 
-        DEFB    %00111100
-        DEFB    %01000010
-        DEFB    %10011001
-        DEFB    %10100001
-        DEFB    %10100001
-        DEFB    %10011001
-        DEFB    %01000010
-        DEFB    %00111100
+        DEFB    %01010101
+        DEFB    %10101010
+        DEFB    %01010101
+        DEFB    %10101010
+        DEFB    %01010101
+        DEFB    %10101010
+        DEFB    %01010101
+        DEFB    %10101010
