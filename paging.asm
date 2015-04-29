@@ -181,7 +181,7 @@ romhw_found_smart
 	
 	ld a, 2
 	ld (v_testhwtype), a
-	ld a, 0
+	ld a, %00000001
 	ld bc, SMART_ROM_PORT
 	out (c), a
 	ret
