@@ -930,6 +930,7 @@ check_spc_key
 	include "crc16.asm"
 	include "print.asm"
 	include "paging.asm"
+	include "diagboard.asm"
 	include "testcard.asm"
 	include "ulatest.asm"
 
@@ -1027,8 +1028,8 @@ test_vector_table
 str_banner
 
 	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " ZX Spectrum Diagnostics  "
-	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
-	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
+	defb	TEXTNORM, PAPER, 0, INK, 2, 0x80, PAPER, 2, INK, 6, 0x80, PAPER, 6, INK, 4, 0x80
+	defb	PAPER, 4, INK, 5, 0x80, PAPER, 5, INK, 0, 0x80, PAPER, 0," ", ATTR, 56, 0
 
 str_footer
 

@@ -1058,7 +1058,29 @@ L3D00:  DEFB    %00000000
         DEFB    %01110000
         DEFB    %00000000
 
-; $7E - Character: '~'          CHR$(126): Note - this is used for the Spectrum stripe
+; $7E - Character: '~'          CHR$(126)
+
+        DEFB    %00000000
+        DEFB    %00010100
+        DEFB    %00101000
+        DEFB    %00000000
+        DEFB    %00000000
+        DEFB    %00000000
+        DEFB    %00000000
+        DEFB    %00000000
+
+; $7F - Character: ' © '        CHR$(127)
+
+        DEFB    %00111100
+        DEFB    %01000010
+        DEFB    %10011001
+        DEFB    %10100001
+        DEFB    %10100001
+        DEFB    %10011001
+        DEFB    %01000010
+        DEFB    %00111100
+        
+; $80 - Spectrum Stripe
 
         DEFB    %00000001
         DEFB    %00000011
@@ -1069,7 +1091,7 @@ L3D00:  DEFB    %00000000
         DEFB    %01111111
         DEFB    %11111111
 
-; $7F - Character: ' © '        CHR$(127): Note - used for dot pattern character
+; $81 - Chessboard pattern
 
         DEFB    %01010101
         DEFB    %10101010

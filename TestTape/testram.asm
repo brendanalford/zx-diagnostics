@@ -849,11 +849,6 @@ str_plus3_ic_uncontend
 
 	defb "5  ", 0, "6  ", 0
 
-
-;	Magic string to tell if we can page out our ROM (so that we can
-;	tell the difference between Diagboard hardware and generic external
-;	ROM boards)
-
 	BLOCK #7C00-$, #36
 
 ;	Character set at 0x7C00

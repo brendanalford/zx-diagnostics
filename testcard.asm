@@ -38,7 +38,7 @@ testcard
 	ld (v_column), a
 	ld (v_attr), a
 	
-	;	Copy ROM paging routines to RAM
+;	Copy ROM paging routines to RAM
 
 	ld hl, rompage_reloc
 	ld de, do_rompage_reloc
@@ -307,7 +307,7 @@ ay_test_data
 str_testcardattr
 	defb	PAPER, 0, INK, 0, 0
 str_year
-	defb	BRIGHT, 0, 0x7f, 0x7f, BRIGHT, 1, 0x7f, 0x7f, 0
+	defb	BRIGHT, 0, "20", BRIGHT, 1, "15", 0
 
 str_testcard
 	defb	PAPER, 0, "    ", PAPER, 1, "    ", PAPER, 2, "    ", PAPER, 3, "    "
@@ -319,14 +319,14 @@ str_aytest_msg
 str_testcard_banner
 	defb	AT, 18, 0, PAPER, 0, INK, 7, BRIGHT, 1
 	defb    "                          " 
-	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
-	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0, INK, 7, " "
+	defb	TEXTNORM, PAPER, 0, INK, 2, 0x80, PAPER, 2, INK, 6, 0x80, PAPER, 6, INK, 4, 0x80
+	defb	PAPER, 4, INK, 5, 0x80, PAPER, 5, INK, 0, 0x80, PAPER, 0, INK, 7, " "
 	defb    TEXTBOLD, " ZX Spectrum Diagnostics "
-	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
-	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0,"  "
+	defb	TEXTNORM, PAPER, 0, INK, 2, 0x80, PAPER, 2, INK, 6, 0x80, PAPER, 6, INK, 4, 0x80
+	defb	PAPER, 4, INK, 5, 0x80, PAPER, 5, INK, 0, 0x80, PAPER, 0,"  "
 	defb    "                        "
-	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
-	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0,"   "
+	defb	TEXTNORM, PAPER, 0, INK, 2, 0x80, PAPER, 2, INK, 6, 0x80, PAPER, 6, INK, 4, 0x80
+	defb	PAPER, 4, INK, 5, 0x80, PAPER, 5, INK, 0, 0x80, PAPER, 0,"   "
 
 	defb	ATTR, 56, 0
       
