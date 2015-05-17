@@ -15,7 +15,7 @@
 ;	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;	Lesser General Public License for more details.
 ;
-;	memtest.asm
+;	testram.asm
 ;	
 
 ;
@@ -665,8 +665,8 @@ test_vector_table
 str_banner
 
 	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " ZX Spectrum Diagnostics  "
-	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
-	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
+	defb	TEXTNORM, PAPER, 0, INK, 2, 0x80, PAPER, 2, INK, 6, 0x80, PAPER, 6, INK, 4, 0x80
+	defb	PAPER, 4, INK, 5, 0x80, PAPER, 5, INK, 0, 0x80, PAPER, 0," ", ATTR, 56, 0
 
 str_footer
 
@@ -865,26 +865,26 @@ str_plus3_ic_uncontend
 
 ;	Printing system variables
 
-v_column		equ #7f00; 1
-v_row			equ #7f01; 1
-v_attr			equ #7f02; 1
-v_bold			equ #7f03; 1
+v_column		equ #7f80; 1
+v_row			equ #7f81; 1
+v_attr			equ #7f82; 1
+v_bold			equ #7f83; 1
 
 ;	Miscellaneous
 
-v_hexstr		equ #7f10; 5
-v_intcount		equ #7f1a; 4
-v_decstr		equ #7f20; 6
-v_rtcenable		equ #7f28; 1
-v_rtc			equ #7f29; 4 - h:m:s:50
+v_hexstr		equ #7f90; 5
+v_intcount		equ #7f9a; 4
+v_decstr		equ #7fa0; 6
+v_rtcenable		equ #7fa8; 1
+v_rtc			equ #7fa9; 4 - h:m:s:50
 
 ;	Testing variables
 
-v_stacktmp		equ #7f30; Temporary stack location when calling routines that assume no lower ram
-v_curpage		equ #7f32; Currently paged location
-v_paging		equ #7f33; Bank Paging status (output)
-v_fail_ic		equ #7f36; Failed IC bitmap (48K)
-v_fail_ic_uncontend	equ #7f37; Failed IC bitmap, uncontended memory banks 0,2,4,8 (128k)
-v_fail_ic_contend	equ #7f38; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
-v_128type		equ #7f39; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
+v_stacktmp		equ #7fb0; Temporary stack location when calling routines that assume no lower ram
+v_curpage		equ #7fb2; Currently paged location
+v_paging		equ #7fb3; Bank Paging status (output)
+v_fail_ic		equ #7fb6; Failed IC bitmap (48K)
+v_fail_ic_uncontend	equ #7fb7; Failed IC bitmap, uncontended memory banks 0,2,4,8 (128k)
+v_fail_ic_contend	equ #7fb8; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
+v_128type		equ #7fb9; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
 
