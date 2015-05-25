@@ -716,7 +716,7 @@ str_romcrc
 
 str_romunknown
 
-	defb	AT, 4, 0, INK, 2, TEXTBOLD, "Unknown or corrupt ROM...", TEXTNORM, INK, 0, "   ", ATTR, 56, 0
+	defb	AT, 4, 0, INK, 2, TEXTBOLD, "Unknown or corrupt ROM... ", TEXTNORM, INK, 0, "            ", ATTR, 56, 0
 
 str_testselect
 
