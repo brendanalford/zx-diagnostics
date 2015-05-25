@@ -34,6 +34,8 @@ start
 
      	ld a, 56        ; Black text on white paper
      	ld (v_attr), a
+	ld a, 6
+	ld (v_width), a
       	call cls
 
       	xor a
@@ -50,7 +52,8 @@ start
 ;	Main Menu screen
 
 	ld hl, str_banner
-      	call print
+      	call print_header
+      	
       	ld hl, str_run
       	call print
 
@@ -73,6 +76,7 @@ start
       	jr get_option
       	
 flash_not_identified
+      	
       	push hl
       	ld hl, chip_unknown
       	call print
@@ -130,11 +134,9 @@ get_option
 ; 	Display banner and page selection options.
 
       	call cls
-      	ld hl, str_banner
-      	call print
-
-      	ld hl, str_prog
-      	call print
+      	ld hl, str_proghdr
+      	call print_header
+	
 	ld hl, str_progopt 
 	call print
       	ld hl, str_p1
@@ -246,7 +248,7 @@ get_option
       
       	call cls
       	ld hl, str_erasehdr
-      	call print
+      	call print_header
       	ld hl, str_chooseerase
       	call print
       	
@@ -315,8 +317,11 @@ get_option
 
       	push af     ; save intended sector
       	call cls
+      
+      	ld hl, str_delp4_hdr
+      	call print_header
+      	
       	ld hl, str_delp4
-
       	call print
 
 ;	Emit a long beep
@@ -399,8 +404,11 @@ get_option
 ;	Print the copy menu and wait for a selection
 
 	call cls
+     	ld hl, str_copyhdr_banner
+     	call print_header
      	ld hl, str_copyhdr
      	call print
+     	
 	ld hl, str_p1
 	call print
       	ld hl, str_back
@@ -762,10 +770,9 @@ chip_unknown2
 	defb ")",0
 	
 str_banner
-	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Diag Board Flash Utility "
-	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
-	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
-
+	
+	defb TEXTBOLD, "Diagnostic Board Flash Utility", TEXTNORM, 0
+	
 str_run
   	defb  AT, 2, 0, "Select ROM page to boot:", 0
 
@@ -805,51 +812,56 @@ str_reboot
 	defb "z:Exit to ZX BASIC\n", 0
 
 str_mfrdevice
+	
 	defb AT, 23, 0, "Flash type: ", 0
 	
-str_prog
- 	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Program 16K Flash Page   "
- 	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
- 	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
+str_proghdr
 
-
+	defb TEXTBOLD, "Program 16K Flash Page", TEXTNORM, 0
+	
 str_progopt 
+
 	defb AT, 2, 0, "Select a page to program:\n", 0
 
 str_writing 
+
 	defb "Writing flash chip...\n", 0
+
+str_copyhdr_banner
+
+	defb TEXTBOLD, "Copy 16K Page to RAM", TEXTNORM, 0
 
 str_copyhdr
 
-  	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Copy 16K Page to RAM     "
-  	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
-  	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56
   	defb AT, 2, 0, "Select a page to copy:\n", 0
 
 str_copying 
+	
 	defb "Copying page to address 32768..\n", 0
 
 str_borked  
+
 	defb "Sorry, the operation failed.\n", 0
+
 str_done    
+
 	defb "Done!\n", 0
 
 str_back    
-	defb "Press ", TEXTBOLD, BRIGHT, 1, "Z", TEXTNORM, BRIGHT, 0," to go back\n", 0
+	defb "Press ", TEXTBOLD, INK, 2, "Z ", TEXTNORM, INK, 0,"to go back\n", 0
 
 str_anykey  
+
 	defb "Press any key to exit", 0
 
 str_erasehdr
-	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " Erase 64K Flash Sector   "
- 	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
-  	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56, 0
 
+	defb TEXTBOLD, "Erase 64K Flash Sector", TEXTNORM, 0
+	
 str_chooseerase   
-	defb AT, 2, 0, "Press ", TEXTBOLD, BRIGHT, 1, "0", TEXTNORM, BRIGHT, 0," to "
-	defb TEXTBOLD, BRIGHT, 1, "7", TEXTNORM, BRIGHT, 0, " to choose the\n" 
-	defb "sector to erase, or ", TEXTBOLD, BRIGHT, 1, "X"
-	defb TEXTNORM, BRIGHT, 0, " to exit."
+	defb AT, 2, 0, "Press ", TEXTBOLD, INK, 2, "0 ", TEXTNORM, INK, 0,"to "
+	defb TEXTBOLD, INK, 2, "7 ", TEXTNORM, INK, 0, "to choose the sector to \n" 
+	defb "erase, or ", TEXTBOLD, INK, 2, "X ", TEXTNORM, INK, 0, "to exit."
 	
 str_eraseinfo  defb AT, 5, 0, "Sectors map to pages as follows:"
 str_sectors defb AT, 7, 0, "Sector 0  ->  Pages  0 to 3\n"
@@ -867,20 +879,21 @@ str_erasing
 str_reprogramming 
 	defb "Reprogramming utility to page 4\n", 0
 
+str_delp4_hdr
+
+	defb TEXTBOLD, "*** WARNING *** WARNING ***", TEXTNORM, 0
+	
 str_delp4
- 	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " *** WARNING ***          "
-  	defb	TEXTNORM, PAPER, 0, INK, 2, "~", PAPER, 2, INK, 6, "~", PAPER, 6, INK, 4, "~"
-  	defb	PAPER, 4, INK, 5, "~", PAPER, 5, INK, 0, "~", PAPER, 0," ", ATTR, 56
   
-	defb AT, 2,0, "ERASING SECTOR 1 (PAGES 4 -> 7)\n\n"
-        defb "You will delete me by deleting\n"
-        defb "sector 1 since I live in page 4.\n"
-        defb "Press ", TEXTBOLD, BRIGHT, 1, "Y"
-        defb TEXTNORM, BRIGHT, 0," if you want to re-write\n"
-        defb "the utility back into page 4.\n\n"
-        defb "Press ", TEXTBOLD, BRIGHT, 1, "N" 
-        defb TEXTNORM, BRIGHT, 0," if you want to kill\n" 
-        defb "off the flash utility.\n\n"
+	defb AT, 2,0, TEXTBOLD, "ERASING SECTOR 1 (PAGES 4 -> 7)\n\n", TEXTNORM
+        defb "You will delete me by deleting sector 1\n"
+        defb "since I live in page 4.\n\n"
+        defb "Press ", TEXTBOLD, INK, 2, "Y "
+        defb TEXTNORM, INK, 0,"if you want to re-write the\n"
+        defb "utility back into page 4.\n\n"
+        defb "Press ", TEXTBOLD, INK, 2, "N " 
+        defb TEXTNORM, INK, 0,"if you want to kill off the flash\n" 
+        defb "utility.\n\n"
         defb "Any other key aborts.\n\n", 0
 
 str_warning 

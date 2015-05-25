@@ -37,6 +37,8 @@ testcard
 	ld (v_row), a
 	ld (v_column), a
 	ld (v_attr), a
+	ld a, 8
+	ld (v_width), a
 	
 ;	Copy ROM paging routines to RAM
 
@@ -96,6 +98,13 @@ testcard_col
 	; Do the Diagnostics banner
 	ld hl, str_testcard_banner
 	call print
+
+	ld a, 6
+	ld (v_width), a
+	
+	ld hl, str_testcard_message
+	call print
+	
 	ld hl, str_pageout_msg
 	call print
 
@@ -307,21 +316,22 @@ ay_test_data
 str_testcardattr
 	defb	PAPER, 0, INK, 0, 0
 str_year
-	defb	BRIGHT, 0, "20", BRIGHT, 1, "15", 0
+	defb	TEXTBOLD, BRIGHT, 0, "20", BRIGHT, 1, "15", TEXTNORM, 0
 
 str_testcard
 	defb	PAPER, 0, "    ", PAPER, 1, "    ", PAPER, 2, "    ", PAPER, 3, "    "
 	defb	PAPER, 4, "    ", PAPER, 5, "    ", PAPER, 6, "    ", PAPER, 7, "    ", 0
 str_pageout_msg
-	defb	AT, 22, 0, PAPER, 0, INK, 7, BRIGHT, 1, " 'A' for AY test, BREAK to exit ", 0
+	defb	AT, 22, 0, PAPER, 0, INK, 7, BRIGHT, 1, "  Hold 'A' for AY test, or BREAK to exit.", 0
 str_aytest_msg
-	defb	AT, 22, 0, PAPER, 0, INK, 7, BRIGHT, 1, " AY Test: active,", 0
+	defb	AT, 22, 0, PAPER, 0, INK, 7, BRIGHT, 1, "    AY Test active, hold BREAK to exit.  ", 0
+
 str_testcard_banner
 	defb	AT, 18, 0, PAPER, 0, INK, 7, BRIGHT, 1
 	defb    "                          " 
 	defb	TEXTNORM, PAPER, 0, INK, 2, 0x80, PAPER, 2, INK, 6, 0x80, PAPER, 6, INK, 4, 0x80
 	defb	PAPER, 4, INK, 5, 0x80, PAPER, 5, INK, 0, 0x80, PAPER, 0, INK, 7, " "
-	defb    TEXTBOLD, " ZX Spectrum Diagnostics "
+	defb    TEXTBOLD, "                         "
 	defb	TEXTNORM, PAPER, 0, INK, 2, 0x80, PAPER, 2, INK, 6, 0x80, PAPER, 6, INK, 4, 0x80
 	defb	PAPER, 4, INK, 5, 0x80, PAPER, 5, INK, 0, 0x80, PAPER, 0,"  "
 	defb    "                        "
@@ -329,4 +339,8 @@ str_testcard_banner
 	defb	PAPER, 4, INK, 5, 0x80, PAPER, 5, INK, 0, 0x80, PAPER, 0,"   "
 
 	defb	ATTR, 56, 0
-      
+
+str_testcard_message
+
+	defb	AT, 19, 10, TEXTBOLD, BRIGHT, 1, INK, 7, PAPER, 0 
+	defb    "ZX Spectrum Diagnostics", ATTR, 56, 0

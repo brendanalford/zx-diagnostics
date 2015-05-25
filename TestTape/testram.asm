@@ -30,7 +30,7 @@
 	include "..\defines.asm"
 	include "..\version.asm"
 
-	org 26000
+	org 25000
 
 start
 
@@ -48,13 +48,15 @@ start
 	ld (v_bold), a
 	ld a, 56
 	ld (v_attr), a
+	ld a,6 
+	ld (v_width), a
 
 	ld b, 5
 	ld hl, v_hexstr
-	
+
 ; 	Perform some rudimentary lower RAM / page 5 tests.
-;	We'll only be able to test RAM from 16384-25999, or 
-;	9615 bytes - this utility takes up the other 6k (6767 bytes).
+;	We'll only be able to test RAM from 16384-24999, or 
+;	8615 bytes - this utility takes up the other 7k (7767 bytes).
 
 	ld a, BORDERGRN
 	out (ULA_PORT), a
@@ -63,8 +65,8 @@ start
 	
 ;	Just do the random tests
 
-    	RANDFILLUP 16384, 4806, 0
-    	RANDFILLDOWN 25998, 4806, 255
+    	RANDFILLUP 16384, 4307, 0
+    	RANDFILLDOWN 24998, 4307, 255
     	
 ;	Establish a stack
 
@@ -231,7 +233,7 @@ decstr_init
 
 	call cls
     	ld hl, str_banner
-    	call print
+    	call print_header
 
 	ld hl, str_footer
 	call print
@@ -596,6 +598,7 @@ rom_signature_table
 	defw 0xe2ec, str_orelbk08, test_48kgeneric 
 	defw 0x0000
 
+
 str_rom48k
 
 	defb	"Spectrum 16/48K ROM...      ", 0
@@ -606,7 +609,7 @@ str_rom128k
 
 str_rom128esp
 
-	defb	"Spectrum 128K (Esp) ROM...  ", 0
+	defb	"Spectrum 128K (Spanish) ROM...  ", 0
 	
 str_romplus2
 
@@ -614,31 +617,31 @@ str_romplus2
 
 str_romplus2esp
 
-	defb	"Spectrum +2 (Esp) ROM...    ", 0
+	defb	"Spectrum +2 (Spanish) ROM...    ", 0
 
 str_romplus2fra
 
-	defb	"Spectrum +2 (Fra) ROM...    ", 0
-	
+	defb	"Spectrum +2 (French) ROM...    ", 0
+
 str_romplus3
 
 	defb	"Spectrum +3 (v4.0) ROM...   ", 0
-	
+
 str_romplus2a
 
 	defb    "Spectrum +2A (v4.1) ROM...  ", 0
-	
+
 str_romplus3esp
 
-	defb	"Spectrum +2A/+3 (Esp) ROM.. ", 0
+	defb	"Spectrum +2A/+3 (Spanish) ROM... ", 0
 
 str_romplus3e_v1_38
 
 	defb 	"Spectrum +3E v1.38 ROM...   ", 0
-	
+
 str_romplus3e_v1_38esp
 
-	defb	"Spec +3E v1.38 ROM (Esp)... ", 0
+	defb	"Spectrum +3E v1.38 (Spanish) ROM... ", 0
 
 str_orelbk08
 
@@ -664,9 +667,7 @@ test_vector_table
 
 str_banner
 
-	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " ZX Spectrum Diagnostics  "
-	defb	TEXTNORM, PAPER, 0, INK, 2, 0x80, PAPER, 2, INK, 6, 0x80, PAPER, 6, INK, 4, 0x80
-	defb	PAPER, 4, INK, 5, 0x80, PAPER, 5, INK, 0, 0x80, PAPER, 0," ", ATTR, 56, 0
+	defb	TEXTBOLD, "ZX Spectrum Diagnostics", TEXTNORM, 0
 
 str_footer
 
@@ -674,7 +675,7 @@ str_footer
 
 str_lowerramok
 
-	defb 	AT, 2, 0, "Lower RAM (partial test)... ", TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
+	defb	AT, 2, 0, "Lower 16K RAM tests (partial test)...", TAB, 38 * 6, TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
 	
 str_test4
 
@@ -692,14 +693,13 @@ str_test7
 
 	defb	"Upper RAM Random test...    ", 0 
 
-
 str_48ktestsfail
 
-	defb	"\n", TEXTBOLD, PAPER, 2, INK, 7,"        48K tests FAILED        \n", TEXTNORM, ATTR, 56, 0
+	defb	"\n", TEXTBOLD, PAPER, 2, INK, 7, "             48K tests FAILED             \n", TEXTNORM, ATTR, 56, 0
 
-str_isthis16k	
+str_isthis16k
 
-	defb	"   This may be a 16K Spectrum   ", 0	
+	defb	"        This may be a 16K Spectrum", 0
 	
 str_128ktestsfail
 
@@ -720,27 +720,23 @@ str_romunknown
 
 str_testselect
 
-	defb	AT, 5, 0, "Press 1:48K 2:128K 3:+2 4:+2A/+3", 0 
+	defb	AT, 5, 0, "Press: 1..48K  2..128K  3..+2  4..+2A/+3", 0
 
-str_assume48k
-
-	defb 	AT, 5, 0, "Assuming 48K mode...\n", 0
-	
 str_select48k
 
-	defb	AT, 5, 6, BRIGHT, 1, "1:48K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 7 * 6, BRIGHT, 1, "1..48K\n", TEXTNORM, ATTR, 56, 0
 
 str_select128k
 
-	defb	AT, 5, 12, BRIGHT, 1, "2:128K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 15 * 6, BRIGHT, 1, "2..128K\n", TEXTNORM, ATTR, 56, 0
 
 str_selectplus2
 
-	defb	AT, 5, 19, BRIGHT, 1, "3:+2\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 24 * 6, BRIGHT, 1, "3..+2\n", TEXTNORM, ATTR, 56, 0
 
 str_selectplus3
 
-	defb	AT, 5, 24, BRIGHT, 1, "4:+2A/+3", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 31 * 6, BRIGHT, 1, "4..+2A/+3\n", TEXTNORM, ATTR, 56, 0
 
 str_dblbackspace
 
@@ -748,11 +744,11 @@ str_dblbackspace
 
 str_testpass
 
-	defb	INK, 4, TEXTBOLD, "PASS", TEXTNORM, INK, 0, 0
+	defb	INK, 4, TAB, 38 * 6, TEXTBOLD, "PASS", TEXTNORM, INK, 0, 0
 
 str_testfail
 
-	defb	INK, 2, TEXTBOLD, "FAIL", TEXTNORM, INK, 0, 0
+	defb	INK, 2, TAB, 38 * 6, TEXTBOLD, "FAIL", TEXTNORM, INK, 0, 0
 
 str_testwait
 
@@ -776,33 +772,31 @@ str_bankm
 
 str_48ktestspass
 
-	defb	"\n", PAPER, 4, INK, 7, BRIGHT, 1, TEXTBOLD, "      48K RAM Tests Passed      ", TEXTNORM, ATTR, 56, 0
+	defb	"\n", PAPER, 4, INK, 7, BRIGHT, 1, TEXTBOLD, "           48K RAM Tests Passed           ", TEXTNORM, ATTR, 56, 0
 
 str_128ktestspass
 
-	defb	"\n", PAPER, 4, INK, 7, BRIGHT, 1, TEXTBOLD, "     128K RAM Tests Passed      ", TEXTNORM, ATTR, 56, 0
-
+	defb	"\n", PAPER, 4, INK, 7, BRIGHT, 1, TEXTBOLD, "          128K RAM Tests Passed           ", TEXTNORM, ATTR, 56, 0
 	
 str_halted
 
-	defb	TEXTBOLD, "\n   *** Testing Completed ***    ", TEXTNORM, 0 
+	defb	TEXTBOLD, "\n\n        *** Testing Completed ***", TEXTNORM, 0
 
 str_halted_fail
 
-	defb	TEXTBOLD, "\n     *** Failures found ***     ", TEXTNORM, 0 
+	defb	TEXTBOLD, "\n      Failures found, system halted ", TEXTNORM, 0
 
 str_check_128_hal
 
-	defb	"Check IC29 (PAL10H8CN) and IC31\n(74LS174N)\n", 0
+	defb	"Check IC29 (PAL10H8CN) and IC31 (74LS174N)", 0
 
 str_check_plus2_hal
 
-	defb	"Check IC7 (HAL10H8ACN) and IC6\n(74LS174N)\n", 0
-
+	defb	"Check IC7 (HAL10H8ACN) and IC6 (74LS174N)", 0
 
 str_check_plus3_ula
 
-	defb	"Check IC1 (ULA 40077)\n", 0
+	defb	"Check IC1 (ULA 40077)", 0
 	
 str_check_ic
 
@@ -869,6 +863,11 @@ v_column		equ #7f80; 1
 v_row			equ #7f81; 1
 v_attr			equ #7f82; 1
 v_bold			equ #7f83; 1
+v_mask			equ #7f84; 1
+v_offset		equ #7f85; 1
+v_prbyte		equ #7f86; 1
+v_width			equ #7f87; 1
+
 
 ;	Miscellaneous
 

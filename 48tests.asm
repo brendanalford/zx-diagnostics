@@ -53,6 +53,7 @@ print_upperresult
 	xor a
 	ld ixh, 0
 	
+	call newline
 	ld hl, str_isthis16k
 	call print
 	
@@ -95,7 +96,7 @@ print_upperpass
 ;	48K Specific Tests
 ;
 ;	Perform the standard inversion, fill and random tests
-;   on the top 32K of RAM.
+;   	on the top 32K of RAM.
 ;
 	
 ;	Start the Upper RAM walk test for generic machines
@@ -109,7 +110,7 @@ test_48kgeneric
 	  
 
 	ld a, (v_fail_ic)
-    cp 0
+    	cp 0
 	jr z, print_upperpass_gen
 	ld hl, str_48ktestsfail
 	call print
@@ -184,9 +185,7 @@ bit_ok
 	cp 8
 	jr nz, fail_print_bit_loop
 	
-	
-	ld hl, str_newline
-	call print
+	call newline
 	ret 
 
 ;	Upper RAM tests passed, give the user the good news
@@ -219,7 +218,7 @@ upperram_test
 	  
 	RESTORESTACK
 	TESTRESULT
-
+	
 ;	Do the upper RAM inversion test
 	    
 upperram_inversion

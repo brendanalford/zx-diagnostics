@@ -643,6 +643,8 @@
 
 	ld hl, str_testpass
 	call print
+	call newline
+
 	jr .test.end
 
 .test.fail
@@ -652,6 +654,7 @@
 	ld (v_fail_ic), a
 	ld hl, str_testfail
 	call print
+	call newline
 
 .test.end
 

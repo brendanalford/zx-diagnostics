@@ -332,11 +332,13 @@ use_uppermem
 	ld (v_fail_ic_uncontend), a
 
 	ld (v_column), a
-    ld (v_row), a
+    	ld (v_row), a
 	ld (v_bold), a
 	ld a, 56
 	ld (v_attr), a
-
+	
+	ld a, 6
+	ld (v_width), a
 	ld b, 5
 	ld hl, v_hexstr
 	xor a
@@ -386,8 +388,9 @@ decstr_init
 ;	Clear the screen and print the top and bottom banners
 
 	call cls
-    ld hl, str_banner
-    call print
+    	ld hl, str_banner
+    	call print_header
+
 	ld hl, str_lowerrampass
 	call print
 
@@ -482,6 +485,8 @@ rom_check_found
 	call print
 	ld hl, str_testpass
 	call print
+	call newline
+
 	pop hl
 
 ;	Call the appropriate testing routine
@@ -517,12 +522,12 @@ rom_unknown
 	ld (v_column), a
 	call print
 	pop hl
-    ld de, v_hexstr
-    call Num2Hex
-    xor a
-    ld (v_hexstr+4), a
-    ld hl, v_hexstr
-    call print
+    	ld de, v_hexstr
+    	call Num2Hex
+    	xor a
+    	ld (v_hexstr+4), a
+    	ld hl, v_hexstr
+    	call print
 
 rom_unknown_2
 
@@ -536,6 +541,7 @@ rom_unknown_2
 
 	ld hl, str_assume48k
 	call print
+	call newline
 	call test_48k
 	jr testinterrupts
 
@@ -644,8 +650,8 @@ intloop
 	pop bc
 	ld a, b
 	ld (v_row), a
-	ld hl, str_interrupt_tab
-	call print
+	ld a, 38 * 6
+	ld (v_column), a
 	ld hl, v_hexstr
 	call print
 	pop hl
@@ -667,8 +673,8 @@ intloop
 
 	ld a, b
 	ld (v_row), a
-	ld hl, str_interrupt_tab
-	call print
+	ld a, 38 * 6
+	ld (v_column), a
 	ld hl, str_testpass
 	call print
 
@@ -698,6 +704,7 @@ tests_complete
 
 ;	Yes we did - say so and halt
 
+	call newline
 	ld hl, str_halted_fail
 	call print
 	di
@@ -712,6 +719,7 @@ soak_test_check
 	or iyl
 	jr z, diaghw_present
 
+	call newline
 	ld hl, str_soakcomplete
 	call print
 
@@ -773,9 +781,9 @@ waitloop
 	jp z, testcard
 	ld a, c
 	ld (v_row), a
-	ld hl, str_pagingtab
-	call print
-
+	ld a, 41 * 6
+	ld (v_column), a
+	
 	ld a, b
 	add '0'
 	call putchar
@@ -801,8 +809,8 @@ waitloop
 
 	ld a, c
 	ld (v_row), a
-	ld hl, str_interrupt_tab
-	call print
+	ld a, 38 * 6
+	ld (v_column), a
 	ld hl, str_testwait
 	call print
 
@@ -858,7 +866,7 @@ fail_print_ic_loop
 	ld l, a
 
 	call print
-	ld a, 5
+	ld a, 30
 	call check_end_of_line
 
 ic_ok
@@ -966,7 +974,7 @@ str_rom128k
 
 str_rom128esp
 
-	defb	"Spectrum 128K (Esp) ROM...  ", 0
+	defb	"Spectrum 128K (Spanish) ROM...  ", 0
 	
 str_romplus2
 
@@ -974,11 +982,11 @@ str_romplus2
 
 str_romplus2esp
 
-	defb	"Spectrum +2 (Esp) ROM...    ", 0
+	defb	"Spectrum +2 (Spanish) ROM...    ", 0
 
 str_romplus2fra
 
-	defb	"Spectrum +2 (Fra) ROM...    ", 0
+	defb	"Spectrum +2 (French) ROM...    ", 0
 
 str_romplus3
 
@@ -990,7 +998,7 @@ str_romplus2a
 
 str_romplus3esp
 
-	defb	"Spectrum +2A/+3 (Esp) ROM.. ", 0
+	defb	"Spectrum +2A/+3 (Spanish) ROM... ", 0
 
 str_romplus3e_v1_38
 
@@ -998,7 +1006,7 @@ str_romplus3e_v1_38
 
 str_romplus3e_v1_38esp
 
-	defb	"Spec +3E v1.38 ROM (Esp)... ", 0
+	defb	"Spectrum +3E v1.38 (Spanish) ROM... ", 0
 
 str_orelbk08
 
@@ -1006,7 +1014,7 @@ str_orelbk08
 
 str_romdiagboard
 
-	defb	"DiagBoard not found         ", 0
+	defb	"DiagBoard or SMART Card not found", 0
 ;
 ;	Table to define pointers to test routines
 ;
@@ -1027,9 +1035,7 @@ test_vector_table
 
 str_banner
 
-	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " ZX Spectrum Diagnostics  "
-	defb	TEXTNORM, PAPER, 0, INK, 2, 0x80, PAPER, 2, INK, 6, 0x80, PAPER, 6, INK, 4, 0x80
-	defb	PAPER, 4, INK, 5, 0x80, PAPER, 5, INK, 0, 0x80, PAPER, 0," ", ATTR, 56, 0
+	defb	TEXTBOLD, "ZX Spectrum Diagnostics", TEXTNORM, 0
 
 str_footer
 
@@ -1037,11 +1043,11 @@ str_footer
 
 str_lowerrampass
 
-	defb	AT, 2, 0, "Lower 16K RAM tests...      ", TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
+	defb	AT, 2, 0, "Lower 16K RAM tests...      ", TAB, 38 * 6, TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
 
 str_soaktest
 
-	defb 	AT, 23, 3, "Soak test: iteration ", INK, 0, 0
+	defb 	AT, 23, 8 * 6, "Soak test: iteration ", INK, 0, 0
 
 str_test4
 
@@ -1062,20 +1068,20 @@ str_test7
 
 str_48ktestsfail
 
-	defb	"\n", TEXTBOLD, PAPER, 2, INK, 7,"        48K tests FAILED        \n", TEXTNORM, ATTR, 56, 0
+	defb	"\n", TEXTBOLD, PAPER, 2, INK, 7, "             48K tests FAILED             \n", TEXTNORM, ATTR, 56, 0
 
 str_isthis16k
 
-	defb	"   This may be a 16K Spectrum   ", 0
+	defb	"        This may be a 16K Spectrum", 0
 
 str_128ktestsfail
 
-	defb	"\n", TEXTBOLD, PAPER, 2, INK, 7,"       128K tests FAILED        \n", TEXTNORM, ATTR, 56, 0
+	defb	"\n", TEXTBOLD, PAPER, 2, INK, 7, "            128K tests FAILED             \n\n", TEXTNORM, ATTR, 56, 0
 
 
 str_128kpagingfail
 
-	defb	"\n", TEXTBOLD, PAPER, 2, INK, 7,"    128K Paging tests FAILED    \n", TEXTNORM, ATTR, 56, 0
+	defb	"\n", TEXTBOLD, PAPER, 2, INK, 7, "         128K Paging tests FAILED         \n\n", TEXTNORM, ATTR, 56, 0
 
 str_romcrc
 
@@ -1087,27 +1093,27 @@ str_romunknown
 
 str_testselect
 
-	defb	AT, 5, 0, "Press 1:48K 2:128K 3:+2 4:+2A/+3", 0
+	defb	AT, 5, 0, "Press: 1..48K  2..128K  3..+2  4..+2A/+3", 0
 
 str_assume48k
 
-	defb 	AT, 5, 0, "Assuming 48K mode...\n", 0
+	defb 	AT, 5, 0, "Assuming 48K mode...", 0
 
 str_select48k
 
-	defb	AT, 5, 6, BRIGHT, 1, "1:48K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 7 * 6, BRIGHT, 1, "1..48K\n", TEXTNORM, ATTR, 56, 0
 
 str_select128k
 
-	defb	AT, 5, 12, BRIGHT, 1, "2:128K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 15 * 6, BRIGHT, 1, "2..128K\n", TEXTNORM, ATTR, 56, 0
 
 str_selectplus2
 
-	defb	AT, 5, 19, BRIGHT, 1, "3:+2\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 24 * 6, BRIGHT, 1, "3..+2\n", TEXTNORM, ATTR, 56, 0
 
 str_selectplus3
 
-	defb	AT, 5, 24, BRIGHT, 1, "4:+2A/+3", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 31 * 6, BRIGHT, 1, "4..+2A/+3\n", TEXTNORM, ATTR, 56, 0
 
 str_dblbackspace
 
@@ -1115,11 +1121,11 @@ str_dblbackspace
 
 str_testpass
 
-	defb	INK, 4, TEXTBOLD, "PASS", TEXTNORM, INK, 0, 0
+	defb	INK, 4, TAB, 38 * 6, TEXTBOLD, "PASS", TEXTNORM, INK, 0, 0
 
 str_testfail
 
-	defb	INK, 2, TEXTBOLD, "FAIL", TEXTNORM, INK, 0, 0
+	defb	INK, 2, TAB, 38 * 6, TEXTBOLD, "FAIL", TEXTNORM, INK, 0, 0
 
 str_testwait
 
@@ -1143,51 +1149,51 @@ str_bankm
 
 str_48ktestspass
 
-	defb	"\n", PAPER, 4, INK, 7, BRIGHT, 1, TEXTBOLD, "      48K RAM Tests Passed      ", TEXTNORM, ATTR, 56, 0
+	defb	"\n", PAPER, 4, INK, 7, BRIGHT, 1, TEXTBOLD, "           48K RAM Tests Passed           ", TEXTNORM, ATTR, 56, 0
 
 str_128ktestspass
 
-	defb	"\n", PAPER, 4, INK, 7, BRIGHT, 1, TEXTBOLD, "     128K RAM Tests Passed      ", TEXTNORM, ATTR, 56, 0
+	defb	"\n", PAPER, 4, INK, 7, BRIGHT, 1, TEXTBOLD, "          128K RAM Tests Passed           ", TEXTNORM, ATTR, 56, 0
 
 str_interrupttest
 
-	defb	"\nTesting interrupts...", 0
+	defb	"\n\nTesting interrupts...", 0
 
 str_interrupt_tab
 
 	defb	TAB, 28, 0
 
 str_soakcomplete
-	defb	"\n  Soak test iteration complete  ", 0
+
+	defb	"\n       Soak test iteration complete  ", 0
 
 str_halted
 
-	defb	TEXTBOLD, "\n   *** Testing Completed ***    ", TEXTNORM, 0
+	defb	TEXTBOLD, "\n\n        *** Testing Completed ***", TEXTNORM, 0
 
 str_halted_fail
 
-	defb	TEXTBOLD, "\n Failures found, system halted ", TEXTNORM, 0
-
+	defb	TEXTBOLD, "\n      Failures found, system halted ", TEXTNORM, 0
 
 str_pagingin
 
-	defb	"\nPaging in Spectrum ROM...", 0
+	defb	"\n\nPaging in Spectrum ROM...", 0
 
 str_pagingtab
 
-	defb	TAB, 31, 0
+	defb	TAB, 41 * 6, 0
 
 str_check_128_hal
 
-	defb	"Check IC29 (PAL10H8CN) and IC31\n(74LS174N)\n", 0
+	defb	"Check IC29 (PAL10H8CN) and IC31 (74LS174N)", 0
 
 str_check_plus2_hal
 
-	defb	"Check IC7 (HAL10H8ACN) and IC6\n(74LS174N)\n", 0
+	defb	"Check IC7 (HAL10H8ACN) and IC6 (74LS174N)", 0
 
 str_check_plus3_ula
 
-	defb	"Check IC1 (ULA 40077)\n", 0
+	defb	"Check IC1 (ULA 40077)", 0
 
 str_check_ic
 

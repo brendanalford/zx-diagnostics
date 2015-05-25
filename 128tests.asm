@@ -196,6 +196,7 @@ test_ram_page_skip
 ; 	No point in testing paging if we don't have
 ; 	reliable RAM to do so.
 
+	call newline
 	ld hl, str_128ktestsfail
 	call print
 	
@@ -251,21 +252,18 @@ ic_fail_plus3
 	ld d, a
 	ld ix, str_plus3_ic_contend
 	call print_fail_ic_4bit
-	jr test_ram_fail_end	
 
 ;	Abandon test at this point
 
 test_ram_fail_end
 
-	ld hl, str_newline
-	call print
-	
 	ret
 
 ;	RAM tests passed, now test the paging
 
 test_ram_bank_pass
 
+	call newline
 	ld hl, str_testingpaging
 	call print
 	
@@ -378,6 +376,7 @@ skip_read_page5
 
 ;	All tests pass, we're all good. Nothing else to test so return.
 
+	call newline
 	ld hl, str_128ktestspass
 	call print
 	
@@ -396,8 +395,7 @@ test_paging_fail
 
 	ld a, 2
 	out (ULA_PORT), a
-	ld hl, str_newline
-	call print
+	call newline
 	ld hl, str_128kpagingfail
 	call print
 

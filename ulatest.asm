@@ -54,7 +54,9 @@ ulatest
 	
 	ld a, 56
 	ld (v_attr), a
-	
+	ld a, 6
+	ld (v_width), a
+		
 	ld a, 1
 	ld (v_rtcenable), a
 	
@@ -91,12 +93,19 @@ ulatest
 	out (0xfe), a
 	
 	ld hl, str_ulabanner
-	call print
+	call print_header
 	
 	ld hl, str_ulainresult
 	call print
 
-	ld hl, str_ulainterrupt
+	ld a, 8
+	ld (v_width), a
+	ld hl, str_ulain_row
+	call print
+	ld a, 6
+	ld (v_width), a
+
+	ld hl, str_ulaint_test
 	call print
 	
 	ld hl, str_ulaselecttest
@@ -188,74 +197,7 @@ interrupt_ok
 
 	ld ix, (v_intcount)
 	ld iy, 0
-
-	ld hl, str_ulacounter
-	call print
-
-;	Print the 32-bit counter
-
-	ld hl, (v_intcount + 2)
-	ld de, v_hexstr
-	call Num2Hex
-	ld hl, v_hexstr
-	call print
 	
-	ld hl, (v_intcount)
-	ld de, v_hexstr
-	call Num2Hex	
-	ld hl, v_hexstr
-	call print
-
-; 	Do the real time counter print
-
-	ld hl, str_rtccounter
-	call print
-
-;	Print hours
-
-	xor a
-	ld h, a
-	ld a, (v_rtc)
-	ld l, a
-	ld de, v_decstr
-	call Num2Dec
-	ld hl, v_decstr + 3
-	call print
-	ld hl, str_colon
-	call print
-	
-;	Print minutes
-
-	xor a
-	ld h, a
-	ld a, (v_rtc + 1)
-	ld l, a	
-	ld de, v_decstr
-	call Num2Dec
-	ld hl, v_decstr + 3
-	call print
-
-	ld hl, str_colon
-	ld a, (v_rtc + 3)
-	cp 25
-	jr c, blink_colon
-	ld hl, str_nocolon
-	
-blink_colon
-
-	call print
-
-;	Print seconds
-
-	xor a
-	ld h, a
-	ld a, (v_rtc + 2)
-	ld l, a
-	ld de, v_decstr
-	call Num2Dec
-	ld hl, v_decstr + 3
-	call print
-
 check_input
 		
 ;	Check input for keys 1, 2, 3 or 4.
@@ -300,8 +242,6 @@ out_mictone
 ;	Test effectiveness of outputting sound via bit 3 (MIC).
 
 	di	
-	ld hl, str_ulacounterblank
-	call print
 	ld c, 0x0a
 
 out_mictone1
@@ -336,8 +276,6 @@ out_eartone
 ;	Test effectiveness of outputting sound via bit 4 (EAR).
 	
 	di
-	ld hl, str_ulacounterblank
-	call print
 	ld c, 0x11
 
 out_eartone1
@@ -373,8 +311,6 @@ test_border
 ;	Test that the border colour can be changed successfully.
 	
 	di
-	ld hl, str_ulacounterblank
-	call print
 	ld c, 0
 
 test_border1
@@ -411,8 +347,6 @@ test_border2
 test_screen
 
 	di
-	ld hl, str_ulacounterblank
-	call print
 
 	ld a, 0x9b
 	ld h, a
@@ -454,43 +388,23 @@ test_screen_loop2
 
 str_ulabanner
 
-	defb	AT, 0, 0, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " ULA Test                 "
-	defb	TEXTNORM, PAPER, 0, INK, 2, 0x80, PAPER, 2, INK, 6, 0x80, PAPER, 6, INK, 4, 0x80
-	defb	PAPER, 4, INK, 5, 0x80, PAPER, 5, INK, 0, 0x80, PAPER, 0," ", ATTR, 56, 0
-	
+	defb	TEXTBOLD, "ULA Test", TEXTNORM, 0	
 	
 str_ulainresult
 
-	defb AT, 2, 0, "ULA Read............... 76543210", 0
+	defb AT, 2, 0, "ULA Read....................... ", 0
 	
-str_ulainterrupt
+str_ulain_row
 
-	defb AT, 4, 0, "Interrupt counter......", AT, 5, 0, "Real time elapsed......", 0
-	
-str_ulacounter
+	defb AT, 2, 24 * 8, "76543210", 0
 
-	defb AT, 4, 24, 0
+str_ulaint_test
 	
-str_ulacounterblank
-
-	defb AT, 4, 24, "--------"
-	defb AT, 5, 24, "--------", 0
-	
-str_rtccounter
-
-	defb AT, 5, 24, 0
-		
-str_colon
-	
-	defb ":", 0
-
-str_nocolon
-	
-	defb " ", 0
+	defb AT, 4, 0, "Interrupt test (movement should be smooth)", 0
 	
 str_ulaintfail
 
-	defb AT, 4, 18, INK, 2, TEXTBOLD, " FAIL", TEXTNORM, ATTR, 56, 0
+	defb AT, 5, 13 * 6, INK, 2, TEXTBOLD, "FAIL FAIL FAIL", TEXTNORM, ATTR, 56, 0
 	
 str_ulaselecttest
 
@@ -502,4 +416,4 @@ str_ulaselecttest
 
 str_ulaexit
 
-	defb AT, 14, 7, "Hold BREAK to exit", 0
+	defb AT, 14, 12 * 6, "Hold BREAK to exit", 0
