@@ -40,6 +40,7 @@
 	define  TEXTNORM	21
 	define	AT		22
 	define	WIDTH		23
+	define  ATTR_TRANS	0xff
 ;
 ;	Prints a string to the screen.
 ;	Inputs: HL=location of string to be printed
@@ -507,6 +508,10 @@ putchar
 
 ;	Now calculate attribute address
 
+	ld a, (v_attr)
+	cp ATTR_TRANS
+	jr z, .putchar.end
+	
 	ld a, (v_row)
 	srl a
 	srl a
@@ -761,6 +766,19 @@ print_header
 	djnz .stripeloop
 	
 	ret
+
+print_footer
+	
+	push hl
+	ld hl, str_footer
+	call print
+	pop hl
+	ret
+	
+str_footer
+
+	defb	AT, 22, 0, VERSION_STRING
+	defb 	AT, 23, 11 * 6, "http://git.io/vkf1o", 0
 
 mask_bits
 

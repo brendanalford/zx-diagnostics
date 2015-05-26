@@ -342,6 +342,8 @@ use_uppermem
 	ld b, 5
 	ld hl, v_hexstr
 	xor a
+	ld hl, 0
+	ld (v_userint), hl 
 
 hexstr_init
 
@@ -398,7 +400,7 @@ decstr_init
 
 	ld a, iyh
 	or iyl
-	jr z, print_footer
+	jr z, print_testrom_footer
 
 ;	Yes, print the current iteration
 
@@ -411,10 +413,9 @@ decstr_init
 	call print
 	jr rom_test
 
-print_footer
+print_testrom_footer
 
-	ld hl, str_footer
-	call print
+	call print_footer
 
 rom_test
 
@@ -1037,10 +1038,6 @@ str_banner
 
 	defb	TEXTBOLD, "ZX Spectrum Diagnostics", TEXTNORM, 0
 
-str_footer
-
-	defb	AT, 23, 0, VERSION_STRING, 0
-
 str_lowerrampass
 
 	defb	AT, 2, 0, "Lower 16K RAM tests...      ", TAB, 38 * 6, TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
@@ -1101,19 +1098,19 @@ str_assume48k
 
 str_select48k
 
-	defb	AT, 5, 7 * 6, BRIGHT, 1, "1..48K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 7 * 6, TEXTBOLD, INK, 4, "1..48K\n", TEXTNORM, ATTR, 56, 0
 
 str_select128k
 
-	defb	AT, 5, 15 * 6, BRIGHT, 1, "2..128K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 15 * 6, TEXTBOLD, INK, 4, "2..128K\n", TEXTNORM, ATTR, 56, 0
 
 str_selectplus2
 
-	defb	AT, 5, 24 * 6, BRIGHT, 1, "3..+2\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 24 * 6, TEXTBOLD, INK, 4, "3..+2\n", TEXTNORM, ATTR, 56, 0
 
 str_selectplus3
 
-	defb	AT, 5, 31 * 6, BRIGHT, 1, "4..+2A/+3\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 5, 31 * 6, TEXTBOLD, INK, 4, "4..+2A/+3\n", TEXTNORM, ATTR, 56, 0
 
 str_dblbackspace
 
@@ -1216,80 +1213,49 @@ failurebars_intservice
 	BLOCK #3636-$, #FF
 
 ; 	The ISR increments the v_intcount system variable and
-; 	if v_rtcenable contains 0x1, increments the real time
-; 	clock in v_rtc. Neither counter are related.
+;	if v_userint is non-zero, calls the interrupt service
+;	routine at that address.
 ;
 ; 	v_intcount is a 32-bit number.
-; 	v_rtc is 4 bytes representing hours, minutes, seconds and
-; 	50ths of a second.
 
 intservice
 
 	push hl
+	push de
+	push bc
 	push af
 	ld hl, (v_intcount)
 	inc hl
 	ld (v_intcount), hl
 	ld a, h
 	or l
-	jr nz, intservice_checkrtc
+	jr nz, intservice_user
 
 	ld hl, (v_intcount + 2)
 	inc hl
 	ld (v_intcount + 2), hl
 
-intservice_checkrtc
+intservice_user
 
-	ld a, (v_rtcenable)
-	cp 1
-	jr nz, intservice_exit
+;	Is a user interrupt service configured (v_userint <> 0)
 
-;	50ths of a second
+	ld hl, (v_userint)
+	ld a, h
+	or l
+	jr z, intservice_exit
 
-	ld a, (v_rtc + 3)
-	inc a
-	ld (v_rtc + 3), a
-	cp 50
-	jr nz, intservice_exit
+;	Yes, call it and set intservice_exit as the return address
 
-;	Seconds
-
-	xor a
-	ld (v_rtc + 3), a
-	ld a, (v_rtc + 2)
-	inc a
-	ld (v_rtc + 2), a
-	cp 60
-	jr nz, intservice_exit
-
-;	Minutes
-
-	xor a
-	ld (v_rtc + 2), a
-	ld a, (v_rtc + 1)
-	inc a
-	ld (v_rtc + 1), a
-	cp 60
-	jr nz, intservice_exit
-
-;	Hours
-
-	xor a
-	ld (v_rtc + 1), a
-	ld a, (v_rtc)
-	inc a
-	ld (v_rtc), a
-	cp 100
-	jr nz, intservice_exit
-
-;	Hours exceeded 100 - roll back
-
-	xor a
-	ld (v_rtc), a
+	ld hl, intservice_exit
+	push hl
+	ld hl, (v_userint)
+	jp hl
 
 intservice_exit
 
 	pop af
+	pop bc
+	pop de
 	pop hl
 	ei
 	reti

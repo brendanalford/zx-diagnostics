@@ -18,6 +18,8 @@
 ;	ulatest.asm
 ;	
 
+ULATEST_ROW	equ 0x58a0
+	
 ulatest
 
 ;	Assume RAM is working, this isn't going to end well if not.
@@ -51,20 +53,22 @@ ulatest
 	ld (v_column), a
     	ld (v_row), a
 	ld (v_bold), a
+	ld (v_ulatest_pos), a
+	cpl
+	ld (v_ulatest_dir), a
 	
 	ld a, 56
 	ld (v_attr), a
 	ld a, 6
 	ld (v_width), a
 		
-	ld a, 1
-	ld (v_rtcenable), a
-	
+	ld hl, ulatest_scan
+	ld (v_userint), hl
+
 	ld hl, 0
 	ld (v_intcount), hl
 	ld (v_intcount + 2), hl
-	ld (v_rtc), hl
-	ld (v_rtc + 2), hl
+	
 	
 ;	IX will be used as the last recorded interrupt counter value
 ;	IY will be the number of cycles that IX was the same
@@ -85,8 +89,6 @@ ulatest
 
 	ld a, 0x00
 	call do_rompage_reloc
-	
-
 	
 	call cls
 	ld a, BORDERWHT
@@ -113,10 +115,9 @@ ulatest
 	ld hl, str_ulaexit
 	call print
 	
-	ld hl, str_footer
-	call print
+	call print_footer
 	
-;	Start the interrupt clock
+;	Start the interrupt service routine
 
 	ld a, intvec2 / 256
 	ld i, a
@@ -385,6 +386,67 @@ test_screen_loop2
 	ei
 	jp ulatest_loop
 
+;
+;	Interrupt routine to run the ula test visual indication.
+;
+ulatest_scan
+
+	ld hl, ULATEST_ROW
+	ld b, 0x20
+	ld a, 0x7
+	ld c, a
+	
+ulatest_scan_fade
+
+	ld a, (hl)
+	cp 0x3f
+	jr nc, ulatest_scan_fade_2
+	add c
+
+ulatest_scan_fade_2
+
+	ld (hl), a
+	inc hl
+	djnz ulatest_scan_fade
+	
+	
+;	Draw current scan dot
+
+	ld hl, ULATEST_ROW
+	ld a, (v_ulatest_pos)
+	or l
+	ld l, a
+	ld a, 7
+	ld (hl), a
+
+; 	Move scan dot left or right	
+
+	ld a, (v_ulatest_dir)
+	cp 0
+	jr z, ulatest_scan_right
+	
+	ld a, (v_ulatest_pos)
+	inc a
+	ld (v_ulatest_pos), a
+	cp 0x1f
+	ret nz
+	jr ulatest_scan_changedir
+	
+ulatest_scan_right
+
+	ld a, (v_ulatest_pos)
+	dec a
+	ld (v_ulatest_pos), a
+	cp 0
+	ret nz
+	
+ulatest_scan_changedir
+
+	ld a, (v_ulatest_dir)
+	cpl
+	ld (v_ulatest_dir), a
+	
+	ret
 
 str_ulabanner
 
@@ -404,7 +466,7 @@ str_ulaint_test
 	
 str_ulaintfail
 
-	defb AT, 5, 13 * 6, INK, 2, TEXTBOLD, "FAIL FAIL FAIL", TEXTNORM, ATTR, 56, 0
+	defb AT, 5, 13 * 6, ATTR, ATTR_TRANS, TEXTBOLD, "FAIL FAIL FAIL", TEXTNORM, ATTR, 56, 0
 	
 str_ulaselecttest
 

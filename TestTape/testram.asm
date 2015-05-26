@@ -235,8 +235,7 @@ decstr_init
     	ld hl, str_banner
     	call print_header
 
-	ld hl, str_footer
-	call print
+	call print_footer
 
 	ld hl, str_lowerramok
 	call print
@@ -668,10 +667,6 @@ test_vector_table
 str_banner
 
 	defb	TEXTBOLD, "ZX Spectrum Diagnostics", TEXTNORM, 0
-
-str_footer
-
-	defb	AT, 23, 0, VERSION_STRING, 0
 
 str_lowerramok
 

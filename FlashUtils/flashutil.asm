@@ -759,7 +759,8 @@ map_info_table
 	defb 0x00, 0x00, 0x00, 0x00, 0x00 ,0x00
 
 
-	
+
+	include "../version.asm"	
      	include "../charset.asm"
  	include "../print.asm"
 	include "../input.asm"
