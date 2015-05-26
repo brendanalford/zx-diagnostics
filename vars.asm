@@ -35,12 +35,13 @@ v_width			equ #7d07; 1
 
 ;	Miscellaneous
 
-v_hexstr		equ #7d10; 5
-v_intcount		equ #7d1a; 4
-v_decstr		equ #7d20; 6
-v_userint		equ #7d28; 2
-v_ulatest_pos		equ #7d2a; 1
-v_ulatest_dir		equ #7d2b; 1
+v_intcount		equ #7d10; 4
+v_userint		equ #7d14; 2
+v_ulatest_pos		equ #7d16; 1
+v_ulatest_dir		equ #7d17; 1
+
+v_hexstr		equ #7d20; 5
+v_decstr		equ #7d28; 6
 
 ;	Testing variables
 

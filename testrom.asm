@@ -339,11 +339,13 @@ use_uppermem
 	
 	ld a, 6
 	ld (v_width), a
-	ld b, 5
-	ld hl, v_hexstr
-	xor a
+
 	ld hl, 0
 	ld (v_userint), hl 
+
+	ld b, 5
+	xor a
+	ld hl, v_hexstr
 
 hexstr_init
 
@@ -360,12 +362,12 @@ decstr_init
 	inc hl
 	djnz decstr_init
 
-    ld a, BORDERWHT
-    out (ULA_PORT), a
+    	ld a, BORDERWHT
+    	out (ULA_PORT), a
 
 ;	Init stack
 
-    ld sp, 0x7cff
+    	ld sp, 0x7cff
 	
 ;	Copy ROMCRC and ROM paging routines to RAM
 ;	We'll need them here as ROM code won't be accessible
@@ -1306,8 +1308,8 @@ str_rommagicstring
 
 	defb "TROM"
 
-;	Fill rest of spare ROM space to 3C00 with 2F (vector table
-;	to point at ISR at 0x2F2F)
+;	Fill rest of spare ROM space to 3C00 with interrupt
+;	vector tables
 
 	BLOCK #3800-$, #FF
 intvec1
