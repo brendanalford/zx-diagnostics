@@ -66,7 +66,13 @@ print_nextchar
 	
 	cp 0 
 	jp z, print_done
+	
+;	Jump straight to character printing if obviously not
+;	a control character
 
+	cp 31
+	jp nc, print_char
+	
 ;	Check for carriage return
 	
 	cp '\n'

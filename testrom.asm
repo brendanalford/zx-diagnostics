@@ -429,9 +429,6 @@ rom_test
 	xor a
 	ld (v_128type), a
 
-	ld hl, str_romcrc
-    call print
-
 	ld a, (v_testhwtype)
 	cp 0
 	jr nz, rom_test_1
@@ -447,7 +444,10 @@ rom_test_1
 
 ; 	Call CRC generator in RAM, CRC ends up in HL
 
-    call do_romcrc
+	ld hl, str_romcrc
+    	call print
+
+   	call do_romcrc
 
 ;	Save it in DE temporarily
 
@@ -1017,7 +1017,7 @@ str_orelbk08
 
 str_romdiagboard
 
-	defb	"DiagBoard or SMART Card not found", 0
+	defb	AT, 4, 0, "DiagBoard or SMART Card not found", 0
 ;
 ;	Table to define pointers to test routines
 ;

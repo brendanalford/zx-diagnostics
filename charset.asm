@@ -82,8 +82,8 @@ L3D00:  DEFB    %00000000
 ; $25 - Character: '%'          CHR$(37)
 
         DEFB    %00000000
-        DEFB    %01100010
         DEFB    %01100100
+        DEFB    %01101000
         DEFB    %00010000
         DEFB    %00010000
         DEFB    %00101100
@@ -1079,25 +1079,54 @@ L3D00:  DEFB    %00000000
         DEFB    %10110100
         DEFB    %01001000
         DEFB    %00110000
+     
+; $80 - Spectrum stripe
+
+	DEFB    %00000001
+	DEFB    %00000011
+	DEFB    %00000111
+	DEFB    %00001111
+	DEFB    %00011111
+	DEFB    %00111111
+	DEFB    %01111111
+	DEFB    %11111111
+
+	
+; $81 - $84 Characters '2015' in wide font
+
+        DEFB    %00000000
+        DEFB    %00111100
+        DEFB    %01000010
+        DEFB    %00000010
+        DEFB    %00111100
+        DEFB    %01000000
+        DEFB    %01111110
+        DEFB    %00000000
         
-; $80 - Spectrum Stripe
-
-        DEFB    %00000001
-        DEFB    %00000011
-        DEFB    %00000111
-        DEFB    %00001111
-        DEFB    %00011111
-        DEFB    %00111111
-        DEFB    %01111111
-        DEFB    %11111111
-
-; $81 - Chessboard pattern
-
-        DEFB    %01010101
-        DEFB    %10101010
-        DEFB    %01010101
-        DEFB    %10101010
-        DEFB    %01010101
-        DEFB    %10101010
-        DEFB    %01010101
-        DEFB    %10101010
+        DEFB    %00000000
+        DEFB    %00111100
+        DEFB    %01000110
+	DEFB    %01001010
+	DEFB	%01010010
+	DEFB	%01100010
+	DEFB    %00111100
+        DEFB    %00000000
+        
+        DEFB    %00000000
+        DEFB    %00011000
+        DEFB    %00101000
+	DEFB    %00001000
+	DEFB	%00001000
+	DEFB	%00001000
+	DEFB    %00111110
+        DEFB    %00000000
+        
+        DEFB    %00000000
+        DEFB    %01111110
+        DEFB    %01000000
+	DEFB    %01111100
+	DEFB	%00000010
+	DEFB	%01000010
+	DEFB    %00111100
+        DEFB    %00000000
+        

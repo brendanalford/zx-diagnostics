@@ -399,7 +399,7 @@ ulatest_scan
 ulatest_scan_fade
 
 	ld a, (hl)
-	cp 0x3f
+	cp 0x38
 	jr nc, ulatest_scan_fade_2
 	add c
 
