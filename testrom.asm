@@ -1017,7 +1017,7 @@ str_orelbk08
 
 str_romdiagboard
 
-	defb	AT, 4, 0, "DiagBoard or SMART Card not found", 0
+	defb	AT, 4, 0, "Diagboard or SMART Card not detected", 0
 ;
 ;	Table to define pointers to test routines
 ;

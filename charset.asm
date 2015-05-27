@@ -26,7 +26,7 @@ charset
 
 ; $20 - Character: ' '          CHR$(32)
 
-L3D00:  DEFB    %00000000
+	DEFB    %00000000
         DEFB    %00000000
         DEFB    %00000000
         DEFB    %00000000
