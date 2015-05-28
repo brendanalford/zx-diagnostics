@@ -30,8 +30,7 @@ v_attr			equ #7d02; 1
 v_bold			equ #7d03; 1
 v_mask			equ #7d04; 1
 v_offset		equ #7d05; 1
-v_prbyte		equ #7d06; 1
-v_width			equ #7d07; 1
+v_width			equ #7d06; 1
 
 ;	Miscellaneous
 

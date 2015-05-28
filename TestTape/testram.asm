@@ -940,7 +940,6 @@ v_attr			equ #7f82; 1
 v_bold			equ #7f83; 1
 v_mask			equ #7f84; 1
 v_offset		equ #7f85; 1
-v_prbyte		equ #7f86; 1
 v_width			equ #7f87; 1
 
 

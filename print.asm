@@ -412,7 +412,13 @@ putchar
 ;	Move character bitmap into the frame buffer
 	
 	ld a, (de)        
-	ld (v_prbyte), a
+	push de
+
+;	Store bitmap row in d, and mask in e for the duration
+
+	ld d, a
+	ld a, (v_mask)
+	ld e, a
 	
 ;	Do we need to print the character in bold?
 
@@ -423,20 +429,20 @@ putchar
 ;	Bold character, grab byte, rotate it right then
 ;	OR it with the original value
 
-	ld a, (v_prbyte)
+	ld a, d
 	ld c, a
 	rl c
-	ld a, (v_prbyte)
+	ld a, d
 	or c
-	ld (v_prbyte), a
-	
+	ld d, a
+
 .putchar.afterbold
 
 	push bc
 	
 ;	Apply mask to first byte 
 
-	ld a, (v_mask)
+	ld a, e
 	ld b, (hl)
 	and b
 	ld (hl), a
@@ -445,7 +451,7 @@ putchar
 	cp 0
 	jr z, .putchar.norot
 	ld b, a
-	ld a, (v_prbyte)
+	ld a, d
 
 .putchar.rot1
 
@@ -455,7 +461,7 @@ putchar
 	
 .putchar.norot
 
-	ld a, (v_prbyte)
+	ld a, d
 	
 .putchar.byte1
 
@@ -475,7 +481,7 @@ putchar
 
 ;	Apply mask to second byte	
 
-	ld a, (v_mask)
+	ld a, e
 	cpl
 	ld b, (hl)
 	and b 
@@ -487,8 +493,8 @@ putchar
 	sub b
 	ld b, a
 	
-	ld a, (v_prbyte)
-
+	ld a, d
+	
 .putchar.rot2
 
 	sla a
@@ -503,6 +509,7 @@ putchar
 	
 .putchar.nextbmpline
 
+	pop de
 	inc de            ; next line of bitmap
 	inc h             ; next line of frame buffer
 
