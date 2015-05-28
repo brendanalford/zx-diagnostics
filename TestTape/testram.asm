@@ -211,17 +211,24 @@ use_uppermem
 	ld bc, 0x7ffd
 	out (c), a
 
+	ld iy, 0000
+	
+uppermem_test
+
+	ld hl, v_hexstr
+	
 hexstr_init
 
 	ld (hl), a
 	inc hl
-	djnz hexstr_init
+	djnz uppermem_test
 	
 	ld b, 6
 	ld hl, v_decstr
 	xor a
 	
 decstr_init
+
 	ld (hl), a
 	inc hl
 	djnz decstr_init
@@ -236,11 +243,50 @@ decstr_init
     	call print_header
 
 	call print_footer
+	
+	ld a, iyh
+	or iyl
+	jr nz, check_soak_test
 
 	ld hl, str_lowerramok
 	call print
 	
-rom_test	  
+	ld hl, str_runsoak
+	call print
+
+get_soak_input
+	
+	call get_key
+	cp 'Y'
+	jr z, soak_test_on
+	cp 'N'
+	jr z, check_soak_test
+	jr get_soak_input
+	
+soak_test_on
+
+	ld iy, 1
+	jr rom_test
+	
+check_soak_test
+
+;
+;	Check if a soak test is active 
+;	output the iteration if so
+;
+	ld a, iyh
+	or iyl
+	jr z, rom_test
+	
+	ld hl, str_soaktest
+	call print
+	ld hl, iy
+	ld de, v_decstr
+	call Num2Dec
+	ld hl, v_decstr
+	call print
+
+rom_test
 
 ;	Perform some ROM checksum testing to determine what
 ;	model we're running on
@@ -418,6 +464,32 @@ tests_passed
 
 ;	All tests passed.
 
+	ld a, iyh
+	or iyl
+	jp z, tests_done
+	
+;	Soak test.
+;	A short delay before recommencing testing
+
+	ld hl, 0x08
+innerdelay_1
+	ld bc, 0xffff
+innerdelay_2
+	dec bc
+	ld a, b
+	or c
+	jr nz, innerdelay_2
+
+	dec hl
+	ld a, h
+	or l
+	jr nz, innerdelay_1
+
+	inc iy
+	jp uppermem_test
+
+	
+tests_done
 	ld hl, str_halted
 	call print
 	di
@@ -574,7 +646,7 @@ Next
   
 	include "..\print.asm"
 	include "..\paging.asm"
-	
+	include "..\input.asm"
 ;
 ;	Table to define ROM signatures
 ;
@@ -671,6 +743,14 @@ str_banner
 str_lowerramok
 
 	defb	AT, 2, 0, "Lower 16K RAM tests (partial test)...", TAB, 38 * 6, TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
+
+str_runsoak
+
+	defb	AT, 4, 0, "Run in soak test mode? (Press Y or N)", 0
+	
+str_soaktest
+
+	defb 	AT, 2, 0, "Soak test running, iteration ", 0
 	
 str_test4
 
@@ -707,7 +787,7 @@ str_128kpagingfail
 
 str_romcrc	
 
-	defb	AT, 4, 0, "Checking ROM version...     ", 0
+	defb	"\n\nChecking ROM version...     ", 0
 
 str_romunknown
 
