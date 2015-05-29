@@ -28,9 +28,7 @@ v_column		equ #7d00; 1
 v_row			equ #7d01; 1
 v_attr			equ #7d02; 1
 v_bold			equ #7d03; 1
-v_mask			equ #7d04; 1
-v_offset		equ #7d05; 1
-v_width			equ #7d06; 1
+v_width			equ #7d04; 1
 
 ;	Miscellaneous
 

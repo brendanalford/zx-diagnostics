@@ -341,7 +341,8 @@ putchar
 	push hl
 	push bc
 	push de
-      
+	push ix
+	
 ;	Find the address of the character in the bitmap table
 
 	sub 32      ; space = offset 0
@@ -379,7 +380,7 @@ putchar
 	ld l, a
 	ld a, (v_column)
 	and 0x7
-	ld (v_offset), a
+	ld ixl, a
 	ld a, (v_column)
 	srl a
 	srl a
@@ -394,14 +395,20 @@ putchar
 	
 	push hl
 	push de
-	ld a, (v_offset)
+
+;	Offset goes in IXL for the duration
+
+	ld a, ixl
 	ld hl, mask_bits
 	ld e, a
 	xor a
 	ld d, a
 	add hl, de
 	ld a, (hl)
-	ld (v_mask), a
+
+;	Mask value goes in IXH
+
+	ld ixh, a
 	pop de
 	pop hl
 
@@ -417,8 +424,7 @@ putchar
 ;	Store bitmap row in d, and mask in e for the duration
 
 	ld d, a
-	ld a, (v_mask)
-	ld e, a
+	ld e, ixh
 	
 ;	Do we need to print the character in bold?
 
@@ -447,7 +453,7 @@ putchar
 	and b
 	ld (hl), a
 	
-	ld a, (v_offset)
+	ld a, ixl
 	cp 0
 	jr z, .putchar.norot
 	ld b, a
@@ -472,7 +478,7 @@ putchar
 
 ;	Check if we need to do second byte
 	
-	ld a, (v_offset)
+	ld a, ixl
 	cp 0
 	jr z, .putchar.nextbmpline
 	inc hl
@@ -487,7 +493,7 @@ putchar
 	and b 
 	ld (hl), a
 	
-	ld a, (v_offset)
+	ld a, ixl
 	ld b, a
 	ld a, 8
 	sub b
@@ -552,7 +558,7 @@ putchar
 	ld a, (v_attr)
 	ld (hl), a
 	
-	ld a, (v_offset)
+	ld a, ixl
 	cp 0
 	jr z, .putchar.end
 
@@ -565,6 +571,7 @@ putchar
 ;	Done, restore registers and return
 
 .putchar.end
+	pop ix
 	pop de
 	pop bc
 	pop hl
