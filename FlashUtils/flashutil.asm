@@ -778,30 +778,30 @@ str_run
   	defb  AT, 2, 0, "Select ROM page to boot:", 0
 
 str_p1
-	defb AT, 4, 0, "0:Page 0      1:Page 1      2:Page 2\n"
+	defb AT, 4, 0, "0: Page 0", TAB, 90, "1: Page 1", TAB, 180, "2: Page 2\n"
 str_p2   
-	defb "3:Page 3      4:Page 4      5:Page 5\n"
+	defb "3: Page 3", TAB, 90, "4: Page 4", TAB, 180, "5: Page 5\n"
 str_p3   
-	defb "6:Page 6      7:Page 7      8:Page 8\n"
+	defb "6: Page 6", TAB, 90, "7: Page 7", TAB, 180, "8: Page 8\n"
 str_p4 
-	defb "9:Page 9      a:Page 10     b:Page 11\n"
+	defb "9: Page 9", TAB, 90, "a: Page 10", TAB, 180, "b: Page 11\n"
 str_p5   
-	defb "c:Page 12     d:Page 13     e:Page 14\n"
+	defb "c: Page 12", TAB, 90, "d: Page 13", TAB, 180, "e: Page 14\n"
 str_p6   
-	defb "f:Page 15     g:Page 16     h:Page 17\n"
+	defb "f: Page 15", TAB, 90, "g: Page 16", TAB, 180, "h: Page 17\n"
 str_p7   
-	defb "i:Page 18     j:Page 19     k:Page 20\n"
+	defb "i: Page 18", TAB, 90, "j: Page 19", TAB, 180, "k: Page 20\n"
 str_p8   
-	defb "l:Page 21     m:Page 22     n:Page 23\n"
+	defb "l: Page 21", TAB, 90, "m: Page 22", TAB, 180, "n: Page 23\n"
 str_p9   
-	defb "o:Page 24     p:Page 25     q:Page 26\n"
+	defb "o: Page 24", TAB, 90, "p: Page 25", TAB, 180, "q: Page 26\n"
 str_p10  
-	defb "r:Page 27     s:Page 28     t:Page 29\n"
+	defb "r: Page 27", TAB, 90, "s: Page 28", TAB, 180, "t: Page 29\n"
 str_p11  
-	defb "u:Page 30     v:Page 31\n\n",0
+	defb "u: Page 30", TAB, 90, "v: Page 31\n\n",0
 
 str_others  
-	defb "Other options:\n"
+	defb "Other options:\n\n"
 
 str_burn 
 	defb "w:Program a 16K flash page\n"
