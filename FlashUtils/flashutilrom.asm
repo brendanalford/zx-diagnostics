@@ -76,8 +76,6 @@ copyflashutil
  	ld de, 0x4001
  	ld bc, 0x1800
  	ldir
-
-	ld ixl, 4
 	
 ramfail
  
@@ -118,16 +116,7 @@ ramfail_3
 	or l
 	jr nz, ramfail_3
 	
-	dec ixl
-	ld a, ixl
-	cp 0
-	jr nz, ramfail
-
-     	xor a
-     	out (ROMPAGE_PORT), a   ; page in Speccy ROM
-     	ei
-     	ret
-
+	jr ramfail
 
 docopy
  
