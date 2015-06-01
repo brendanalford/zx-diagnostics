@@ -119,7 +119,16 @@ get_option
 ;	Pages out diagnostic ROM and returns control to BASIC ROM
 ;
 .reset
-      
+      	ld a, (0x5c48)
+		and 0x38
+		rrca
+		rrca
+		rrca
+		out (0xfe), a 
+	
+		ld a, (0x5c8d)
+		ld (v_attr), a
+		
       	call cls
      	xor a
      	out (ROMPAGE_PORT), a   ; page in Speccy ROM

@@ -57,8 +57,8 @@ copyflashutil
  ;	This utility won't work on 16K machines.
  
  	ld hl, 0
- 	ld (0x8000), hl
- 	ld hl, (0x8000)
+ 	ld (0xfffe), hl
+ 	ld hl, (0xfffe)
  	ld a, h
  	or l
  	jr nz, ramfail
@@ -79,6 +79,7 @@ docopy
  ;	or from.)
 
 ramfail 
+
  	xor a
  	ld hl, 0x4000
  	ld (hl), a
@@ -129,11 +130,32 @@ ramfail_3
 	
 ret_basic
 
+;	Clear screen to previously set border and paper colour
+;	as stored in system variables
+
+	ld a, (0x5c48)
+	and 0x38
+	rrca
+	rrca
+	rrca
+	out (0xfe), a 
+	
+	ld a, (0x5c8d)
+	ld hl, 0x5800
+	ld de, 0x5801
+	ld bc, 0x0300
+	ld (hl), a
+	ldir
+
+;	Copy last bits of setup code to RAM	
+;	This is a 16K or a faulty 48K Spectrum, it's ok
+;	to use the printer buffer here.
+
 	ld hl, report4
-	ld de, 0x4000
+	ld de, 0x5b00
 	ld bc, report4end-report4
 	ldir
-	jp 0x4000
+	jp 0x5b00
 	
 report4
 
