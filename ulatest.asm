@@ -454,7 +454,7 @@ str_ulabanner
 	
 str_ulainresult
 
-	defb AT, 2, 0, "ULA Read....................... ", 0
+	defb AT, 2, 0, "ULA port 0xFE read............. ", 0
 	
 str_ulain_row
 
