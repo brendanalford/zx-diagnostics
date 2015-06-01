@@ -292,6 +292,14 @@ print_char
 	jr z, do_proportional
 	
 	ld b, a
+;	ld a, (v_bold)
+;	cp 0
+;	jr z, print_char_2
+	
+;	inc b
+	
+print_char_2
+
 	ld a, (v_column)
 	add b
 	jr print_wrap
@@ -304,6 +312,14 @@ do_proportional
 	ld d, 0
 	add hl, de
 	ld b, (hl)
+
+	ld a, (v_bold)
+	jr z, do_prop_2
+	
+	inc b
+	
+do_prop_2
+
 	ld a, (v_column)
 	add b
 	pop hl
@@ -311,7 +327,8 @@ do_proportional
 print_wrap
 
 	ld (v_column), a
-	cp 249
+	;cp 249
+	cp 255
 	jp c, print_nextchar
 	ld a, 0
 	ld (v_column), a
@@ -835,16 +852,16 @@ proportional_data
 	defb 0,0,0,0,0,0,0,0
 	defb 0,0,0,0,0,0,0,0
 	defb 0,0,0,0,0,0,0,0
-	defb 4, 2, 4, 6, 6, 6, 6, 3	; Space - '
-	defb 3, 3, 6, 6, 3, 6, 3, 6	; ( - /
-	defb 6, 6, 6, 6, 6, 6, 6, 6	; 0 - 7
-	defb 6, 6, 2, 3, 4, 6, 4, 6	; 8 - ?
+	defb 4, 2, 4, 6, 6, 6, 6, 2	; Space - '
+	defb 4, 4, 6, 6, 3, 6, 2, 6	; ( - /
+	defb 6, 4, 6, 6, 6, 6, 6, 6	; 0 - 7
+	defb 6, 6, 2, 3, 5, 6, 5, 6	; 8 - ?
 	defb 6, 6, 6, 6, 6, 6, 6, 6	; @ - G
-	defb 6, 6, 6, 6, 6, 6, 6, 6 	; H - O
+	defb 6, 2, 6, 6, 6, 6, 6, 6 	; H - O
 	defb 6, 6, 6, 6, 6, 6, 6, 6	; P - W
 	defb 6, 6, 6, 4, 6, 4, 6, 6	; X - _
-	defb 6, 6, 6, 5, 6, 6, 4, 6	; £ - g
-	defb 6, 4, 5, 5, 4, 6, 6, 6	; h - o
-	defb 6, 6, 5, 6, 5, 6, 6, 6	; p - w
-	defb 6, 6, 6, 6, 2, 6, 5, 8	; x - (C)
+	defb 6, 6, 6, 6, 6, 6, 4, 6	; £ - g
+	defb 6, 2, 3, 5, 2, 6, 6, 6	; h - o
+	defb 6, 6, 6, 6, 4, 6, 6, 6	; p - w
+	defb 6, 6, 6, 4, 2, 4, 5, 8	; x - (C)
 	defb 8, 8, 8, 8, 8, 8, 8, 8	; Extra characters
