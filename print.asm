@@ -292,14 +292,6 @@ print_char
 	jr z, do_proportional
 	
 	ld b, a
-;	ld a, (v_bold)
-;	cp 0
-;	jr z, print_char_2
-	
-;	inc b
-	
-print_char_2
-
 	ld a, (v_column)
 	add b
 	jr print_wrap
@@ -312,24 +304,13 @@ do_proportional
 	ld d, 0
 	add hl, de
 	ld b, (hl)
-
-	ld a, (v_bold)
-	jr z, do_prop_2
-	
-	inc b
-	
-do_prop_2
-
-	ld a, (v_column)
-	add b
 	pop hl
 	
 print_wrap
 
 	ld (v_column), a
-	;cp 249
-	cp 255
-	jp c, print_nextchar
+	cp 0
+	jp nz, print_nextchar
 	ld a, 0
 	ld (v_column), a
 	ld a, (v_row)

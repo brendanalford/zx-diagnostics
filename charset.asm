@@ -797,12 +797,12 @@ charset
 ; $66 - Character: 'f'          CHR$(102)
 
         DEFB    %00000000
-        DEFB    %00001100
-        DEFB    %00010000
         DEFB    %00011000
-        DEFB    %00010000
-        DEFB    %00010000
-        DEFB    %00010000
+        DEFB    %00100000
+        DEFB    %00110000
+        DEFB    %00100000
+        DEFB    %00100000
+        DEFB    %00100000
         DEFB    %00000000
 
 ; $67 - Character: 'g'          CHR$(103)
@@ -1092,17 +1092,8 @@ charset
 	DEFB    %11111111
 
 	
-; $81 - $84 Characters '2015' in wide font
+; $81 - $8A Characters '0' to '9' in wide font
 
-        DEFB    %00000000
-        DEFB    %00111100
-        DEFB    %01000010
-        DEFB    %00000010
-        DEFB    %00111100
-        DEFB    %01000000
-        DEFB    %01111110
-        DEFB    %00000000
-        
         DEFB    %00000000
         DEFB    %00111100
         DEFB    %01000110
@@ -1120,7 +1111,34 @@ charset
 	DEFB	%00001000
 	DEFB    %00111110
         DEFB    %00000000
+
+        DEFB    %00000000
+        DEFB    %00111100
+        DEFB    %01000010
+        DEFB    %00000010
+        DEFB    %00111100
+        DEFB    %01000000
+        DEFB    %01111110
+        DEFB    %00000000
         
+        DEFB    %00000000
+        DEFB    %00111100
+        DEFB    %01000010
+	DEFB    %00001100
+	DEFB	%00000010
+	DEFB	%01000010
+	DEFB    %00111100
+        DEFB    %00000000
+        
+        DEFB    %00000000
+        DEFB    %00001000
+        DEFB    %00011000
+	DEFB    %00101000
+	DEFB	%01001000
+	DEFB	%01111110
+	DEFB    %00001000
+        DEFB    %00000000
+
         DEFB    %00000000
         DEFB    %01111110
         DEFB    %01000000
@@ -1128,5 +1146,41 @@ charset
 	DEFB	%00000010
 	DEFB	%01000010
 	DEFB    %00111100
-        DEFB    %00000000
+        DEFB    %00000000        
+        
+	DEFB    %00000000
+	DEFB    %00111100
+	DEFB    %01000000
+	DEFB    %01111100
+	DEFB	%01000010
+	DEFB	%01000010
+	DEFB    %00111100
+	DEFB    %00000000
+        
+	DEFB    %00000000
+	DEFB    %01111110
+	DEFB    %00000010
+	DEFB    %00000100
+	DEFB	%00001000
+	DEFB	%00010000
+	DEFB    %00010000
+	DEFB    %00000000
+                
+	DEFB    %00000000
+	DEFB    %00111100
+	DEFB    %01000010
+	DEFB    %01111100
+	DEFB	%01000010
+	DEFB	%01000010
+	DEFB    %00111100
+	DEFB    %00000000
+        
+	DEFB    %00000000
+	DEFB    %00111100
+	DEFB    %01000010
+	DEFB    %01000010
+	DEFB	%00111110
+	DEFB	%01000010
+	DEFB    %00111100
+	DEFB    %00000000
         

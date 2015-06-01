@@ -316,7 +316,7 @@ ay_test_data
 str_testcardattr
 	defb	PAPER, 0, INK, 0, 0
 str_year
-	defb	BRIGHT, 0, 0x81, 0x82, BRIGHT, 1, 0x83, 0x84, 0
+	defb	BRIGHT, 0, 0x83, 0x81, BRIGHT, 1, 0x82, 0x86, 0
 
 str_testcard
 	defb	PAPER, 0, "    ", PAPER, 1, "    ", PAPER, 2, "    ", PAPER, 3, "    "

@@ -458,7 +458,7 @@ str_ulainresult
 	
 str_ulain_row
 
-	defb AT, 2, 24 * 8, "76543210", 0
+	defb AT, 2, 24 * 8, 0x88, 0x87, 0x86, 0x85, 0x84, 0x83, 0x82, 0x81, 0
 
 str_ulaint_test
 	
