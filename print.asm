@@ -311,8 +311,8 @@ do_proportional
 print_wrap
 
 	ld (v_column), a
-	cp 0
-	jp nz, print_nextchar
+	cp 249
+	jp c, print_nextchar
 	ld a, 0
 	ld (v_column), a
 	ld a, (v_row)
