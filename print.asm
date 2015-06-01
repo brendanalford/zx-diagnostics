@@ -280,15 +280,36 @@ print_chk_width
 
 print_char
 
+	ld b, a
+	
 	call putchar
 
 ;	Update the print position, wrapping around
 ;	to screen start if necessary
 
 	ld a, (v_width)
+	cp 0
+	jr z, do_proportional
+	
 	ld b, a
 	ld a, (v_column)
 	add b
+	jr print_wrap
+	
+do_proportional
+
+	push hl
+	ld hl, proportional_data
+	ld e, b
+	ld d, 0
+	add hl, de
+	ld b, (hl)
+	ld a, (v_column)
+	add b
+	pop hl
+	
+print_wrap
+
 	ld (v_column), a
 	cp 0
 	jp nz, print_nextchar
@@ -806,4 +827,24 @@ mask_bits
 	
 stripe_attr
 	
-	defb 0x42, 0x56, 0x74, 0x65, 0x68, 0x40 
+	defb 0x42, 0x56, 0x74, 0x65, 0x68, 0x40
+	
+proportional_data
+
+	defb 0,0,0,0,0,0,0,0
+	defb 0,0,0,0,0,0,0,0
+	defb 0,0,0,0,0,0,0,0
+	defb 0,0,0,0,0,0,0,0
+	defb 4, 2, 4, 6, 6, 6, 6, 3	; Space - '
+	defb 3, 3, 6, 6, 3, 6, 3, 6	; ( - /
+	defb 6, 6, 6, 6, 6, 6, 6, 6	; 0 - 7
+	defb 6, 6, 2, 3, 4, 6, 4, 6	; 8 - ?
+	defb 6, 6, 6, 6, 6, 6, 6, 6	; @ - G
+	defb 6, 6, 6, 6, 6, 6, 6, 6 	; H - O
+	defb 6, 6, 6, 6, 6, 6, 6, 6	; P - W
+	defb 6, 6, 6, 4, 6, 4, 6, 6	; X - _
+	defb 6, 6, 6, 5, 6, 6, 4, 6	; £ - g
+	defb 6, 4, 5, 5, 4, 6, 6, 6	; h - o
+	defb 6, 6, 5, 6, 5, 6, 6, 6	; p - w
+	defb 6, 6, 6, 6, 2, 6, 5, 8	; x - (C)
+	defb 8, 8, 8, 8, 8, 8, 8, 8	; Extra characters
