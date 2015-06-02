@@ -54,9 +54,15 @@ start
 	ld b, 5
 	ld hl, v_hexstr
 
+;	Soak test indicator: non zero = soak test active.
+
+	ld iy, 0
+	
 ; 	Perform some rudimentary lower RAM / page 5 tests.
 ;	We'll only be able to test RAM from 16384-24999, or 
 ;	8615 bytes - this utility takes up the other 7k (7767 bytes).
+
+lowermem_test
 
 	ld a, BORDERGRN
 	out (ULA_PORT), a
@@ -211,8 +217,6 @@ use_uppermem
 	ld bc, 0x7ffd
 	out (c), a
 
-	ld iy, 0000
-	
 uppermem_test
 
 	ld hl, v_hexstr
@@ -243,13 +247,13 @@ decstr_init
     	call print_header
 
 	call print_footer
+
+	ld hl, str_lowerramok
+	call print
 	
 	ld a, iyh
 	or iyl
 	jr nz, check_soak_test
-
-	ld hl, str_lowerramok
-	call print
 	
 	ld hl, str_runsoak
 	call print
@@ -486,7 +490,7 @@ innerdelay_2
 	jr nz, innerdelay_1
 
 	inc iy
-	jp uppermem_test
+	jp lowermem_test
 
 	
 tests_done
@@ -750,7 +754,7 @@ str_runsoak
 	
 str_soaktest
 
-	defb 	AT, 2, 0, "Soak test running, iteration ", 0
+	defb 	AT, 4, 0, "Soak test running, iteration ", 0
 	
 str_test4
 
