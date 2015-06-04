@@ -76,7 +76,6 @@ checksum
 	jp start
 	
 error
-	ei
 	ld l, 3
 	ei
 	jp 0x0055
