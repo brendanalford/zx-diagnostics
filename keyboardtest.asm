@@ -18,6 +18,8 @@
 ;	keyboardtest.asm
 ;	
 
+	define	KBROW 	5
+	
 keyboard_test
     	
     	ld sp, 0x7cff
@@ -48,9 +50,9 @@ keyboard_test
 ;	Paint keyboard
 
 	xor a 
-	ld hl, 0x58a0
+	ld hl, 0x5800 + (KBROW * 32)
 	ld (hl), a
-	ld de, 0x58a1
+	ld de, 0x5801 + (KBROW * 32)
 	ld bc, 0x1df
 	ldir
 	
@@ -163,18 +165,18 @@ str_exit
 	
 str_keyboard
 
-	defb AT, 5, 0, WIDTH, 8, ATTR, 7
+	defb AT, KBROW, 0, WIDTH, 8, ATTR, 7
 	defb 0x8b, TAB, 248, 0x8c
-	defb AT, 9, 0
+	defb AT, KBROW + 4, 0
 	defb 0x8d, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f
 	defb 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f
 	defb 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8e
 
-	defb AT, 13, 248, ATTR, 0x42, 0x80, ATTR, 7
-	defb AT, 14, 240, ATTR, 0x42, 0x80, ATTR, 0x56, 0x80, ATTR, 7
-	defb AT, 15, 232, ATTR, 0x42, 0x80, ATTR, 0x56, 0x80, ATTR, 0x74, 0x80, ATTR, 7
-	defb AT, 16, 224, ATTR, 0x42, 0x80, ATTR, 0x56, 0x80, ATTR, 0x74, 0x80, ATTR, 0x65, 0x80, ATTR, 7
-	defb AT, 17, 216, ATTR, 0x42, 0x80, ATTR, 0x56, 0x80, ATTR, 0x74, 0x80, ATTR, 0x65, 0x80, ATTR, 0x68, 0x80
+	defb AT, KBROW + 8, 248, ATTR, 0x42, 0x80, ATTR, 7
+	defb AT, KBROW + 9, 240, ATTR, 0x42, 0x80, ATTR, 0x56, 0x80, ATTR, 7
+	defb AT, KBROW + 10, 232, ATTR, 0x42, 0x80, ATTR, 0x56, 0x80, ATTR, 0x74, 0x80, ATTR, 7
+	defb AT, KBROW + 11, 224, ATTR, 0x42, 0x80, ATTR, 0x56, 0x80, ATTR, 0x74, 0x80, ATTR, 0x65, 0x80, ATTR, 7
+	defb AT, KBROW + 12, 216, ATTR, 0x42, 0x80, ATTR, 0x56, 0x80, ATTR, 0x74, 0x80, ATTR, 0x65, 0x80, ATTR, 0x68, 0x80
 	defb ATTR, 7
 
 	defb 0x8d, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f
@@ -184,7 +186,7 @@ str_keyboard
 	defb 0x90, TAB, 248, 0x91
 	
 	defb WIDTH, 6
-	defb AT, 6, 6, TEXTBOLD, BRIGHT, 1, "ZX Spectrum", TEXTNORM, ATTR, 56, 0
+	defb AT, KBROW + 1, 6, TEXTBOLD, BRIGHT, 1, "ZX Spectrum", TEXTNORM, ATTR, 56, 0
 	
 keyboard_vect
 
@@ -198,85 +200,85 @@ keyboard_vect
 	defw tk_spc, tk_ss, tk_m, tk_n, tk_b, 0, 0
 	
 tk_1
-	defb AT, 10, 8, "1", 0
+	defb AT, KBROW + 5, 8, "1", 0
 tk_2
-	defb AT, 10, 32, "2", 0
+	defb AT, KBROW + 5, 32, "2", 0
 tk_3
-	defb AT, 10, 56, "3", 0
+	defb AT, KBROW + 5, 56, "3", 0
 tk_4
-	defb AT, 10, 80, "4", 0
+	defb AT, KBROW + 5, 80, "4", 0
 tk_5
-	defb AT, 10, 104, "5", 0
+	defb AT, KBROW + 5, 104, "5", 0
 tk_6
-	defb AT, 10, 128, "6", 0
+	defb AT, KBROW + 5, 128, "6", 0
 tk_7
-	defb AT, 10, 152, "7", 0
+	defb AT, KBROW + 5, 152, "7", 0
 tk_8
-	defb AT, 10, 176, "8", 0
+	defb AT, KBROW + 5, 176, "8", 0
 tk_9
-	defb AT, 10, 200, "9", 0
+	defb AT, KBROW + 5, 200, "9", 0
 tk_0
-	defb AT, 10, 224, "0", 0
+	defb AT, KBROW + 5, 224, "0", 0
 
 tk_q
-	defb AT, 12, 16, "Q", 0
+	defb AT, KBROW + 7, 16, "Q", 0
 tk_w
-	defb AT, 12, 40, "W", 0
+	defb AT, KBROW + 7, 40, "W", 0
 tk_e
-	defb AT, 12, 64, "E", 0
+	defb AT, KBROW + 7, 64, "E", 0
 tk_r
-	defb AT, 12, 88, "R", 0
+	defb AT, KBROW + 7, 88, "R", 0
 tk_t
-	defb AT, 12, 112, "T", 0
+	defb AT, KBROW + 7, 112, "T", 0
 tk_y
-	defb AT, 12, 136, "Y", 0
+	defb AT, KBROW + 7, 136, "Y", 0
 tk_u
-	defb AT, 12, 160, "U", 0
+	defb AT, KBROW + 7, 160, "U", 0
 tk_i
-	defb AT, 12, 184, "I", 0
+	defb AT, KBROW + 7, 184, "I", 0
 tk_o
-	defb AT, 12, 208, "O", 0
+	defb AT, KBROW + 7, 208, "O", 0
 tk_p
-	defb AT, 12, 232, "P", 0
+	defb AT, KBROW + 7, 232, "P", 0
 
 tk_a
-	defb AT, 14, 24, "A", 0
+	defb AT, KBROW + 9, 24, "A", 0
 tk_s
-	defb AT, 14, 48, "S", 0
+	defb AT, KBROW + 9, 48, "S", 0
 tk_d
-	defb AT, 14, 72, "D", 0
+	defb AT, KBROW + 9, 72, "D", 0
 tk_f
-	defb AT, 14, 96, "F", 0
+	defb AT, KBROW + 9, 96, "F", 0
 tk_g
-	defb AT, 14, 120, "G", 0
+	defb AT, KBROW + 9, 120, "G", 0
 tk_h
-	defb AT, 14, 144, "H", 0
+	defb AT, KBROW + 9, 144, "H", 0
 tk_j
-	defb AT, 14, 168, "J", 0
+	defb AT, KBROW + 9, 168, "J", 0
 tk_k
-	defb AT, 14, 192, "K", 0
+	defb AT, KBROW + 9, 192, "K", 0
 tk_l
-	defb AT, 14, 216, "L", 0
+	defb AT, KBROW + 9, 216, "L", 0
 tk_ent
-	defb AT, 14, 240, "e", 0
+	defb AT, KBROW + 9, 240, "e", 0
 
 tk_cs
-	defb AT, 16, 8, "cs", 0
+	defb AT, KBROW + 11, 8, "cs", 0
 tk_z
-	defb AT, 16, 40, "Z", 0
+	defb AT, KBROW + 11, 40, "Z", 0
 tk_x
-	defb AT, 16, 64, "X", 0
+	defb AT, KBROW + 11, 64, "X", 0
 tk_c
-	defb AT, 16, 88, "C", 0
+	defb AT, KBROW + 11, 88, "C", 0
 tk_v
-	defb AT, 16, 112, "V", 0
+	defb AT, KBROW + 11, 112, "V", 0
 tk_b
-	defb AT, 16, 136, "B", 0
+	defb AT, KBROW + 11, 136, "B", 0
 tk_n
-	defb AT, 16, 160, "N", 0
+	defb AT, KBROW + 11, 160, "N", 0
 tk_m
-	defb AT, 16, 184, "M", 0
+	defb AT, KBROW + 11, 184, "M", 0
 tk_ss
-	defb AT, 16, 208, "s", 0
+	defb AT, KBROW + 11, 208, "s", 0
 tk_spc
-	defb AT, 16, 232, "sp", 0
+	defb AT, KBROW + 11, 232, "sp", 0
