@@ -91,6 +91,14 @@ start
 	in a, (c)
 	bit 3, a
 	jp z, ulatest
+	
+;	Jump to keyboard test if K is pressed
+
+	ld bc, 0xbffe
+	in a, (c)
+	bit 2, a
+	jp z, keyboard_test
+
 
 ;	Set up for tests
 
@@ -326,48 +334,15 @@ use_uppermem
 
 ; Initialize system variables
 
-	xor a
-	ld (v_fail_ic), a
-	ld (v_fail_ic_contend), a
-	ld (v_fail_ic_uncontend), a
-
-	ld (v_column), a
-    	ld (v_row), a
-	ld (v_bold), a
-	ld a, 56
-	ld (v_attr), a
-	
-	ld a, 6
-	ld (v_width), a
-
-	ld hl, 0
-	ld (v_userint), hl 
-
-	ld b, 5
-	xor a
-	ld hl, v_hexstr
-
-hexstr_init
-
-	ld (hl), a
-	inc hl
-	djnz hexstr_init
-
-	ld b, 6
-	ld hl, v_decstr
-	xor a
-
-decstr_init
-	ld (hl), a
-	inc hl
-	djnz decstr_init
-
-    	ld a, BORDERWHT
-    	out (ULA_PORT), a
-
 ;	Init stack
 
     	ld sp, 0x7cff
+
+	call init_vars
+	
+    	ld a, BORDERWHT
+    	out (ULA_PORT), a
+
 	
 ;	Copy ROMCRC and ROM paging routines to RAM
 ;	We'll need them here as ROM code won't be accessible
@@ -938,13 +913,59 @@ check_spc_key
 	bit 0, a
 	ret
 
+;
+;	Initialise system variables.
+;
+
+init_vars
+
+	xor a
+	ld (v_fail_ic), a
+	ld (v_fail_ic_contend), a
+	ld (v_fail_ic_uncontend), a
+
+	ld (v_column), a
+    	ld (v_row), a
+	ld (v_bold), a
+	ld a, 56
+	ld (v_attr), a
+	
+	ld a, 6
+	ld (v_width), a
+
+	ld hl, 0
+	ld (v_userint), hl 
+
+	ld b, 5
+	xor a
+	ld hl, v_hexstr
+
+hexstr_init
+
+	ld (hl), a
+	inc hl
+	djnz hexstr_init
+
+	ld b, 6
+	ld hl, v_decstr
+	xor a
+
+decstr_init
+
+	ld (hl), a
+	inc hl
+	djnz decstr_init
+	
+	ret
+
 	include "crc16.asm"
 	include "print.asm"
 	include "paging.asm"
 	include "diagboard.asm"
 	include "testcard.asm"
 	include "ulatest.asm"
-
+	include "keyboardtest.asm"
+	
 ;
 ;	Table to define ROM signatures
 ;
