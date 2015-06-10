@@ -42,9 +42,13 @@ ulatest
 	ld a, 0
 	call pagein
 
-
 	call initialize
 	
+;	Set up ISR for interrupt test sweep
+
+	ld hl, ulatest_scan
+	ld (v_userint), hl
+
 ;	IX will be used as the last recorded interrupt counter value
 ;	IY will be the number of cycles that IX was the same
 ;	If IY exceeds 100 cycles then interrupts are considered to have

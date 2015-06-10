@@ -919,6 +919,13 @@ initialize
 
 	ld hl, 0
 	ld (v_userint), hl 
+	ld (v_intcount), hl
+	ld (v_intcount + 2), hl
+
+	xor a
+	ld (v_ulatest_pos), a
+	cpl
+	ld (v_ulatest_dir), a
 
 	ld b, 5
 	xor a
