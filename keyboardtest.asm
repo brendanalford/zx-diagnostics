@@ -24,18 +24,21 @@ keyboard_test
     	
     	ld sp, 0x7cff
 	ld iy, 0
-	
-	call init_vars
-	
-;	Copy ROM paging routines to RAM
 
-	ld hl, rompage_reloc
-	ld de, do_rompage_reloc
-	ld bc, end_rompage_reloc-rompage_reloc
-	ldir
-	ld a, 0
-	call do_rompage_reloc
-	
+	ld a, h
+	cp 190
+	jr nz, keyb_test_init	
+	ld a, l
+	cp 238
+	jr nz, keyb_test_init	
+
+	ld l, 7
+	BEEP 0x23, 0x0150
+
+keyb_test_init
+
+	call initialize
+
     	ld a, BORDERWHT
     	out (ULA_PORT), a
 
@@ -147,7 +150,7 @@ check_break
 
 	ld bc, 0x1234
 	ld a, 2
-	call do_rompage_reloc	; Page out and restart the machine	
+	call sys_rompaging	; Page out and restart the machine	
 
 no_break
 

@@ -53,9 +53,14 @@ str_build
 
 nmi
 
-;	Arranged so that the NMI vector happens to be the start of the
-;	diagnostic routines proper
+;	Start the keyboard test routine.
+;	Handle this via NMI as the user may not be able
+;	to hold down the K key if the keyboard membrane
+;	is suspect.
 
+	ld hl, 48878
+	jp keyboard_test
+	
 start
 
 ;	Blank the screen, (and all lower RAM)
@@ -338,31 +343,10 @@ use_uppermem
 
     	ld sp, 0x7cff
 
-	call init_vars
+	call initialize
 	
     	ld a, BORDERWHT
     	out (ULA_PORT), a
-
-	
-;	Copy ROMCRC and ROM paging routines to RAM
-;	We'll need them here as ROM code won't be accessible
-;	during ROM checksums etc
-
-	ld hl, romcrc
-	ld de, do_romcrc
-	ld bc, romcrc_end-romcrc
-	ldir
-	
-	ld hl, rompage_reloc
-	ld de, do_rompage_reloc
-	ld bc, end_rompage_reloc-rompage_reloc
-	ldir
-
-;	Check for whatever diagnostic hardware is present.
-;	Result will be stored in system variable v_testhwtype.
-
-	ld a, 0
-	call do_rompage_reloc
 
 ;	Clear the screen and print the top and bottom banners
 
@@ -422,7 +406,7 @@ rom_test_1
 	ld hl, str_romcrc
     	call print
 
-   	call do_romcrc
+   	call sys_romcrc
 
 ;	Save it in DE temporarily
 
@@ -805,7 +789,7 @@ page_speccy_rom
 
 ;	We won't ever return from this call
 
-	call do_rompage_reloc
+	call sys_rompaging
 
 ;
 ;	Testing Routines
@@ -917,7 +901,7 @@ check_spc_key
 ;	Initialise system variables.
 ;
 
-init_vars
+initialize
 
 	xor a
 	ld (v_fail_ic), a
@@ -955,7 +939,27 @@ decstr_init
 	ld (hl), a
 	inc hl
 	djnz decstr_init
+
+;	Copy ROMCRC and ROM paging routines to RAM
+;	We'll need them here as ROM code won't be accessible
+;	during ROM checksums etc
+
+	ld hl, romcrc
+	ld de, sys_romcrc
+	ld bc, romcrc_end-romcrc
+	ldir
 	
+	ld hl, rompage_reloc
+	ld de, sys_rompaging
+	ld bc, end_rompage_reloc-rompage_reloc
+	ldir
+
+;	Check for whatever diagnostic hardware is present.
+;	Result will be stored in system variable v_testhwtype.
+
+	ld a, 0
+	call sys_rompaging
+
 	ret
 
 	include "crc16.asm"

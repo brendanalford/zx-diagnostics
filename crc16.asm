@@ -29,7 +29,7 @@
 romcrc
 
 	ld a, 2
-	call do_rompage_reloc
+	call sys_rompaging
 	
 startcrc
 
@@ -70,7 +70,7 @@ Next
 ;	Page our ROM back in
 	
 	ld a, 1
-	call do_rompage_reloc
+	call sys_rompaging
 	ret
 	   
 romcrc_end   

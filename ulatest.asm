@@ -42,55 +42,20 @@ ulatest
 	ld a, 0
 	call pagein
 
-;	Init system variables
 
-	xor a
-	
-	ld (v_fail_ic), a
-	ld (v_fail_ic_contend), a
-	ld (v_fail_ic_uncontend), a
-
-	ld (v_column), a
-    	ld (v_row), a
-	ld (v_bold), a
-	ld (v_ulatest_pos), a
-	cpl
-	ld (v_ulatest_dir), a
-	
-	ld a, 56
-	ld (v_attr), a
-	ld a, 6
-	ld (v_width), a
-		
-	ld hl, ulatest_scan
-	ld (v_userint), hl
-
-	ld hl, 0
-	ld (v_intcount), hl
-	ld (v_intcount + 2), hl
-	
+	call initialize
 	
 ;	IX will be used as the last recorded interrupt counter value
 ;	IY will be the number of cycles that IX was the same
 ;	If IY exceeds 100 cycles then interrupts are considered to have
 ;	failed
 
+	ld hl, 0
 	ld ix, hl
 	ld iy, hl
-	
-;	Copy ROM paging routines to RAM
 
-	ld hl, rompage_reloc
-	ld de, do_rompage_reloc
-	ld bc, end_rompage_reloc-rompage_reloc
-	ldir
-	
-;	Detect diagnostic board type
-
-	ld a, 0x00
-	call do_rompage_reloc
-	
 	call cls
+	
 	ld a, BORDERWHT
 	out (0xfe), a
 	
@@ -235,7 +200,7 @@ check_input
 	
 	ld bc, 0x1234
 	ld a, 2
-	call do_rompage_reloc 	; Page out and restart the machine	
+	call sys_rompaging 	; Page out and restart the machine	
 
 	
 out_mictone

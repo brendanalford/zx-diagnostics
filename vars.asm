@@ -54,5 +54,5 @@ v_testhwtype	equ #7d40; Type of interface we're running on. 0-none found, 1-Diag
 
 ;	Relocation addresses for routines that need the original ROM paged
 
-do_romcrc			equ #7e00
-do_rompage_reloc	equ #7f00
+sys_romcrc		equ #7e00
+sys_rompaging		equ #7f00
