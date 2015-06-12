@@ -29,6 +29,8 @@ v_row			equ #7d01; 1
 v_attr			equ #7d02; 1
 v_bold			equ #7d03; 1
 v_width			equ #7d04; 1
+v_scrolltop		equ #7d05; 1
+v_scrolllines		equ #7d06; 1
 
 ;	Miscellaneous
 

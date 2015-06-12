@@ -913,6 +913,10 @@ initialize
 	ld (v_bold), a
 	ld a, 56
 	ld (v_attr), a
+	ld a, 2
+	ld (v_scrolltop), a
+	ld a, 21
+	ld (v_scrolllines), a
 	
 	ld a, 6
 	ld (v_width), a

@@ -199,7 +199,7 @@ return_to_basic
      	ret
 
 ;
-;	Loads a CODE block of 16K into memory at 32768/
+;	Loads a CODE block of 16K into memory at 32768
 ;
 tape_load
 
@@ -210,7 +210,7 @@ tape_load
 	call print
 	
 	xor a
-    out (ROMPAGE_PORT), a   ; page in Speccy ROM
+	out (ROMPAGE_PORT), a   ; page in Speccy ROM
 
 	ld hl, .tapeerror
 	
@@ -221,11 +221,10 @@ tape_load
 	ld ix, v_tapehdr
 	ld de, 17
 	call load_bytes	
-	jr nc, .tapeloop
 	call check_break
 	ld a, d
 	or e
-	jr nz, .tapeerror
+	jr nz, .tapeloop
 
 ;	Check header type
 
@@ -1015,7 +1014,7 @@ str_others
 	
 str_options_menu
 
-	defb TEXTBOLD, "Options Menu", TEXTNORM, 0
+	defb TEXTBOLD, "Other Options", TEXTNORM, 0
 	
 str_options
 	defb AT, 2, 0, "Select option:\n\n"
@@ -1132,7 +1131,7 @@ str_tapehdr
 str_loadmsg
 
 	defb AT, 2, 0, "Insert tape and press play.\n"
-	defb "Press SPACE/BREAK to abort.\n\n", 0
+	defb "Press ", TEXTBOLD, INK, 2, "SPACE/BREAK ", TEXTNORM, INK, 0,"to abort.\n\n", 0
 	
 str_headerok
 

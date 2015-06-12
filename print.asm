@@ -896,7 +896,6 @@ scroll_next
 	pop ix
 	ret
 
-
 ;
 ;	Moves print position to a new line.
 ;
