@@ -48,6 +48,11 @@ start
 	ld de, v_printbuf + 1
 	ld bc, 6
 	ldir
+	
+	ld a, 2
+	ld (v_scrolltop), a
+	ld a, 21
+	ld (v_scrolllines), a
       
 ;	Main Menu screen
 
@@ -102,7 +107,10 @@ get_option
       	jp z, .copypage
       	cp "Z"
       	jr z, .reset
-
+	
+	cp 0x13
+	jr z, .tapeload
+	
       	call is_alphanumeric
       	jr nc, get_option
       	
@@ -120,14 +128,14 @@ get_option
 ;
 .reset
       	ld a, (0x5c48)
-		and 0x38
-		rrca
-		rrca
-		rrca
-		out (0xfe), a 
-	
-		ld a, (0x5c8d)
-		ld (v_attr), a
+	and 0x38
+	rrca
+	rrca
+	rrca
+	out (0xfe), a 
+
+	ld a, (0x5c8d)
+	ld (v_attr), a
 		
       	call cls
      	xor a
@@ -135,6 +143,84 @@ get_option
      	ei
      	ret
 
+;
+;	Loads a CODE block of 16K into memory at 32768/
+;
+.tapeload
+
+	call cls
+	ld hl, str_tapehdr
+	call print_header
+	ld hl, str_loadmsg
+	call print
+	
+.tapeloop
+
+	scf
+	ld a, 0
+	ld ix, v_tapehdr
+	ld de, 17
+	call 0x0556	; LD-BYTES routine in ROM
+		
+	jr nc, .tapeerror
+	ld a, d
+	or e
+	jr nz, .tapeerror
+
+;	Check header type
+
+	ld a, (ix+03)
+	cp 3
+	jr .tapeloop1
+	
+	ld hl, str_headertype
+	call print
+	jr .tapeloop
+
+.tapeloop1
+
+;	Check block length
+
+	ld a, (ix+0xb)
+	ld e, a
+	ld a, (ix+0xc)
+	ld d, a
+	ld hl, 0x4000
+	sub hl,de
+	jr z, .tapeloop2
+
+	ld  hl, str_headerlength
+	call print
+	jr .tapeloop
+	
+.tapeloop2
+
+	ld hl, str_headerok
+	call print
+	
+	scf
+	ld a, 255
+	ld ix, 0x8000
+	ld de, 0x4000
+	call 0x0556
+
+	jr nc, .tapeerror
+	ld a, d
+	or e
+	jr nz, .tapeerror
+
+	ld hl, str_loadok
+	call print
+	call get_key
+	
+	jp start
+	
+.tapeerror
+
+	ld hl, str_tapeerror
+	call print
+	call get_key
+	jp start
 ;
 ;	Programs a flash page.
 ;
@@ -920,3 +1006,31 @@ str_prog_anyway
 str_inuse   
 	defb "This flash page seems used.\n"
         defb "Continue anyway? (Y/N)\n", 0
+
+str_tapehdr
+	defb TEXTBOLD, "Load ROM Image from Tape", TEXTNORM, 0
+	
+str_loadmsg
+
+	defb AT, 2, 0, "Insert tape and press Play.\n"
+	defb "Press SPACE/BREAK to abort.\n\n", 0
+	
+str_headerok
+
+	defb "Loading image: ", 0
+	
+str_headerlength
+	
+	defb "Ignoring, incorrect length: ", 0
+
+str_headertype
+
+	defb "Ignoring, incorrect type: ", 0
+
+str_tapeerror
+	
+	defb "Tape loading error!\n",0
+	
+str_loadok
+	
+	defb "Image loaded successfully.\n",0
