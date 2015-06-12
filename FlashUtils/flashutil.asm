@@ -26,9 +26,28 @@
 	define ROMPAGE_PORT   31
 
 start
-	di                ; we're paging roms in and out at random
- 	ld a, 7           ; White border
- 	out (ULA_PORT), a
+
+; 	We're paging roms in and out at random
+	di
+
+	; 	Quick check to see if user has lowered SP below 32768 as requested 
+
+	ld hl, 0
+	add hl, sp
+	ld a, h
+	cp 0x80
+	
+	jr c, start_2
+	
+;	Nope, generate M RAMTOP no good error
+	xor a
+	out (ROMPAGE_PORT), a   ; page in Speccy ROM
+	ei
+	
+	rst 0x08
+	defb 0x15
+	
+start_2
 
 ;	Set up the system variables
 
@@ -36,7 +55,6 @@ start
      	ld (v_attr), a
 	ld a, 6
 	ld (v_width), a
-      	call cls
 
       	xor a
       	ld (v_column), a
@@ -49,14 +67,27 @@ start
 	ld bc, 6
 	ldir
 	
+	ld a, 0x2
+	ld (v_scroll), a
+	ld a, 0x15
+	ld (v_scroll_lines), a
+	
+	
 	ld a, 2
-	ld (v_scrolltop), a
+	ld (v_scroll), a
 	ld a, 21
-	ld (v_scrolllines), a
+	ld (v_scroll_lines), a
       
 ;	Main Menu screen
 
-	ld hl, str_banner
+main_menu
+
+ 	ld a, 7           ; White border
+ 	out (ULA_PORT), a
+	
+	call cls
+	
+	    ld hl, str_banner
       	call print_header
       	
       	ld hl, str_run
@@ -97,7 +128,7 @@ flash_not_identified
 
 get_option	
 	call beep
-      	call get_key
+    call get_key
       
 	cp "W"
       	jp z, .progpage
@@ -118,14 +149,19 @@ get_option
 	
 	call map_key_to_page
 	
-      	or 32          	; bit 5 = /ROMCS line - bit 5 should be high
-                     	; to assert it with the jumper in 'SPECTRUM' pos
-      	out (ROMPAGE_PORT), a
-      	jp 0
+    or 32          	; bit 5 = /ROMCS line - bit 5 should be high
+                   	; to assert it with the jumper in 'SPECTRUM' pos
+    out (ROMPAGE_PORT), a
+    jp 0
+
+;
+;	The options menu.
+;
 
 ;
 ;	Pages out diagnostic ROM and returns control to BASIC ROM
 ;
+
 .reset
       	ld a, (0x5c48)
 	and 0x38
@@ -154,73 +190,101 @@ get_option
 	ld hl, str_loadmsg
 	call print
 	
+	xor a
+    out (ROMPAGE_PORT), a   ; page in Speccy ROM
+
 .tapeloop
 
+	xor a
 	scf
-	ld a, 0
 	ld ix, v_tapehdr
 	ld de, 17
 	call 0x0556	; LD-BYTES routine in ROM
 		
-	jr nc, .tapeerror
+	jr nc, .tapeloop
 	ld a, d
 	or e
 	jr nz, .tapeerror
 
 ;	Check header type
 
-	ld a, (ix+03)
+	ld a, (v_tapehdr)
 	cp 3
-	jr .tapeloop1
+	jr z, .tapeloop1
 	
 	ld hl, str_headertype
 	call print
+	call .fixtapename
+	call print
+	call newline
 	jr .tapeloop
 
 .tapeloop1
 
 ;	Check block length
 
-	ld a, (ix+0xb)
-	ld e, a
-	ld a, (ix+0xc)
-	ld d, a
-	ld hl, 0x4000
-	sub hl,de
+	ld a, (v_tapehdr+0xd)
+	cp 0
+	jr nz, .tapelength
+	ld a, (v_tapehdr+0xc)
+	cp 0x40
 	jr z, .tapeloop2
 
+.tapelength
 	ld  hl, str_headerlength
 	call print
+	call .fixtapename
+	call print
+	call newline
 	jr .tapeloop
 	
 .tapeloop2
 
 	ld hl, str_headerok
 	call print
+	call .fixtapename
+	call print
+	call newline
 	
 	scf
 	ld a, 255
 	ld ix, 0x8000
 	ld de, 0x4000
 	call 0x0556
-
-	jr nc, .tapeerror
+	
 	ld a, d
 	or e
 	jr nz, .tapeerror
 
 	ld hl, str_loadok
 	call print
+	ld hl, str_anykey
+	call print
 	call get_key
 	
-	jp start
+	jp main_menu
 	
 .tapeerror
 
 	ld hl, str_tapeerror
 	call print
 	call get_key
-	jp start
+	jp main_menu
+	
+.fixtapename
+
+	ld hl, v_tapehdr+1
+	ld a, (hl)
+	cp 0xff
+	jr nz, .tapenamepresent
+	xor a
+	ret
+	
+.tapenamepresent
+	
+	xor a
+	ld (v_tapehdr+0x0b), a
+	ret
 ;
 ;	Programs a flash page.
 ;
@@ -247,7 +311,7 @@ get_option
 
 ;	Did the user want to exit?
 	cp "Z"
-	jp z, start	
+	jp z, main_menu	
 
 	call is_alphanumeric
 	jr nc, .progpage_getpage
@@ -303,7 +367,7 @@ get_option
      	ld hl, str_anykey
       	call print
       	call get_key
-      	jp start
+      	jp main_menu
 
 .progpage.borked
 
@@ -315,7 +379,7 @@ get_option
       	ld hl, str_anykey
       	call print
       	call get_key
-      	jp start
+      	jp main_menu
 
 .progpage.inuse
 
@@ -354,7 +418,7 @@ get_option
 ;	User can hit X to return to the main menu.
 
       	cp "X"    
-      	jp z, start
+      	jp z, main_menu
       
      	call map_key_to_page
      
@@ -391,7 +455,7 @@ get_option
       	ld hl, str_anykey
       	call print
       	call get_key
-      	jp start
+      	jp main_menu
 
 .eraseborked
 
@@ -402,7 +466,7 @@ get_option
       	ld hl, str_anykey
       	call print
       	call get_key
-      	jp start
+      	jp main_menu
 
 .yourekillingme
 
@@ -514,7 +578,7 @@ get_option
       	call get_key
 
       	cp "Z"      
-      	jp z, start
+      	jp z, main_menu
       	call is_alphanumeric
       	jr nc, .copypage_getpage
       	
@@ -541,7 +605,7 @@ get_option
       	ld hl, str_anykey
       	call print
       	call get_key
-      	jp start
+      	jp main_menu
 
 F_FlashReadId
 ;
@@ -1012,7 +1076,7 @@ str_tapehdr
 	
 str_loadmsg
 
-	defb AT, 2, 0, "Insert tape and press Play.\n"
+	defb AT, 2, 0, "Insert tape and press play.\n"
 	defb "Press SPACE/BREAK to abort.\n\n", 0
 	
 str_headerok
@@ -1033,4 +1097,4 @@ str_tapeerror
 	
 str_loadok
 	
-	defb "Image loaded successfully.\n",0
+	defb "\nImage loaded successfully.\n",0

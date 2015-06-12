@@ -27,6 +27,7 @@
 	include "../defines.asm"
 	
         org 0
+		ld sp, 0xfeff
         jp copyflashutil
         block #38-$,0
 
