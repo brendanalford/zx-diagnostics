@@ -129,21 +129,16 @@ flash_not_identified
 get_option	
 	call beep
     call get_key
-      
-	cp "W"
-      	jp z, .progpage
-      	cp "X"
-      	jp z, .erasesector
-      	cp "Y"
-      	jp z, .copypage
-      	cp "Z"
-      	jr z, .reset
-	
+     
+	cp " "
+	jr z, return_to_basic	
 	cp 0x13
-	jr z, .tapeload
-	
-      	call is_alphanumeric
-      	jr nc, get_option
+	jr z, options_menu
+	cp "W"
+	jr nc, get_option
+
+	call is_alphanumeric
+	jr nc, get_option
       	
 ; 	If we get here we've selected a ROM to boot
 	
@@ -157,13 +152,37 @@ get_option
 ;
 ;	The options menu.
 ;
+options_menu
 
+	call cls
+	ld hl, str_options_menu
+	call print_header
+	ld hl, str_options
+	call print
+
+options_1
+	call beep
+	call get_key
+	
+		cp "P"
+      	jp z, program_page
+      	cp "X"
+      	jp z, erase_sector
+      	cp "C"
+      	jp z, copy_page
+      	cp "L"
+      	jr z, tape_load
+		cp " "
+		jp z, main_menu
+		jp options_1
+	
 ;
 ;	Pages out diagnostic ROM and returns control to BASIC ROM
 ;
 
-.reset
-      	ld a, (0x5c48)
+return_to_basic
+
+    ld a, (0x5c48)
 	and 0x38
 	rrca
 	rrca
@@ -182,7 +201,7 @@ get_option
 ;
 ;	Loads a CODE block of 16K into memory at 32768/
 ;
-.tapeload
+tape_load
 
 	call cls
 	ld hl, str_tapehdr
@@ -193,15 +212,17 @@ get_option
 	xor a
     out (ROMPAGE_PORT), a   ; page in Speccy ROM
 
+	ld hl, .tapeerror
+	
 .tapeloop
 
 	xor a
 	scf
 	ld ix, v_tapehdr
 	ld de, 17
-	call 0x0556	; LD-BYTES routine in ROM
-		
+	call load_bytes	
 	jr nc, .tapeloop
+	call check_break
 	ld a, d
 	or e
 	jr nz, .tapeerror
@@ -250,13 +271,15 @@ get_option
 	ld a, 255
 	ld ix, 0x8000
 	ld de, 0x4000
-	call 0x0556
-	
+	call load_bytes
+	call check_break
 	ld a, d
 	or e
 	jr nz, .tapeerror
 
 	ld hl, str_loadok
+	ld a, 7
+	out (ULA_PORT), a
 	call print
 	ld hl, str_anykey
 	call print
@@ -266,6 +289,8 @@ get_option
 	
 .tapeerror
 
+	ld a, 7
+	out (ULA_PORT), a
 	ld hl, str_tapeerror
 	call print
 	call get_key
@@ -285,10 +310,36 @@ get_option
 	xor a
 	ld (v_tapehdr+0x0b), a
 	ret
+	
+check_break
+
+	ld a, 0x7f
+	in a, (0xfe)
+	rra
+	ret c
+	pop hl
+	jp main_menu
+	
+;
+;	Does some initial setup and then calls the ROM routine LD-BYTES past the point
+;	where it sets SA/LD-RET as the return, allowing us to trap BREAK pressed properly.
+;	
+load_bytes
+
+	inc d
+	ex af, af'
+	dec d
+	di
+	ld a, 0x0f
+	out (ULA_PORT), a
+
+	; Jump to point in ROM past the change of return address
+	jp 0x0562
+	
 ;
 ;	Programs a flash page.
 ;
-.progpage
+program_page
 
 ; 	Display banner and page selection options.
 
@@ -328,14 +379,14 @@ get_option
 
       	ld a, (0)
       	cp #ff      ; unused flash memory is set to all 1s
-      	jr nz, .progpage.inuse
+      	jr nz, program_page_in_use
 
 ;	Page is blank, say we're writing and continue
 
       	ld hl, str_writing
       	call print
 
-.progpage.program
+program_page_program
 
 ;	Writing 16384 bytes from 32768 to the flash
 	
@@ -343,7 +394,7 @@ get_option
       	ld de, 0
       	ld bc, 16384
 
-.progpage.loop
+program_page_loop
 
 ;	Grab a byte at a time and send to the flash program routing
 
@@ -358,7 +409,7 @@ get_option
       	dec bc
       	ld a, b
       	or c
-      	jr nz, .progpage.loop
+      	jr nz, program_page_loop
 
 ;	All done
 
@@ -381,7 +432,7 @@ get_option
       	call get_key
       	jp main_menu
 
-.progpage.inuse
+program_page_in_use
 
 ;	The page appeared to be in use, first byte was not 0xff.
 ;	Ask the user what they want to do.
@@ -390,18 +441,18 @@ get_option
       	call print
       	call get_key
       	cp "Y"    
-      	jp nz, .progpage
+      	jp nz, program_page
 
 ;	User doesn't seem to care. Try programming anyway.
 
       	ld hl, str_prog_anyway
 	call print
-	jr .progpage.program
+	jr program_page_program
 
 ;
 ;	Erases a sector of flash memory.
 ;
-.erasesector
+erase_sector
 
 ;	Display erase menu and options.
       
@@ -504,7 +555,7 @@ get_option
 ; 	any other key = abort
       	
       	pop af
-      	jp .erasesector
+      	jp erase_sector
 
 .killme
 
@@ -553,12 +604,12 @@ get_option
       	ld hl, 32768
       	ld de, 0
       	ld bc, 16384
-      	jp .progpage.loop
+      	jp program_page_loop
 
 ;
 ;	Copies a given flash page to RAM
 ;
-.copypage
+copy_page
 
 ;	Print the copy menu and wait for a selection
 
@@ -882,7 +933,6 @@ map_dev_next
 	and a
 	ret
 	
-	
 ;
 ;	Chip string table	
 ;
@@ -960,17 +1010,22 @@ str_p11
 	defb "u: Page 30", TAB, 90, "v: Page 31\n\n",0
 
 str_others  
-	defb "Other options:\n\n"
+	defb "Press ", TEXTBOLD, INK, 2,"ENTER ", TEXTNORM, INK, 0, "for Other Options menu\n\n"
+	defb "Press ", TEXTBOLD, INK, 2,"SPACE ", TEXTNORM, INK, 0, "to exit to ZX Basic",0
+	
+str_options_menu
 
-str_burn 
-	defb "w:Program a 16K flash page\n"
-str_erase   
-	defb "x:Erase a 64K flash sector\n"
-str_copy    
-	defb "y:Copy 16K page to RAM at 32768\n"
-str_reboot  
-	defb "z:Exit to ZX BASIC\n", 0
-
+	defb TEXTBOLD, "Options Menu", TEXTNORM, 0
+	
+str_options
+	defb AT, 2, 0, "Select option:\n\n"
+	defb "P: Program a 16K flash page\n"  
+	defb "X: Erase a 64K flash sector\n"  
+	defb "C: Copy 16K page to RAM at 32768\n"
+	defb "L: Load a 16K image from tape to\n"
+	defb "   RAM at 32768\n\n"
+	defb "Press ", TEXTBOLD, INK, 2, "SPACE ", TEXTNORM, INK, 0, "to return to main menu", 0
+	
 str_mfrdevice
 	
 	defb AT, 23, 0, "Flash type: ", 0
