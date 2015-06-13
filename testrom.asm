@@ -916,6 +916,10 @@ initialize
 	
 	ld a, 6
 	ld (v_width), a
+	ld a, 0xff
+	ld (v_scroll), a
+	cpl
+	ld (v_scroll_lines), a
 
 	ld hl, 0
 	ld (v_userint), hl 

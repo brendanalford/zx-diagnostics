@@ -77,15 +77,7 @@ print_nextchar
 	
 	cp '\n'
 	jr nz, print_chk_left
-	ld a, 0
-	ld (v_column), a
-	ld a,(v_row)
-	inc a
-	ld (v_row), a
-	cp 24
-	jr nz, print_nextchar
-	ld a, 0
-	ld (v_row), a
+	call newline
 	jr print_nextchar
 
 ;	Check for Cursor Left control code
@@ -316,11 +308,33 @@ print_wrap
 	ld a, (v_row)
 	inc a
 	ld (v_row), a
+	
+	ld a, (v_scroll)
+	cp 0xff
+	jr nz, print_scroll
+	
+;	Wrap text from bottom to top
 	cp 24
 	jp nz, print_nextchar
 	ld a, 0
 	ld (v_row), a
+	jp print_nextchar
 
+print_scroll
+
+	ld a, (v_scroll)
+	ld b, a
+	ld a, (v_scroll_lines)
+	add a, b
+	ld b, a
+	ld a, (v_row)
+	cp b
+	jp nz, print_nextchar
+	dec a
+	ld (v_row), a
+	call prt_scroll
+	jp print_nextchar
+	
 ;	Return without printing the rest if we overflowed the bottom
 ;	of the screen.
 
@@ -731,6 +745,16 @@ cls
 	pop hl
 	ret
 
+;
+;	Scrolls the screen according to the values in v_scroll and v_scroll_lines.
+;
+prt_scroll
+
+	ld a, (v_scroll)
+	ld h, a
+	ld a, (v_scroll_lines)
+	ld l, a
+	
 scroll
 ;
 ;	Scrolls the screen from the line in H
@@ -909,6 +933,33 @@ newline
 	ld a, (v_row)
 	inc a 
 	ld (v_row), a
+	
+	ld a, (v_scroll)
+	cp 0xff
+	jr nz, nl_scroll
+	
+;	Wrap text from bottom to top
+	cp 24
+	jr nz, newline_done
+	ld a, 0
+	ld (v_row), a
+	jr newline_done
+
+nl_scroll
+
+	ld a, (v_scroll)
+	ld b, a
+	ld a, (v_scroll_lines)
+	add a, b
+	ld b, a
+	ld a, (v_row)
+	cp b
+	jr c, newline_done
+	dec a
+	ld (v_row), a
+	call prt_scroll
+	
+newline_done
 	pop af
 	ret
 
