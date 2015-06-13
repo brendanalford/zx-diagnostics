@@ -32,6 +32,7 @@ v_width			equ #7d04; 1
 v_scroll		equ #7d05; 1
 v_scroll_lines  equ #7d06; 1
 
+
 ;	Miscellaneous
 
 v_intcount		equ #7d10; 4
