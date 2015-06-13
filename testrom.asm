@@ -914,9 +914,9 @@ initialize
 	ld a, 56
 	ld (v_attr), a
 	ld a, 2
-	ld (v_scrolltop), a
+	ld (v_scroll), a
 	ld a, 21
-	ld (v_scrolllines), a
+	ld (v_scroll_lines), a
 	
 	ld a, 6
 	ld (v_width), a
