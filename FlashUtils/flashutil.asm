@@ -236,6 +236,8 @@ tape_load
 	call print
 	call .fixtapename
 	call print
+	ld a, 56
+	ld (v_attr), a
 	call newline
 	jr .tapeloop
 
@@ -255,6 +257,8 @@ tape_load
 	call print
 	call .fixtapename
 	call print
+	ld a, 56
+	ld (v_attr), a
 	call newline
 	jr .tapeloop
 	
@@ -264,6 +268,8 @@ tape_load
 	call print
 	call .fixtapename
 	call print
+	ld a, 56
+	ld (v_attr), a
 	call newline
 	
 	scf
@@ -291,6 +297,8 @@ tape_load
 	ld a, 7
 	out (ULA_PORT), a
 	ld hl, str_tapeerror
+	call print
+	ld hl, str_anykey
 	call print
 	call get_key
 	jp main_menu
@@ -1039,7 +1047,7 @@ str_progopt
 
 str_writing 
 
-	defb "Writing flash chip...\n", 0
+	defb "Writing image to flash chip...\n", 0
 
 str_copyhdr_banner
 
@@ -1139,11 +1147,11 @@ str_headerok
 	
 str_headerlength
 	
-	defb "Ignoring, incorrect length: ", 0
+	defb "Ignoring, wrong length: ", 0
 
 str_headertype
 
-	defb "Ignoring, incorrect type: ", 0
+	defb "Ignoring, wrong type: ", 0
 
 str_tapeerror
 	
