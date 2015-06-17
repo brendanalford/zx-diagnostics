@@ -87,6 +87,12 @@ key_print
 	ld a, 0x4f
 	ld (v_attr), a
 	
+;	Store 'key read' flags in H'
+	
+	exx
+	ld h, 00
+	exx
+	
 keyb_loop
 	
 	ld b, 8
@@ -107,6 +113,12 @@ keyb_loop_col
 	
 	ld hl, (ix)
 	call print
+	exx
+	
+;	Set bit 0 of H' - key pressed
+	
+	set 0, h
+	exx
 	
 keyb_next_col
 
@@ -121,6 +133,40 @@ keyb_next_col
 	rlc d
 	djnz keyb_loop_row
 
+check_key_press
+
+	exx
+	ld a, h
+	exx
+
+;	Bit 1 of H' is set if a key was pressed or held during the last scan
+
+	bit 0, a 
+	jr z, check_key_release
+	
+; 	Beep only if bit 1 of H' is reset, otherwise we've already beeped without key release
+
+	bit 1, a
+	jr nz, check_key_release
+	ld l, 7
+	BEEP 0x23, 0x0015
+	exx
+	set 1, h
+	exx
+
+check_key_release
+
+	xor a
+	in a, (0xfe)
+	and 0x1f
+	cp 0x1f
+	jr nz, check_break
+	
+;	No keys now pressed, set H' to 0
+	exx
+	ld h, 0
+	exx
+	
 check_break
 
 	ld a, 0x7f

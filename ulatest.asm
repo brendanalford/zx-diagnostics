@@ -102,6 +102,16 @@ ulatest_loop
 	xor a
 	in a, (0xfe)
 	ld c, a
+	
+	ld a, 7
+	bit 6, c
+	jr z, inval_setup
+	xor a
+
+inval_setup
+
+	out (0xfe), a
+	
 	ld hl, 0x5858 	; Start of 76543210 on screen
 	ld de, 0x4778	; D = B/W attrs, E = W/B
 	ld b, 8
