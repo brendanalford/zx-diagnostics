@@ -85,6 +85,30 @@ ulatest
 	call print
 	
 	call print_footer
+
+
+	exx
+
+;	'Have we printed the FAIL message' flag
+;	stored in B' register
+
+	xor a
+	ld b, a
+
+; 	Set the initial border colour
+;	Gets stored in L'
+
+	ld h, a
+	in a, (0xfe)
+	and 0xe0
+	bit 6, a
+	jr z, store_bord
+	or 0x07
+	
+store_bord
+
+	ld l, a
+	exx
 	
 ;	Start the interrupt service routine
 
@@ -102,24 +126,18 @@ ulatest_loop
 	xor a
 	in a, (0xfe)
 	ld c, a
-	
-	ld a, 7
-	bit 6, c
-	jr z, inval_setup
-	xor a
-
-inval_setup
-
-	out (0xfe), a
-	
+		
 	ld hl, 0x5858 	; Start of 76543210 on screen
 	ld de, 0x4778	; D = B/W attrs, E = W/B
 	ld b, 8
+
 	
 inval_print
 
 ;	Check and set the correct colour for the current
 ;	bit being checked
+
+	call read_ear_bit
 
 	ld a, d
 	bit 7, c
@@ -132,6 +150,8 @@ inval_print2
 	inc hl
 	sll c
 	djnz inval_print
+
+	call read_ear_bit
 	
 ;	Check how we're doing with the interrupt count
 	
@@ -149,20 +169,44 @@ inval_print2
 	inc iy
 	ld a, iyh
 	cp 0
-	jp z, check_input
+	jp nz, interrupt_fail
 	
-;	More than 100 cycles have occurred since an interrupt,
+;	High byte zero, check if low byte is less than 30
+
+	ld a, iyl
+	cp 0x30
+	jp c, check_input
+	
+;	More than 30 cycles have occurred since an interrupt,
 ;	something's failed to do with interrupt generation. Flag it.
 
+interrupt_fail
+
+	exx
+	ld a, b
+	exx
+	
+	cp 0
+	jr nz, check_input
+	
 	ld hl, str_ulaintfail
 	call print
+
+	exx
+	ld a, 1
+	ld b, a
+	exx
+	
 	jp check_input
 	
 interrupt_detected
 
+	call read_ear_bit
+
 ;	Check how many interrupts have passed - we wouldn't ever
 ;	expect more than one - so flag a fail if we've detected
 ;	multiples.
+
 
 	ld a, l
 	cp 1
@@ -179,6 +223,8 @@ interrupt_ok
 	ld iy, 0
 	
 check_input
+
+	call read_ear_bit
 		
 ;	Check input for keys 1, 2, 3 or 4.
 
@@ -216,6 +262,32 @@ check_input
 	ld a, 2
 	call sys_rompaging 	; Page out and restart the machine	
 
+;
+;	Reads bit 6 of port 0xFE (EAR bit) and
+;	reflects its status by changing the border colour.
+;
+read_ear_bit
+
+	push af
+	exx
+	ld h, l
+	
+	in a, (0xfe)
+	bit 6, a
+	jr nz, read_ear_bit_2
+	
+	ld a, h
+	xor 0x07
+	ld h, a
+	
+read_ear_bit_2
+	
+	ld a, h
+	out (0xfe), a
+	
+	exx
+	pop af
+	ret
 	
 out_mictone
 	
@@ -370,6 +442,13 @@ test_screen_loop2
 ;
 ulatest_scan
 
+	exx
+	ld a, l
+	exx
+	and 0xe0
+	or 0x2
+
+	out (0xfe), a
 	ld hl, ULATEST_ROW
 	ld b, 0x20
 	ld a, 0x7
