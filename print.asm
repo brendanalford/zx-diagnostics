@@ -41,10 +41,38 @@
 	define	AT		22
 	define	WIDTH		23
 	define  ATTR_TRANS	0xff
+
+;
+;	Prints a string to the screen using ROM routines.
+;	Assumes the ROM is actually paged in...
+;	String to print in HL, zero terminated.
+;
+
+print_rom
+
+;	Open normal screen channel
+
+	ld a, 2
+	push hl
+	call 0x1601
+	pop hl
+	
+print_rom_loop
+	
+	ld a, (hl)
+	cp 0
+	ret z
+	push hl
+	rst 0x10
+	pop hl
+	inc hl
+	jr print_rom_loop
+
 ;
 ;	Prints a string to the screen.
 ;	Inputs: HL=location of string to be printed
 ;
+
 
 print
 
