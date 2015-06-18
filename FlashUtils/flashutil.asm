@@ -28,9 +28,10 @@
 start
 
 ; 	We're paging roms in and out at random
+
 	di
 
-	; 	Quick check to see if user has lowered SP below 32768 as requested 
+; 	Quick check to see if user has lowered SP below 32768 as requested 
 
 	ld hl, 0
 	add hl, sp
@@ -39,9 +40,15 @@ start
 	
 	jr c, start_2
 	
-;	Nope, generate M RAMTOP no good error
+;	Nope, Print a message and generate 
+;	M RAMTOP no good error
+
 	xor a
 	out (ROMPAGE_PORT), a   ; page in Speccy ROM
+	
+	ld hl, str_bad_ramtop
+	call print_rom
+	
 	ei
 	
 	rst 0x08
@@ -986,6 +993,11 @@ chip_unknown
 	defb "Unknown (", 0
 chip_unknown2
 	defb ")",0
+	
+str_bad_ramtop
+
+	defb 0x0d, "Please set RAMTOP to 32767 or ", 0x0d
+	defb "lower to use this utility.", 0
 	
 str_banner
 	
