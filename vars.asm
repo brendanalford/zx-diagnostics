@@ -30,7 +30,7 @@ v_attr			equ #7d02; 1
 v_bold			equ #7d03; 1
 v_width			equ #7d04; 1
 v_scroll		equ #7d05; 1
-v_scroll_lines  equ #7d06; 1
+v_scroll_lines  	equ #7d06; 1
 
 
 ;	Miscellaneous

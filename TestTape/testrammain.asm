@@ -649,6 +649,7 @@ Next
 
   
 	include "..\print.asm"
+	include "..\scroll.asm"
 	include "..\paging.asm"
 	include "..\input.asm"
 ;
@@ -945,6 +946,8 @@ v_row			equ #7f81; 1
 v_attr			equ #7f82; 1
 v_bold			equ #7f83; 1
 v_width			equ #7f84; 1
+v_scroll		equ #7f85; 1
+v_scroll_lines  	equ #7d86; 1
 
 
 ;	Miscellaneous
@@ -952,8 +955,6 @@ v_width			equ #7f84; 1
 v_hexstr		equ #7f90; 5
 v_intcount		equ #7f9a; 4
 v_decstr		equ #7fa0; 6
-v_rtcenable		equ #7fa8; 1
-v_rtc			equ #7fa9; 4 - h:m:s:50
 
 ;	Testing variables
 

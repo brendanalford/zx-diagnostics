@@ -90,6 +90,11 @@ start
 	bit 0, a
 	jp z, testcard
 
+;	Jump to memory browser if M is pressed
+
+	bit 2, a
+	jp z, mem_browser
+
 ;	Jump to ULA test routine if U key is pressed
 
 	ld bc, 0xdffe
@@ -103,7 +108,6 @@ start
 	in a, (c)
 	bit 2, a
 	jp z, keyboard_test
-
 
 ;	Set up for tests
 
@@ -978,13 +982,15 @@ decstr_init
 	ret
 
 	include "crc16.asm"
+	include "input.asm"
 	include "print.asm"
+	include "scroll.asm"
 	include "paging.asm"
 	include "diagboard.asm"
 	include "testcard.asm"
 	include "ulatest.asm"
 	include "keyboardtest.asm"
-	
+	include "membrowser.asm"
 ;
 ;	Table to define ROM signatures
 ;

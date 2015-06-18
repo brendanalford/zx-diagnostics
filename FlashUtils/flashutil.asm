@@ -979,6 +979,7 @@ map_info_table
 	include "../version.asm"	
      	include "../charset.asm"
  	include "../print.asm"
+ 	include "../scroll.asm"
 	include "../input.asm"
 
 chip_unknown

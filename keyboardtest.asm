@@ -92,7 +92,7 @@ key_print
 	exx
 	ld h, 00
 	exx
-	
+		
 keyb_loop
 	
 	ld b, 8

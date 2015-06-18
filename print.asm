@@ -634,6 +634,11 @@ Num2Hex
 	call	Num1
 	ld	a,h
 	call	Num2
+
+;	Call here for a single byte conversion to hex
+
+Byte2Hex
+
 	ld	a,l
 	call	Num1
 	ld	a,l
@@ -745,180 +750,6 @@ cls
 	pop hl
 	ret
 
-;
-;	Scrolls the screen according to the values in v_scroll and v_scroll_lines.
-;
-prt_scroll
-
-	ld a, (v_scroll)
-	ld h, a
-	ld a, (v_scroll_lines)
-	ld l, a
-	
-scroll
-;
-;	Scrolls the screen from the line in H
-;	for L lines.
-;
-
-	push ix
-	push hl
-	push de
-	push bc
-
-	ld ix, hl
-	
-scroll_calc
-
-;	Calc destination line
-;	Store it in DE
-
-	ld a, ixh
-	and 0x18
-	or 0x40
-	ld d, a
-	ld a, ixh
-	and 0x7
-	rla
-	rla
-	rla
-	rla
-	rla
-	ld e, a
-
-;	Is this the last line?
-
-	ld a, ixl
-	cp 1
-	jr nz, scroll_lines
-	
-;	Yes, set up to blank last line
-
-	ld hl, de
-	inc de
-	
-	ld b, 8
-	
-scroll_last_line
-
-	push hl
-	push de
-	push bc
-
-	xor a
-	ld bc, 32
-	ld (hl), a
-	ldir
-
-	pop bc
-	pop de
-	pop hl
-	inc h
-	inc d
-	djnz scroll_last_line
-
-	jr scroll_attrs
-	
-scroll_lines
-
-;	Calculate source line (line + 1)
-;	Store it in HL
-	
-	inc ixh
-	ld a, ixh
-	and 0x18
-	or 0x40
-	ld h, a
-	ld a, ixh
-	and 0x7
-	rla
-	rla
-	rla
-	rla
-	rla
-	ld l, a
-	dec ixh
-	
-	ld b, 8
-	
-scroll_line
-
-	push hl
-	push de
-	push bc
-	ld bc, 32
-	ldir
-	
-	pop bc
-	pop de
-	pop hl
-
-;	Move to next pixel row
-
-	inc h
-	inc d
-	djnz scroll_line
-
-scroll_attrs
-
-;	Now scroll attributes
-;	First calculate attribute destination
-		
-	ld a, ixh
-	srl a
-	srl a
-	srl a
-	and 3
-	or 0x58
-	ld h, a
-	ld a, ixh
-	sla a
-	sla a
-	sla a
-	sla a
-	sla a
-	ld l, a
-	inc ixh
-
-	ld a, ixl
-	cp 1
-	jr nz, scroll_attr
-
-;	Last line, blank last line of attrs with
-;	current attribute v_attr value
-
-	ld de, hl
-	inc de
-	ld a, (v_attr)
-	ld (hl), a
-	ld bc, 31
-	ldir
-	jp scroll_next
-	
-scroll_attr
-
-;	Add 32 to this to get attribute source
-;	then copy
-	
-	push hl	
-	ld de, 32
-	add hl, de
-	pop de
-	ld bc, 32
-	ldir
-	
-scroll_next
-	
-	dec ixl
-	ld a, ixl
-	cp 0
-	jp nz, scroll_calc
-		
-	pop bc
-	pop de
-	pop hl
-	pop ix
-	ret
 
 ;
 ;	Moves print position to a new line.
@@ -927,6 +758,8 @@ scroll_next
 newline
 
 	push af
+	push bc
+
 	xor a
 	ld (v_column), a
 	ld a, (v_row)
@@ -945,7 +778,7 @@ newline
 	jr newline_done
 
 nl_scroll
-
+	
 	ld a, (v_scroll)
 	ld b, a
 	ld a, (v_scroll_lines)
@@ -959,6 +792,7 @@ nl_scroll
 	call prt_scroll
 	
 newline_done
+	pop bc
 	pop af
 	ret
 
