@@ -914,7 +914,7 @@ initialize
 
 	ld (v_column), a
     	ld (v_row), a
-	ld (v_bold), a
+	ld (v_pr_ops), a
 	ld a, 56
 	ld (v_attr), a
 	ld a, 2

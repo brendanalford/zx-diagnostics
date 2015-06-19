@@ -45,7 +45,7 @@ start
 
 	ld (v_column), a
     	ld (v_row), a
-	ld (v_bold), a
+	ld (v_pr_ops), a
 	ld a, 56
 	ld (v_attr), a
 	ld a,6 
@@ -647,9 +647,15 @@ Next
 
 	ret
 
-  
+;
+;	Define a no-op scroll routine since we're not including
+;	scroll.asm
+;
+prt_scroll
+ 	
+ 	ret
+ 	
 	include "..\print.asm"
-	include "..\scroll.asm"
 	include "..\paging.asm"
 	include "..\input.asm"
 ;
@@ -944,7 +950,8 @@ str_plus3_ic_uncontend
 v_column		equ #7f80; 1
 v_row			equ #7f81; 1
 v_attr			equ #7f82; 1
-v_bold			equ #7f83; 1
+; v_pr_ops - bit 0: bold on/off, bit 1: inverse on/off
+v_pr_ops		equ #7f83; 1
 v_width			equ #7f84; 1
 v_scroll		equ #7f85; 1
 v_scroll_lines  	equ #7d86; 1

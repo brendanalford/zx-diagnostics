@@ -68,7 +68,7 @@ keyb_test_init
 	ld a, 8
 	ld (v_attr), a
 	ld a, 1
-	ld (v_bold), a
+	ld (v_pr_ops), a
 	ld a, 8
 	ld (v_width), a
 	

@@ -67,7 +67,7 @@ start_2
       	ld (v_column), a
       	ld (v_row), a
       	
-      	ld (v_bold), a
+      	ld (v_pr_ops), a
       	ld (v_printbuf), a
 	ld hl, v_printbuf
 	ld de, v_printbuf + 1

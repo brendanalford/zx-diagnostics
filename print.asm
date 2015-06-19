@@ -36,10 +36,11 @@
 	define	PAPER		17
 	define	FLASH		18
 	define	BRIGHT		19
-	define	TEXTBOLD	20
-	define  TEXTNORM	21
-	define	AT		22
-	define	WIDTH		23
+	define	INVERSE		20
+	define	TEXTBOLD	21
+	define  TEXTNORM	22
+	define	AT		23
+	define	WIDTH		24
 	define  ATTR_TRANS	0xff
 
 ;
@@ -273,8 +274,9 @@ print_chk_bold
 
 	cp TEXTBOLD
 	jr nz, print_chk_norm
-	ld a, 1
-	ld (v_bold), a
+	ld a, (v_pr_ops)
+	set 0, a
+	ld (v_pr_ops), a
 	jp print_nextchar
 
 ;	Check for NORM (restores normal text) control code
@@ -282,11 +284,33 @@ print_chk_bold
 print_chk_norm
 
 	cp TEXTNORM
-	jr nz, print_chk_width
-	xor a
-	ld (v_bold), a
+	jr nz, print_chk_inverse
+	ld a, (v_pr_ops)
+	res 0, a
+	ld (v_pr_ops), a
 	jp print_nextchar
 
+print_chk_inverse
+	
+	cp INVERSE
+	jr nz, print_chk_width
+	ld a, (hl)
+	inc hl
+	cp 0
+	jr z, print_chk_inverse_on
+	ld a, (v_pr_ops)
+	set 1, a
+	ld (v_pr_ops), a
+	jp print_nextchar
+	
+print_chk_inverse_on
+
+	ld a, (v_pr_ops)
+	res 1, a
+	ld (v_pr_ops), a
+
+	jp print_nextchar
+	
 print_chk_width
 
 	cp WIDTH
@@ -489,8 +513,8 @@ putchar
 	
 ;	Do we need to print the character in bold?
 
-	ld a, (v_bold)
-	cp 0
+	ld a, (v_pr_ops)
+	bit 0, a
 	jr z, .putchar.afterbold
 
 ;	Bold character, grab byte, rotate it right then
@@ -504,6 +528,16 @@ putchar
 	ld d, a
 
 .putchar.afterbold
+
+	ld a, (v_pr_ops)
+	bit 1, a
+	jr z, .putchar.afterinverse
+	
+	ld a, d
+	xor 0xff
+	ld d, a
+	
+.putchar.afterinverse
 
 	push bc
 	
