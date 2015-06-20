@@ -61,6 +61,7 @@ keylookup_symshift
 
 scan_keys
 
+	push ix
 	push hl
 	push bc
 	push af
@@ -134,6 +135,7 @@ key_loop
 
 	pop bc
 	pop hl
+	pop ix
 	scf
 	ret
 
@@ -153,12 +155,14 @@ map_row_next
 	cp 0xff
 	jr z, no_key
 	pop hl
+	pop ix
 	scf
 	ret
 
 no_key
 	
 	pop hl
+	pop ix
 	and a 	; reset carry flag
 	ret
 	
@@ -175,9 +179,11 @@ get_key_scan
 	ld b, a
 
 debounce_key
-	
-	call scan_keys
-	jr c, debounce_key
+	xor a
+	in a, (0xfe)
+	and 0x1f
+	cp 0x1f
+	jr nz, debounce_key
 	ld a, b
 	pop bc
 	ret

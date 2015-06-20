@@ -77,7 +77,7 @@ charset
         DEFB    %01111100
         DEFB    %00010100
         DEFB    %01111100
-        DEFB    %00001000
+        DEFB    %00010000
 
 ; $25 - Character: '%'          CHR$(37)
 

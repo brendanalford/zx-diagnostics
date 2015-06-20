@@ -654,13 +654,16 @@ Next
 prt_scroll
  	
  	ret
- 	
+ 
+	DEFINE SAVEMEM 
+ 
 	include "..\print.asm"
 	include "..\paging.asm"
 	include "..\input.asm"
 ;
 ;	Table to define ROM signatures
 ;
+
 
 rom_signature_table
 
@@ -868,11 +871,11 @@ str_128ktestspass
 	
 str_halted
 
-	defb	TEXTBOLD, "\n\n        *** Testing Completed ***", TEXTNORM, 0
+	defb	TEXTBOLD, "\n\n", TAB, 48, "*** Testing Completed ***", TEXTNORM, 0
 
 str_halted_fail
 
-	defb	TEXTBOLD, "\n      Failures found, system halted ", TEXTNORM, 0
+	defb	TEXTBOLD, "\n", TAB, 36,"Failures found, system halted ", TEXTNORM, 0
 
 str_check_128_hal
 

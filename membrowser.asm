@@ -45,30 +45,17 @@ mem_browser
 	call print
 	
 ;	Paint initial memory locations
+;	HL is our starting address.
 
-	ld a, 2
-	ld (v_row), a
-	xor a
-	ld (v_column), a
-	
-	ld hl, 0x0000
-	ld b, 0x12
+	ld hl, 0x000
 
-	push hl
-	
 ;	IX is our cursor location.
 ;	IXh = row, IXl = column * 2, e.g. IXl=3 is low nibble of
 ;	byte 1.
 
 	ld ix, 0x0000
-	
-init_mem_loop
 
-	call print_mem_line
-	call newline		
-	djnz init_mem_loop
-
-	pop hl
+	call refresh_mem_display
 	
 	ld a, 1
 	ld c, a
@@ -76,42 +63,116 @@ init_mem_loop
 	
 	ei
 
-	ld hl, 0x0100
-	call set_print_pos
-
 mem_loop
 
-	;ld a, 1
-	call get_key
-	call putchar
-	jr mem_loop
-	
 	halt
 	xor a
 	call scan_keys
 	
-;	Cursor keys.
+;	Movement keys.
 
-	cp KEY_UP
-	call z, cur_up
-	cp KEY_DOWN
-	call z, cur_down
-	cp KEY_LEFT
-	call z, cur_left
-	cp KEY_RIGHT
-	call z, cur_right
+	cp 'W'
+	jp z, page_up
+	cp 'X'
+	jp z, page_down
+	cp 'Q'
+	jp z, cur_up
+	cp 'Z'
+	jp z, cur_down
+	cp 'O'
+	jp z, cur_left
+	cp 'P'
+	jp z, cur_right
 	cp BREAK
 	jr z, exit
 	
-no_caps
+;	Test for Hex characters
 
-	call scan_keys	
+	cp 'F' + 1
+	jr nc, mem_loop
+	cp '0'
+	jr c, mem_loop
 
+	cp '9' + 1
+	jr c, hex_digit
+	cp 'A'
+	jr nc, hex_digit
+
+	
+hex_digit
+
+;	Normalise it 
+	
+	sub '0'
+	cp 10
+	jr c, hex_digit_2
+	sub 0x7
+	
+hex_digit_2
+
+;	Work out the target byte
+	
+	push hl	
+	push af
+		
+	call get_hl_cursor_addr
+
+;	Now work out the high or low
+; 	nibble to write, and write it
+
+	ld a, ixl
+	bit 0, a
+	jr z, write_high_nibble
+	
+write_low_nibble
+
+	ld a, (hl)
+	and 0xf0
+	ld b, a
+	pop af
+	and 0x0f
+	jr write_end
+	
+write_high_nibble
+	
+	ld a, (hl)
+	and 0x0f
+	ld b, a
+	pop af
+	rla
+	rla
+	rla
+	rla
+	and 0xf0
+	
+write_end
+	or b
+	ld (hl), a
+	
+	pop hl
+	call refresh_mem_display
+	call cur_right
 	jr mem_loop
+
+
 	
 exit
-
 	call diagrom_exit
+	
+	
+page_up
+	and a
+	ld de, 0x90
+	sbc hl, de
+	call refresh_mem_display
+	jp mem_loop
+
+page_down
+
+	ld de, 0x90
+	add hl, de
+	call refresh_mem_display
+	jp mem_loop
 	
 cur_left
 
@@ -136,13 +197,13 @@ cur_left_nopage
 	
 	dec ixh
 	call print_cursor
-	ret
+	jp mem_loop
 	
 cur_left_normal
 
 	dec ixl
 	call print_cursor
-	ret
+	jp mem_loop
 	
 cur_right
 
@@ -167,14 +228,13 @@ cur_right_nopage
 	
 	inc ixh
 	call print_cursor
-	ret
-	
+	jp mem_loop	
+
 cur_right_normal
 
 	inc ixl
 	call print_cursor
-	ret
-
+	jp mem_loop
 
 cur_up
 
@@ -187,14 +247,14 @@ cur_up
 	
 	call scroll_mem_down
 	call print_cursor
-	ret
+	jp mem_loop
 	
 cur_up_normal
 
 	dec ixh
 	call print_cursor
-	ret
-
+	jp mem_loop
+	
 cur_down
 
 	ld c, 0
@@ -206,13 +266,13 @@ cur_down
 	
 	call scroll_mem_up
 	call print_cursor
-	ret
+	jp mem_loop
 	
 cur_down_normal
 
 	inc ixh
 	call print_cursor
-	ret
+	jp mem_loop
 	
 scroll_mem_up
 	
@@ -247,6 +307,32 @@ scroll_mem_down
 	pop hl
 	ret
 
+;
+;	Refreshes the entire memory display.
+;
+refresh_mem_display
+
+	push af
+	push bc
+	ld a, 2
+	ld (v_row), a
+	xor a
+	ld (v_column), a
+	
+	ld b, 0x12
+
+	push hl
+		
+init_mem_loop
+
+	call print_mem_line
+	call newline		
+	djnz init_mem_loop
+
+	pop hl
+	pop bc
+	pop af
+	ret
 ;
 ;	Prints a single memory line
 ;	Start address is in HL
@@ -337,23 +423,7 @@ print_cursor
 
 	push hl
 
-;	First get memory byte in question in HL
-;	Work out row position * 8
-
-	ld a, ixh
-	add a
-	add a
-	add a
-	ld e, a
-	ld d, 0
-	add hl, de
-	
-;	Now get offset within row
-
-	ld a, ixl
-	srl a
-	ld e, a
-	add hl, de
+	call get_hl_cursor_addr
 	
 ;	HL now contains the memory address. Grab it
 ;	and store it in B register
@@ -463,7 +533,33 @@ no_inverse_2
 	pop hl
 	ret
 
+;
+;	Gets the address of the byte in memory pointed
+;	to by the cursor represented by IX.
+;	HL = start screen address, IX=cursor
+;	Output: HL is cursor byte.
+;
+get_hl_cursor_addr
 
+;	First get memory byte in question in HL
+;	Work out row position * 8
+
+	ld a, ixh
+	add a
+	add a
+	add a
+	ld e, a
+	ld d, 0
+	add hl, de
+	
+;	Now get offset within row
+
+	ld a, ixl
+	srl a
+	ld e, a
+	add hl, de
+
+	ret
 ;
 ;	Converts number in A to its ASCII hex equivalent.
 ;
@@ -474,7 +570,23 @@ num_2_hex
 	add	a,#A0
 	adc	a,#40
 	ret
-	
+
+;
+;	Waits until no keys are being pressed.
+;	Designed to be jumped to from a subrouting
+;	so it returns to the caller's caller.
+;
+release_key
+	push af
+rel_key_loop
+	xor a
+	in a, (0xfe)
+	and 0x1f
+	cp 0x1f
+	jr nz, rel_key_loop
+	pop af
+	ret
+
 membrowser_isr
 
 	ret
@@ -485,7 +597,7 @@ str_mem_browser_header
 	
 str_mem_browser_footer
 
-	defb	AT, 22, 0, "Press Shift-5678 or cursor keys to move\n"
+	defb	AT, 22, 0, "Q,Z,O,P moves cursor, W: PgUp X: PgDown\n"
 	defb	"0-9, A-F to alter byte, BREAK to exit",0
 	
 str_colon

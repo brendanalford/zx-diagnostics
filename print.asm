@@ -49,6 +49,8 @@
 ;	String to print in HL, zero terminated.
 ;
 
+	IFNDEF SAVEMEM
+
 print_rom
 
 ;	Open normal screen channel
@@ -68,6 +70,8 @@ print_rom_loop
 	pop hl
 	inc hl
 	jr print_rom_loop
+
+	ENDIF
 
 ;
 ;	Prints a string to the screen.
