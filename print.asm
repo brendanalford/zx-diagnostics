@@ -926,7 +926,6 @@ print_footer
 	pop hl
 	ret
 	
-	
 str_footer
 
 	defb	AT, 22, 0, VERSION_STRING

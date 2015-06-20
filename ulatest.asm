@@ -250,18 +250,8 @@ check_input
 	bit 0, a
 	jp nz, ulatest_loop		; Caps shift not pressed
 
-;	Just do a simple reset if diagboard hardware isn't detected
-
-	ld a, (v_testhwtype)
-	cp 0
-	jp z, 0000
-
-;	Else page the diagnostic ROM out and start the machine's own ROM
+	call diagrom_exit
 	
-	ld bc, 0x1234
-	ld a, 2
-	call sys_rompaging 	; Page out and restart the machine	
-
 ;
 ;	Reads bit 6 of port 0xFE (EAR bit) and
 ;	reflects its status by changing the border colour.

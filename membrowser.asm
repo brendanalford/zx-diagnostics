@@ -41,7 +41,8 @@ mem_browser
 
 	ld hl, str_mem_browser_header
 	call print_header
-	call print_footer
+	ld hl, str_mem_browser_footer
+	call print
 	
 ;	Paint initial memory locations
 
@@ -74,25 +75,44 @@ init_mem_loop
 	call print_cursor
 	
 	ei
-	
+
+	ld hl, 0x0100
+	call set_print_pos
+
 mem_loop
+
+	;ld a, 1
+	call get_key
+	call putchar
+	jr mem_loop
 	
 	halt
+	xor a
 	call scan_keys
-	cp '1'
-	call z, scroll_mem_up
-	cp '0'
-	call z, scroll_mem_down
-	cp 'Q'
-	call z, cur_up
-	cp 'A'
-	call z, cur_down
-	cp 'O'
-	call z, cur_left
-	cp 'P'
-	call z, cur_right
-	jr mem_loop
+	
+;	Cursor keys.
 
+	cp KEY_UP
+	call z, cur_up
+	cp KEY_DOWN
+	call z, cur_down
+	cp KEY_LEFT
+	call z, cur_left
+	cp KEY_RIGHT
+	call z, cur_right
+	cp BREAK
+	jr z, exit
+	
+no_caps
+
+	call scan_keys	
+
+	jr mem_loop
+	
+exit
+
+	call diagrom_exit
+	
 cur_left
 
 	ld c, 0
@@ -199,7 +219,7 @@ scroll_mem_up
 	ld de, 8
 	add hl, de
 	push hl
-	ld de, 88
+	ld de, 0x88
 	add hl, de
 	push hl
 	ld hl, 0x1300
@@ -382,30 +402,79 @@ print_cursor
 	add l
 	ld l, a
 
-;	TODO - proper cursor by nibble
+;	Cursor is now in position to print byte.
 
 	call set_print_pos
-	
-	ld l, b
-	ld h, 0
-	ld de, v_hexstr + 2
-	call Byte2Hex
-	ld hl, v_hexstr + 2
-	ld a, c
-	cp 0
-	jr z, skip_inverse
-	ld a, 2
-	ld (v_pr_ops), a
 
-skip_inverse
+;	Do high nibble first
 
-	call print
-	xor a
-	ld (v_pr_ops), a
+	ld a, b
+	ld hl, v_pr_ops
+	res 1, (hl)
 	
+	rra
+	rra
+	rra
+	rra
+	
+	call num_2_hex
+	ld d, ixl
+	bit 0, d
+	jr nz, no_inverse_1
+	
+	bit 0, c
+	jr z, no_inverse_1
+	
+	set 1, (hl)
+	
+no_inverse_1
+
+	call putchar
+
+;	Now lower nibble.
+
+	res 1, (hl)
+	ld a, (v_column)
+	inc a
+	inc a
+	inc a
+	inc a
+	inc a
+	inc a
+	ld (v_column), a
+	
+	ld a, b
+	and 0x0f
+	call num_2_hex
+	ld d, ixl
+	bit 0, d
+	jr z, no_inverse_2
+	
+	bit 0, c
+	jr z, no_inverse_2
+	
+	set 1, (hl)
+	
+no_inverse_2
+
+	call putchar
+	res 1, (hl)
+
 	pop hl
 	ret
 
+
+;
+;	Converts number in A to its ASCII hex equivalent.
+;
+num_2_hex
+	
+	or	0xF0
+	daa
+	add	a,#A0
+	adc	a,#40
+	ret
+	
 membrowser_isr
 
 	ret
@@ -413,6 +482,11 @@ membrowser_isr
 str_mem_browser_header
 
 	defb	TEXTBOLD, "Memory Browser", TEXTNORM, 0
+	
+str_mem_browser_footer
+
+	defb	AT, 22, 0, "Press Shift-5678 or cursor keys to move\n"
+	defb	"0-9, A-F to alter byte, BREAK to exit",0
 	
 str_colon
 

@@ -186,18 +186,10 @@ check_break
 	cp 0x3f
 	jr nz, keyb_loop
 
-;	Just do a simple reset if diagboard hardware isn't detected
+;	OK, now exit
+
+	call diagrom_exit
 	
-	ld a, (v_testhwtype)
-	cp 0
-	jp z, 0000
-
-;	Else page the diagnostic ROM out and start the machine's own ROM
-
-	ld bc, 0x1234
-	ld a, 2
-	call sys_rompaging	; Page out and restart the machine	
-
 no_break
 
 	ld iy, 0

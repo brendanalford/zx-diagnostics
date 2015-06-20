@@ -54,7 +54,8 @@ v_fail_ic_uncontend	equ #7d37; Failed IC bitmap, uncontended memory banks 0,2,4,
 v_fail_ic_contend	equ #7d38; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
 v_128type		equ #7d39; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
 v_testcard		equ #7d3a; Workspace for testcard string
-v_testhwtype	equ #7d40; Type of interface we're running on. 0-none found, 1-Diagboard, 2-Retroleum SMART card
+v_testhwtype		equ #7d40; Type of interface we're running on. 0-none found, 1-Diagboard, 2-Retroleum SMART card
+v_keybuffer		equ #7d41; keyboard bitmap (8 bytes)
 
 ;	Relocation addresses for routines that need the original ROM paged
 

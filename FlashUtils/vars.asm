@@ -27,7 +27,8 @@
 	define v_pr_ops     	0xff03
 	define v_width			0xff04
 	define v_scroll			0xff05
-	define v_scroll_lines	0xff06
+	define v_scroll_lines		0xff06
 	define v_page     		0xff10
 	define v_printbuf 		0xff11
-	define v_tapehdr  		0xff20  
+	define v_tapehdr  		0xff20 
+	define v_keybuffer		0xff30

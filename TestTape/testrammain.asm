@@ -897,7 +897,7 @@ str_ic
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
-	BLOCK #7B00-$, #FF
+	BLOCK #7B20-$, #FF
 
 str_bit_ref
 	
@@ -972,4 +972,5 @@ v_fail_ic		equ #7fb6; Failed IC bitmap (48K)
 v_fail_ic_uncontend	equ #7fb7; Failed IC bitmap, uncontended memory banks 0,2,4,8 (128k)
 v_fail_ic_contend	equ #7fb8; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
 v_128type		equ #7fb9; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
+v_keybuffer		equ #7fba; Keyboard bitmap (8 bytes)
 

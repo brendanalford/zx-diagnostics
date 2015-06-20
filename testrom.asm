@@ -981,6 +981,24 @@ decstr_init
 
 	ret
 
+;
+;	Called when the Diagnostic ROM wants to exit to BASIC.
+;
+diagrom_exit
+
+;	Just do a simple reset if diagboard hardware isn't detected
+
+	ld a, (v_testhwtype)
+	cp 0
+	jp z, 0000
+
+;	Else page the diagnostic ROM out and start the machine's own ROM
+	
+	ld bc, 0x1234
+	ld a, 2
+	call sys_rompaging 	; Page out and restart the machine	
+
+
 	include "crc16.asm"
 	include "input.asm"
 	include "print.asm"
