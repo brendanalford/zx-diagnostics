@@ -32,6 +32,12 @@
 
 	org 25100
 
+;
+;	Be extra stingy with the memory. At one point we
+;	only had 2 bytes free.
+;
+	DEFINE SAVEMEM 
+
 start
 
 ; Initialize system variables
@@ -654,8 +660,6 @@ Next
 prt_scroll
  	
  	ret
- 
-	DEFINE SAVEMEM 
  
 	include "..\print.asm"
 	include "..\paging.asm"

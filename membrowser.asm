@@ -18,6 +18,8 @@
 ;	membrowser.asm
 ;	
 
+	define KEY_DELAY 10
+	
 mem_browser
 
     	ld sp, 0x7cff
@@ -47,7 +49,7 @@ mem_browser
 ;	Paint initial memory locations
 ;	HL is our starting address.
 
-	ld hl, 0x000
+	ld hl, 0x4000
 
 ;	IX is our cursor location.
 ;	IXh = row, IXl = column * 2, e.g. IXl=3 is low nibble of
@@ -56,19 +58,75 @@ mem_browser
 	ld ix, 0x0000
 
 	call refresh_mem_display
+
+;	Set up the keyboard delay
+
+	ex af, af'	
+	ld a, 0
+	ex af, af'	
 	
-	ld a, 1
 	ld c, a
 	call print_cursor
-	
+		
 	ei
 
 mem_loop
 
+	ex af, af'	
+	ld b, a
+	ex af, af'	
+	
+;	Delay repeat key presses
+
+	ld a, b
+	cp 0
+	jr nz, key_delay
+	ld a, 1
+	ld b, a
+	
+key_delay
+	
 	halt
+	djnz key_delay
+
+;	Scan the keyboard
+
 	xor a
 	call scan_keys
+	jr c, mem_key_pressed
 	
+;	No key pressed, reset the delay timer
+
+	ex af, af'	
+	ld a, 0
+	ex af, af'	
+
+	jr mem_loop
+
+
+mem_key_pressed
+
+;	A key was pressed, set the timer to the initial delay,
+;	or reduce the delay by one if not already = 1.
+
+	ex af, af'	
+	cp 0
+	jr z, delay_timer_start
+	cp 1
+	jr z, delay_timer_end
+	dec a
+	jr delay_timer_end
+	
+delay_timer_start
+
+	ld a, KEY_DELAY
+	
+delay_timer_end
+	
+	ex af, af'	
+
+check_keys
+
 ;	Movement keys.
 
 	cp 'W'
@@ -152,19 +210,17 @@ write_end
 	pop hl
 	call refresh_mem_display
 	call cur_right
-	jr mem_loop
-
-
+	jp mem_loop
 	
 exit
 	call diagrom_exit
-	
 	
 page_up
 	and a
 	ld de, 0x90
 	sbc hl, de
 	call refresh_mem_display
+	call print_cursor
 	jp mem_loop
 
 page_down
@@ -172,6 +228,7 @@ page_down
 	ld de, 0x90
 	add hl, de
 	call refresh_mem_display
+	call print_cursor
 	jp mem_loop
 	
 cur_left
@@ -333,6 +390,22 @@ init_mem_loop
 	pop bc
 	pop af
 	ret
+
+;
+;	Sets ink colour appropriately for the
+;	memory region being displayed. Red=
+;	read only, black=read/write.
+;
+set_mem_line_colour
+
+	ld a, h
+	cp 0x40
+	ret nc
+
+	ld a, 58
+	ld (v_attr),a
+	ret
+
 ;
 ;	Prints a single memory line
 ;	Start address is in HL
@@ -340,6 +413,10 @@ init_mem_loop
 ;
 print_mem_line
 
+;	Set red ink if we're in ROM address space
+
+	call set_mem_line_colour
+	
 	ld de, v_hexstr
 	call Num2Hex
 	push hl
@@ -410,6 +487,9 @@ mem_loop_ascii_next
 	inc hl
 	djnz mem_loop_ascii	
 	pop bc
+
+	ld a, 56
+	ld (v_attr), a
 	ret
 
 ;
@@ -422,8 +502,8 @@ mem_loop_ascii_next
 print_cursor
 
 	push hl
-
 	call get_hl_cursor_addr
+	call set_mem_line_colour
 	
 ;	HL now contains the memory address. Grab it
 ;	and store it in B register
@@ -531,6 +611,8 @@ no_inverse_2
 	res 1, (hl)
 
 	pop hl
+	ld a, 56
+	ld (v_attr), a
 	ret
 
 ;
@@ -558,7 +640,6 @@ get_hl_cursor_addr
 	srl a
 	ld e, a
 	add hl, de
-
 	ret
 ;
 ;	Converts number in A to its ASCII hex equivalent.
