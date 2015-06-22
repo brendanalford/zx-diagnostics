@@ -55,9 +55,11 @@ v_fail_ic_contend	equ #7d38; Failed IC bitmap, contended memory banks 1,3,5,7 (1
 v_128type		equ #7d39; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
 v_testcard		equ #7d3a; Workspace for testcard string
 v_testhwtype		equ #7d40; Type of interface we're running on. 0-none found, 1-Diagboard, 2-Retroleum SMART card
-v_keybuffer		equ #7d41; keyboard bitmap (8 bytes)
+v_hw_page		equ #7d41;	Paged ROM index on startup (SMART only)
+v_keybuffer		equ #7d42; keyboard bitmap (8 bytes)
 
 ;	Relocation addresses for routines that need the original ROM paged
 
 sys_romcrc		equ #7e00
+sys_ld_a_hl		equ #7e80
 sys_rompaging		equ #7f00

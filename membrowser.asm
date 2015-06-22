@@ -26,6 +26,11 @@ mem_browser
 
 	call initialize
 
+	ld hl, ld_a_hl
+	ld de, sys_ld_a_hl
+	ld bc, ld_a_hl_end-ld_a_hl
+	ldir
+	
 ;	Start the interrupt service routine
 
 	ld a, intvec2 / 256
@@ -34,7 +39,6 @@ mem_browser
 
 	ld hl, membrowser_isr 
 	ld (v_userint), hl
-	ei
 	
     	ld a, BORDERWHT
     	out (ULA_PORT), a
@@ -184,7 +188,7 @@ hex_digit_2
 	
 write_low_nibble
 
-	ld a, (hl)
+	call sys_ld_a_hl
 	and 0xf0
 	ld b, a
 	pop af
@@ -193,7 +197,7 @@ write_low_nibble
 	
 write_high_nibble
 	
-	ld a, (hl)
+	call sys_ld_a_hl
 	and 0x0f
 	ld b, a
 	pop af
@@ -431,7 +435,7 @@ print_mem_line
 		
 mem_loop_hex
 
-	ld a, (hl)
+	call sys_ld_a_hl
 	push hl
 	push bc
 	ld l, a
@@ -465,7 +469,7 @@ mem_loop_hex
 
 mem_loop_ascii
 
-	ld a, (hl)
+	call sys_ld_a_hl
 	cp 32
 	jr c, control_char
 	cp 127
@@ -672,6 +676,27 @@ membrowser_isr
 
 	ret
 	
+;
+;	Routine for relocation to RAM. Loads A with memory location in HL.
+;	Pages out ROM to do it.
+;
+ld_a_hl
+	
+	di
+	push bc
+	ld a, 2
+	call sys_rompaging
+	ld a, (hl)
+	push af
+	ld a, 1
+	call sys_rompaging
+	pop af
+	pop bc
+	ei
+	ret
+
+ld_a_hl_end	
+
 str_mem_browser_header
 
 	defb	TEXTBOLD, "Memory Browser", TEXTNORM, 0

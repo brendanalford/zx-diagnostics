@@ -60,7 +60,7 @@ romhw_pagein_diagboard
 romhw_pagein_smart
 	
 	ld bc, SMART_ROM_PORT
-	ld a, %00000001
+	ld a, (v_hw_page)
 	out (c), a
 	ret
 	
@@ -92,7 +92,8 @@ romhw_pageout_diagboard
 romhw_pageout_smart
 	push bc
 	ld bc, SMART_ROM_PORT
-	ld a, %10000001
+	ld a, (v_hw_page)
+	or 0x80
 	out (c), a
 	pop bc
 	ld a, b
@@ -140,6 +141,14 @@ romhw_found_diagboard
 romhw_test_smart
 
 	ld bc, SMART_ROM_PORT
+
+;	Save the starting page so we can restore it later
+;	Allows running this ROM from other slots than slot B
+
+	in a, (c)
+	and 0x0f
+	ld (v_hw_page), a
+
 	ld a, %10000001
 	out (c), a
 	ld hl, str_rommagicstring
@@ -172,6 +181,7 @@ romhw_not_found
 
 	xor a
 	ld (v_testhwtype), a
+	ld (v_hw_page), a
 	ret
 
 end_rompage_reloc
