@@ -512,7 +512,7 @@ print_cursor
 ;	HL now contains the memory address. Grab it
 ;	and store it in B register
 
-	ld a, (hl)
+	call sys_ld_a_hl
 	ld b, a
 
 ;	Now calculate the actual screen address to print
