@@ -971,14 +971,24 @@ decstr_init
 	ld hl, rompage_reloc
 	ld de, sys_rompaging
 	ld bc, end_rompage_reloc-rompage_reloc
+	ld bc, end_rompage_reloc-rompage_reloc
 	ldir
 
+;	Ensure that on 128 machines, the default ROM is paged in.
+;	This'll do nothing on 48K models.
+	
+	xor a
+	ld bc, 0x7ffd
+	out (c), a
+	ld bc, 0x1ffd
+	out (c), a
+	
 ;	Check for whatever diagnostic hardware is present.
 ;	Result will be stored in system variable v_testhwtype.
 
-	ld a, 0
+	xor a
 	call sys_rompaging
-
+	
 	ret
 
 ;
