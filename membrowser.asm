@@ -31,11 +31,7 @@ mem_browser
 	ld bc, ld_a_hl_end-ld_a_hl
 	ldir
 	
-;	Start the interrupt service routine
-
-	ld a, intvec2 / 256
-	ld i, a
-	im 2
+;	Set the correct interrupt service routine
 
 	ld hl, membrowser_isr 
 	ld (v_userint), hl

@@ -112,9 +112,6 @@ store_bord
 	
 ;	Start the interrupt service routine
 
-	ld a, intvec2 / 256
-	ld i, a
-	im 2
 	ei
 	
 ulatest_loop

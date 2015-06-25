@@ -41,15 +41,17 @@
 ; 	anywhere reliable to put a stack yet
 
 	di
-	jr start
+	jp start
 
 ;	Define a version string in the dead space between the ROM start and the
 ;	NMI/start vector
 
-str_build
-	BLOCK #0010-$, #FF
-	defb	"DiagBoard Test ROM ", VERSION, " built ", BUILD_TIMESTAMP , 0
-	BLOCK #0066-$, #FF
+	BLOCK 0x0038-$, 0xff
+
+isr
+	jp isr_main
+	
+	BLOCK 0x0066-$, 0xff
 
 nmi
 
@@ -60,9 +62,23 @@ nmi
 
 	ld hl, 48878
 	jp keyboard_test
+
+	BLOCK 0x0080-$, 0xff
+	
+str_build
+	
+	defb	"DiagBoard Test ROM ", VERSION, " built ", BUILD_TIMESTAMP , 0
+
+	BLOCK 0x0100-$, 0xff
 	
 start
 
+;	I = 0 to signify basic ISR functionality
+	
+	ld a, 0
+	ld i, a
+	im 1
+	
 ;	Blank the screen, (and all lower RAM)
 
 	BLANKMEM 16384, 16384, 0
@@ -192,7 +208,7 @@ lowerram_random
 
     	ld a, ixh
     	cp 0
-    	jr z, use_uppermem
+    	jp z, use_uppermem
 
 ;	Lower memory is no good, give up now.
 ;	We won't be able to test anything else effectively.
@@ -207,14 +223,51 @@ lowerram_random
 	out (LED_PORT), a
 
 ;
-;	Lower RAM failure detected, set up interrupt vector
-;	to point at routine that paints the bits in the border.
+;	Paint the RAM FAIL message on screen
+;
+
+	ld hl, 0x5900
+	ld de, 0x5901
+	ld bc, 0xff
+	ld (hl), 0
+	ldir
+	
+	ld hl, fail_ram_bitmap
+	ld de, 0x5900
+	ld b, 0x20
+	
+fail_msg_loop
+
+	ld c, 8
+	ld a, (hl)
+
+fail_msg_byte
+
+	bit 7, a
+	jr z, fail_msg_next
+
+	ex de, hl
+	ld (hl), 0xff
+	ex de, hl
+	
+fail_msg_next
+
+	inc de
+	rla 
+	dec c
+	jr nz, fail_msg_byte
+
+	inc hl	
+	dec b
+
+	jr nz, fail_msg_loop
+	
+;
+;	Lower RAM failure detected, default ISR with I=0 
+;	jumps to routine that paints the bits in the border.
 ;	This'll work on a machine with no RAM and no floating bus.
 ;
 
-	ld a, intvec1 / 256
-	ld i, a
-	im 2
 	ei
 	halt
 
@@ -240,7 +293,8 @@ fail_border
 	ld b, a
 
 
-fail_border_wait:
+fail_border_wait
+
 	dec bc
 	ld a, b
 	or c
@@ -594,9 +648,9 @@ testinterrupts
 	ld hl, 0
 	ld (v_intcount), hl
 	ld (v_intcount + 2), hl
-	ld a, intvec2 / 256
-	ld i, a
-	im 2
+
+;	Enable interrupts to get counter running
+
 	ei
 
 intloop
@@ -982,6 +1036,12 @@ decstr_init
 	out (c), a
 	ld bc, 0x1ffd
 	out (c), a
+
+;	Signify that extended ISR can be called by setting
+;	I to non-zero value.
+
+	ld a, 0x3f
+	ld i, a
 	
 ;	Check for whatever diagnostic hardware is present.
 ;	Result will be stored in system variable v_testhwtype.
@@ -1277,30 +1337,31 @@ str_ic
 
 	defb "IC", 0
 
-;
-;	Align the ISR for interrupt checking at location 0x2F2F.
-;
-
-	BLOCK #3535-$, #FF
-
-failurebars_intservice
-
-	jp fail_border
-
-	BLOCK #3636-$, #FF
-
-; 	The ISR increments the v_intcount system variable and
+; 	
+;	This ISR operates in two modes.
+;	If I = 0, then we are in lower RAM test mode. If ints are
+;	enabled here, lower RAM testing as failed, so unconditionally
+;	call the fail_border routine.
+;	Otherwise, the ISR increments the v_intcount system variable and
 ;	if v_userint is non-zero, calls the interrupt service
 ;	routine at that address.
 ;
 ; 	v_intcount is a 32-bit number.
 
-intservice
+isr_main
 
+	push af
+	ld a, i
+	cp 0
+	jr nz, isr_2
+	pop af
+	jp fail_border
+isr_2
+	
 	push hl
 	push de
 	push bc
-	push af
+
 	ld hl, (v_intcount)
 	inc hl
 	ld (v_intcount), hl
@@ -1330,18 +1391,42 @@ intservice_user
 
 intservice_exit
 
-	pop af
 	pop bc
 	pop de
 	pop hl
+	pop af
 	ei
 	reti
+
+;	Magic string to tell if we can page out our ROM (so that we can
+;	tell the difference between Diagboard hardware and generic external
+;	ROM boards)
+
+str_rommagicstring
+
+	defb "TROM"
+
+;
+;	Bitmap used to display RAM FAIL in attributes
+;	if lower RAM tests fail
+;
+fail_ram_bitmap
+
+	defb %00000000, %00000000, %00000000, %00000000 
+	defb %01100010, %01010000, %11100100, %11101000 
+	defb %01010101, %01110000, %10001010, %01001000 
+	defb %01010101, %01110000, %11001010, %01001000 
+	defb %01100111, %01010000, %10001110, %01001000 
+	defb %01010101, %01010000, %10001010, %01001000 
+	defb %01010101, %01010000, %10001010, %11101110 
+	defb %00000000, %00000000, %00000000, %00000000 
+
 
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
-	BLOCK #3700-$, #FF
-
+	BLOCK 0x3b00-$, 0xff	
+	
 str_bit_ref
 	
 	defb "0 ", 0, 0,  "1 ", 0, 0, "2 ", 0, 0, "3 ", 0, 0, "4 ", 0, 0, "5 ", 0, 0, "6 ", 0, 0, "7 ", 0, 0
@@ -1375,22 +1460,7 @@ str_plus3_ic_uncontend
 	defb "5  ", 0, "6  ", 0
 
 
-;	Magic string to tell if we can page out our ROM (so that we can
-;	tell the difference between Diagboard hardware and generic external
-;	ROM boards)
-
-str_rommagicstring
-
-	defb "TROM"
-
-;	Fill rest of spare ROM space to 3C00 with interrupt
-;	vector tables
-
-	BLOCK #3800-$, #FF
-intvec1
-	BLOCK #3A00-$, #35
-intvec2
-	BLOCK #3C00-$, #36
+	BLOCK 0x3c00-$, 0xff
 
 ;	Character set at 0x3C00
 
@@ -1398,7 +1468,7 @@ intvec2
 
 ;	Fill ROM space up to 0x3FFF with FF's
 
-	BLOCK #4000-$,#FF
+	BLOCK 0x4000-$, 0xff
 
 ;	Define the system variable locations in upper RAM
 
