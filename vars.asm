@@ -63,3 +63,6 @@ v_keybuffer		equ #7d42; keyboard bitmap (8 bytes)
 sys_romcrc		equ #7e00
 sys_ld_a_hl		equ #7e80
 sys_rompaging		equ #7f00
+
+;	Default stack location
+sys_stack		equ #7eff

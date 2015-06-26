@@ -22,7 +22,7 @@
 	
 mem_browser
 
-    	ld sp, 0x7cff
+    ld sp, sys_stack
 
 	call initialize
 

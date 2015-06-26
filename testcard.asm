@@ -20,7 +20,8 @@
 
 testcard
 
-	ld sp, 0x7fff
+	ld sp, sys_stack
+	call initialize
 	
 ; Relocate the test card attribute string
 
@@ -33,24 +34,9 @@ testcard
 	out (ULA_PORT), a
 
 	call cls
-	xor a
-	ld (v_row), a
-	ld (v_column), a
-	ld (v_attr), a
+
 	ld a, 8
 	ld (v_width), a
-	
-;	Copy ROM paging routines to RAM
-
-	ld hl, rompage_reloc
-	ld de, sys_rompaging
-	ld bc, end_rompage_reloc-rompage_reloc
-	ldir
-	
-;	Detect diagboard type
-
-	ld a, 0
-	call sys_rompaging
 
 	ld b, 24
 

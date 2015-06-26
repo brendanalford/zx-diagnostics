@@ -222,8 +222,11 @@ lowerram_random
 	ld a, d
 	out (LED_PORT), a
 
+lower_ram_fail
+	
 ;
 ;	Paint the RAM FAIL message on screen
+;	Set a black border here too
 ;
 
 	ld hl, 0x5900
@@ -231,6 +234,9 @@ lowerram_random
 	ld bc, 0xff
 	ld (hl), 0
 	ldir
+	
+	xor a
+	out (ULA_PORT), a
 	
 	ld hl, fail_ram_bitmap
 	ld de, 0x5900
@@ -247,7 +253,7 @@ fail_msg_byte
 	jr z, fail_msg_next
 
 	ex de, hl
-	ld (hl), 0xff
+	ld (hl), 0x7f
 	ex de, hl
 	
 fail_msg_next
@@ -278,6 +284,22 @@ fail_border
 
 	; Lose the return address, YAGNI
 	pop bc
+
+	; Failed bitmap is in IXH, transfer to DE
+	ld de, ix
+	
+	ld a, d
+	cp 0
+	jr nz, fail_border_init
+	
+;	Don't paint stripes if all RAM has passed
+;	(We've ended up here from one of the other
+;	test routines that's done a cursory RAM check)
+
+	ei
+	halt
+	
+fail_border_init
 
 ;	Starting border black until we need stripes
 
@@ -961,6 +983,40 @@ check_spc_key
 
 initialize
 
+;	Quick RAM integrity check from 5B00-7FFF.
+;	This isn't as exhaustive as the main RAM
+;	tests but aims to make sure the RAM is
+;	somewhat working for testcard, ULA test,
+;	memory browser etc.
+
+	ld hl, 0x5b00
+	ld ix, 0
+	
+; 	Save return address from the stack
+
+	pop de
+
+init_loop
+	
+	ld (hl), 0x00
+	ld a, (hl)
+	cp 0x00
+	jp nz, lower_ram_fail
+	ld (hl), 0xff
+	ld a, (hl)
+	cp 0xff
+	jp nz, lower_ram_fail
+	inc hl
+	ld a, h
+	cp 0x80
+	jr c, init_loop
+	
+initialize_ram_good
+
+;	Restore return address
+
+	push de
+	
 	xor a
 	ld (v_fail_ic), a
 	ld (v_fail_ic_contend), a
@@ -1420,8 +1476,7 @@ fail_ram_bitmap
 	defb %01010101, %01010000, %10001010, %01001000 
 	defb %01010101, %01010000, %10001010, %11101110 
 	defb %00000000, %00000000, %00000000, %00000000 
-
-
+ 
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 

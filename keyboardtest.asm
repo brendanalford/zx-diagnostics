@@ -22,7 +22,8 @@
 	
 keyboard_test
     	
-    	ld sp, 0x7cff
+    ld sp, sys_stack
+	
 	ld iy, 0
 
 	ld a, h

@@ -22,12 +22,9 @@ ULATEST_ROW	equ 0x58a0
 	
 ulatest
 
-;	Assume RAM is working, this isn't going to end well if not.
-; 	Initialize stack to top of lower RAM
+	ld sp, sys_stack
+	call initialize
 
-	ld sp, 0x7fff
-
-;
 ;	Write some data to Screen 1.
 ;	This'll just write to the C000 area on a 48K machine,
 ;	which isn't being used anyway.
@@ -42,8 +39,6 @@ ulatest
 	ld a, 0
 	call pagein
 
-	call initialize
-	
 ;	Set up ISR for interrupt test sweep
 
 	ld hl, ulatest_scan
@@ -171,7 +166,7 @@ inval_print2
 ;	High byte zero, check if low byte is less than 30
 
 	ld a, iyl
-	cp 0x30
+	cp 0x40
 	jp c, check_input
 	
 ;	More than 30 cycles have occurred since an interrupt,
