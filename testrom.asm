@@ -422,9 +422,9 @@ use_uppermem
 
 ;	Init stack
 
-    	ld sp, 0x7cff
+    	ld sp, sys_stack
 
-	call initialize
+	call initialize_no_ram_check
 	
     	ld a, BORDERWHT
     	out (ULA_PORT), a
@@ -1018,6 +1018,8 @@ initialize_ram_good
 
 	push de
 	
+initialize_no_ram_check
+
 	xor a
 	ld (v_fail_ic), a
 	ld (v_fail_ic_contend), a
