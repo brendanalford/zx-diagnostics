@@ -320,7 +320,6 @@
 	jr z, .marchtest2.next
 	
 	MARCHBORKED
-	jp .marchtest.done
 	
 .marchtest2.next
 	ld a, 0xff
@@ -346,7 +345,6 @@
 
 	xor a 
 	MARCHBORKED
-	jp .marchtest.done
 	
 .marchtest3.next
 	
@@ -371,7 +369,6 @@
 	jr z, .marchtest4.next
 
 	MARCHBORKED
-	jp .marchtest.done
 	
 .marchtest4.next
 
@@ -387,12 +384,14 @@
 
 	MACRO MARCHBORKED
 	
+	exx
 	ld b, a
 	ld a, ixh
 	or b
 	ld ixh, a
 	ld a, BORDERRED
 	out (ULA_PORT), a	
+	exx
 	
 	ENDM
 
@@ -404,6 +403,7 @@
 ;
 
 	MACRO RAND16
+
 
 	ld d, b
 	ld e, c

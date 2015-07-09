@@ -37,7 +37,7 @@ test_48k
 print_upperresult
 
 	ld a, (v_fail_ic)
-    cp 0
+   	cp 0
 	jr z, print_upperpass
 	ld hl, str_48ktestsfail
 	call print
@@ -261,8 +261,9 @@ upperram_random
 	  
 	PREPAREHREG
 	SAVESTACK
-	RANDFILLUP 32768, 16384, 0
-	RANDFILLDOWN 65534, 16383, 255
+
+	RANDFILLUP 32768, 16384, 11
+	RANDFILLDOWN 65534, 16383, 17
 
 	RESTORESTACK
 	TESTRESULT

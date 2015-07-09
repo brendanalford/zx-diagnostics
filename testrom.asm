@@ -189,10 +189,8 @@ lowerram_march
 
 lowerram_random
 
-    	RANDFILLUP 16384, 8192, 0
-    	RANDFILLUP 16384, 8192, 1
-    	RANDFILLDOWN 32766, 8191, 255
-    	RANDFILLDOWN 32766, 8191, 254
+    	RANDFILLUP 16384, 8192, 11
+    	RANDFILLDOWN 32766, 8191, 17
 
 ;	This gives the opportunity to visually see what's happening in
 ;	lower memory in case there is a problem with it.
