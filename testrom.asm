@@ -1166,6 +1166,8 @@ rom_signature_table
 	defw 0xe2ec, str_orelbk08, test_48kgeneric 
 ;	Just Speccy 128 clone
 	defw 0xb023, str_js128, test_js128
+;	Harlequin Rev F
+	defw 0x669e, str_harlequin_f, test_48kgeneric
 	defw 0x0000
 
 str_rom48k
@@ -1219,6 +1221,10 @@ str_romplus3e_v1_38esp
 str_orelbk08
 
 	defb	"Orel BK-08 ROM...           ", 0
+
+str_harlequin_f
+
+	defb	"Harlequin Rev. F...         ", 0
 
 str_romdiagboard
 
