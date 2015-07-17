@@ -30,7 +30,7 @@
 	include "..\defines.asm"
 	include "..\version.asm"
 
-	org 25100
+	org 24600
 
 ;
 ;	Be extra stingy with the memory. At one point we
@@ -77,8 +77,8 @@ lowermem_test
 	
 ;	Just do the random tests
 
-    	RANDFILLUP 16384, 4307, 0
-    	RANDFILLDOWN 24998, 4307, 255
+    	RANDFILLUP 16384, 4057, 0
+    	RANDFILLDOWN 24498, 4057, 255
     	
 ;	Establish a stack
 
@@ -685,6 +685,10 @@ rom_signature_table
 	defw 0xcaf2, str_romplus3e_v1_38esp, test_plus3
 ;	Soviet clones that some people are inexplicably fond of :)
 	defw 0xe2ec, str_orelbk08, test_48kgeneric 
+;	Just Speccy 128 clone
+	defw 0xb023, str_js128, test_js128
+;	Harlequin Rev F
+	defw 0x669e, str_harlequin_f, test_48kgeneric
 	defw 0x0000
 
 
@@ -695,6 +699,10 @@ str_rom48k
 str_rom128k
 
 	defb	"Spectrum 128K ROM...        ", 0
+
+str_js128
+
+	defb	"Just Speccy 128 ROM...          ", 0
 
 str_rom128esp
 
@@ -735,6 +743,10 @@ str_romplus3e_v1_38esp
 str_orelbk08
 
 	defb	"Orel BK-08 ROM...           ", 0
+
+str_harlequin_f
+
+	defb	"Harlequin Rev. F...         ", 0
 	
 ;
 ;	Table to define pointers to test routines
@@ -889,6 +901,10 @@ str_check_plus2_hal
 
 	defb	"Check IC7 (HAL10H8ACN) and IC6 (74LS174N)", 0
 
+str_check_js128_hal
+
+	defb	"Check HAL (GAL16V8) and U6 (74LS174N)", 0
+
 str_check_plus3_ula
 
 	defb	"Check IC1 (ULA 40077)", 0
@@ -904,7 +920,7 @@ str_ic
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
-	BLOCK #7B20-$, #FF
+	BLOCK #7A80-$, #FF
 
 str_bit_ref
 	
@@ -922,6 +938,14 @@ str_128k_ic_uncontend
 
 	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0	
 
+str_js128_ic_contend
+
+	defb "20 ",0, "21 ",0, "22 ",0, "23 ",0, "24 ",0, "25 ",0, "26 ",0, "27 ", 0
+
+str_js128_ic_uncontend
+
+	defb "29 ",0, "28 ",0, "10 ",0, "9  ",0, "30 ",0, "31 ",0, "32 ",0, "33 ", 0
+
 str_plus2_ic_contend
 
 	defb "32 ",0, "31 ",0, "30 ",0, "29 ",0, "28 ",0, "27 ",0, "26 ",0, "25 ", 0
@@ -938,7 +962,7 @@ str_plus3_ic_uncontend
 
 	defb "5  ", 0, "6  ", 0
 
-	BLOCK #7C00-$, #36
+	BLOCK #7C00-$, #FF
 
 ;	Character set at 0x7C00
       
@@ -946,7 +970,7 @@ str_plus3_ic_uncontend
 
 ;	Fill ROM space up to 0x7FFF with FF's
 
-	BLOCK #8000-$,#FF
+;	BLOCK #8000-$,#FF
 
 ;
 ;	System Variable locations in lower ram 

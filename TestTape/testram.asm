@@ -43,16 +43,16 @@
 
 	ENDLUA
 
-	org 25000
+	org 24500
 	
 	di 
-	ld ix, 25100
+	ld ix, 24600
 	ld hl, 0
 	ld d, 0
 
 ;
 ;	Compute 16 bit addition checksum on code from
-;	25100 to 32767
+;	24600 to 32767
 ;
 
 checksum
@@ -80,7 +80,7 @@ error
 	ei
 	jp 0x0055
 	
-	BLOCK 25100-$, #FF
+	BLOCK 24600-$, #FF
 	
 start
 	incbin "testrammain.bin"
