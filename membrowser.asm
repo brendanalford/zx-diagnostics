@@ -141,6 +141,10 @@ check_keys
 	jp z, cur_left
 	cp 'P'
 	jp z, cur_right
+	cp 'G'
+	jp z, ram_page
+	cp 'R'
+	jp z, rom_page
 	cp BREAK
 	jr z, exit
 	
@@ -215,6 +219,103 @@ write_end
 exit
 	call diagrom_exit
 	
+	
+rom_page
+
+	push hl
+	ld hl, str_selrompage
+	call print_header
+	
+rom_page_sel
+
+	xor a
+	call scan_keys
+	jr nc, rom_page_sel
+
+	cp ' '
+	jp nz, rom_page_sel_chk
+	
+	ld hl, str_mem_browser_header
+	call print_header
+	pop hl
+	jp mem_loop
+	
+rom_page_sel_chk
+
+	cp '0'
+	jr c, rom_page_sel
+	cp '2'
+	jr nc, rom_page_sel
+	
+;
+;	128 only - no +2A / +3 yet
+;
+	sub '0'
+	and 0x1
+	rla
+	rla
+	rla
+	rla
+	ld b, a
+	ld a, (v_paging)
+	and 0xef
+	or b
+	ld bc, 0x7ffd
+	out (c), a
+	ld (v_paging), a
+
+	ld hl, str_mem_browser_header
+	call print_header
+	pop hl
+	call refresh_mem_display
+	jp mem_loop
+
+ram_page
+
+	push hl
+	ld hl, str_selrampage
+	call print_header
+	
+ram_page_sel
+
+	xor a
+	call scan_keys
+	jr nc, ram_page_sel
+
+	cp ' '
+	jp nz, ram_page_sel_chk
+	
+	ld hl, str_mem_browser_header
+	call print_header
+	pop hl
+	jp mem_loop
+	
+ram_page_sel_chk
+
+	cp '0'
+	jr c, ram_page_sel
+	cp '8'
+	jr nc, ram_page_sel
+	
+;	Page in required RAM bank
+
+	sub '0'
+	and 0x7
+	
+	ld b, a
+	ld a, (v_paging)
+	and 0xf8
+	or b
+	ld bc, 0x7ffd
+	out (c), a
+	ld (v_paging), a
+
+	ld hl, str_mem_browser_header
+	call print_header
+	pop hl
+	call refresh_mem_display
+	jp mem_loop
+
 page_up
 	and a
 	ld de, 0x90
@@ -695,7 +796,7 @@ ld_a_hl_end
 
 str_mem_browser_header
 
-	defb	TEXTBOLD, "Memory Browser", TEXTNORM, 0
+	defb	TEXTBOLD, "Memory Browser  ", TEXTNORM, 0
 	
 str_mem_browser_footer
 
@@ -705,3 +806,12 @@ str_mem_browser_footer
 str_colon
 
 	defb ":  ", 0
+	
+str_selrompage
+
+	defb	TEXTBOLD, "ROM Page (0-3)?", TEXTNORM, 0
+	
+str_selrampage
+
+	defb	TEXTBOLD, "RAM Page (0-7)?", TEXTNORM, 0
+	

@@ -1030,6 +1030,7 @@ initialize_no_ram_check
 	ld (v_fail_ic), a
 	ld (v_fail_ic_contend), a
 	ld (v_fail_ic_uncontend), a
+	ld (v_paging), a
 
 	ld (v_column), a
     	ld (v_row), a
@@ -1508,7 +1509,7 @@ fail_ram_bitmap
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
-	BLOCK 0x3a00-$, 0xff	
+	BLOCK 0x3ae0-$, 0xff	
 	
 str_bit_ref
 	
