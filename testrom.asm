@@ -1030,7 +1030,6 @@ initialize_no_ram_check
 	ld (v_fail_ic), a
 	ld (v_fail_ic_contend), a
 	ld (v_fail_ic_uncontend), a
-	ld (v_paging), a
 
 	ld (v_column), a
     	ld (v_row), a
@@ -1050,6 +1049,7 @@ initialize_no_ram_check
 	ld (v_scroll_lines), a
 
 	ld hl, 0
+	ld (v_paging), hl
 	ld (v_userint), hl 
 	ld (v_intcount), hl
 	ld (v_intcount + 2), hl

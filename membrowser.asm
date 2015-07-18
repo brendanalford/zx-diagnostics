@@ -244,13 +244,29 @@ rom_page_sel_chk
 
 	cp '0'
 	jr c, rom_page_sel
-	cp '2'
+	cp '4'
 	jr nc, rom_page_sel
 	
-;
-;	128 only - no +2A / +3 yet
-;
+;	Normalise to 0-3
+
 	sub '0'
+	push af
+
+;	Write 0x1ffd part
+
+	and 0x2
+	rla
+	ld b, a
+	ld a, (v_paging_2)
+	and 0xfb
+	or b
+	ld bc, 0x1ffd
+	out (c), a
+	ld (v_paging), a
+		
+;	Write 0x7ffd part 
+
+	pop af
 	and 0x1
 	rla
 	rla
@@ -263,6 +279,8 @@ rom_page_sel_chk
 	ld bc, 0x7ffd
 	out (c), a
 	ld (v_paging), a
+
+;	Restore header and refresh memory display
 
 	ld hl, str_mem_browser_header
 	call print_header
@@ -800,8 +818,9 @@ str_mem_browser_header
 	
 str_mem_browser_footer
 
-	defb	AT, 22, 0, "Q,Z,O,P moves cursor, W: PgUp X: PgDown\n"
-	defb	"0-9, A-F to alter byte, BREAK to exit",0
+	defb	AT, 21, 0, "Q,Z,O,P moves cursor, W: PgUp X: PgDown\n"
+	defb	"0-9, A-F alters byte, R: Page ROM,\n"
+	defb	"G: Page RAM. Press BREAK to exit.",0
 	
 str_colon
 
