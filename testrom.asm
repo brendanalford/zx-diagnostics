@@ -1027,6 +1027,7 @@ initialize_ram_good
 initialize_no_ram_check
 
 	xor a
+	out (LED_PORT), a		; Extinguish the LED's
 	ld (v_fail_ic), a
 	ld (v_fail_ic_contend), a
 	ld (v_fail_ic_uncontend), a
@@ -1114,6 +1115,10 @@ decstr_init
 
 	xor a
 	call sys_rompaging
+	
+;	Reset the AY chip if present.
+
+	call ay_reset
 	
 	ret
 
