@@ -672,6 +672,7 @@ prt_scroll
 rom_signature_table
 
 	defw 0xfd5e, str_rom48k, test_48k
+	defw 0xafcf, str_rom48kbeckman, test_48k
 	defw 0xeffc, str_rom128k, test_128k
 	defw 0x3a1f, str_rom128esp, test_128k
 	defw 0x2aa3, str_romplus2, test_plus2
@@ -695,6 +696,10 @@ rom_signature_table
 str_rom48k
 
 	defb	"Spectrum 16/48K ROM...      ", 0
+	
+str_rom48kbeckman
+	
+	defb 	"Beckman Spectrum 48K ROM... ", 0
 
 str_rom128k
 
@@ -987,7 +992,6 @@ v_width			equ #7f84; 1
 v_scroll		equ #7f85; 1
 v_scroll_lines  	equ #7d86; 1
 
-
 ;	Miscellaneous
 
 v_hexstr		equ #7f90; 5
@@ -1003,5 +1007,5 @@ v_fail_ic		equ #7fb6; Failed IC bitmap (48K)
 v_fail_ic_uncontend	equ #7fb7; Failed IC bitmap, uncontended memory banks 0,2,4,8 (128k)
 v_fail_ic_contend	equ #7fb8; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
 v_128type		equ #7fb9; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
-v_keybuffer		equ #7fba; Keyboard bitmap (8 bytes)
-
+v_test_rtn		equ #7fba;	Address of test routine for extra memory (48/128)
+v_keybuffer		equ #7fbc; Keyboard bitmap (8 bytes)
