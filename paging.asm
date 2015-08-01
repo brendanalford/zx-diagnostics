@@ -37,4 +37,25 @@ pagein
 	pop bc 
 	ret
 
+;
+;	Pages the given ROM into ROM address space.
+;	Inputs: A=desired ROM page.
+;
+	
+pagein_rom
 
+	push af
+	rla
+	and 0x04
+	ld bc, 0x1ffd
+	out (c), a
+	pop af
+	
+	rla
+	rla
+	rla
+	rla
+	and 0x10
+	ld bc, 0x7ffd
+	out (c), a
+	ret

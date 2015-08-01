@@ -563,20 +563,8 @@ additional_rom_check_loop
 ;	Page in ROM number (d)
 
 	ld a, d
-	rla
-	and 0x04
-	ld bc, 0x1ffd
-	out (c), a
+	call pagein_rom
 	
-	ld a, d
-	rla
-	rla
-	rla
-	rla
-	and 0x10
-	ld bc, 0x7ffd
-	out (c), a
-
 	push de
 	call sys_romcrc
 	pop de
@@ -626,11 +614,21 @@ additional_rom_fail
 	call print
 	ld hl, str_check_rom_2
 	call print
+	
+;	Signify a ROM checksum failure
+
+	ld a, 0xff
+	ld (v_fail_rom), a
 
 	jp run_upper_ram_tests
 
 rom_test_pass
 
+;	Page in start ROM 0 again
+	
+	xor a
+	call pagein_rom
+	
 	push hl
 	ld hl, str_testpass
 	call print
@@ -837,9 +835,17 @@ tests_complete
 	ld b, a
 	ld a, (v_fail_ic_uncontend)
 	or b
-	jr z, soak_test_check
+	jr nz, tests_failed_halt
 
+;	Did we hit a ROM checksum failure?
+
+	ld a, (v_fail_rom)
+	cp 0
+	jr z, soak_test_check
+	
 ;	Yes we did - say so and halt
+
+tests_failed_halt
 
 	call newline
 	ld hl, str_halted_fail
@@ -1127,6 +1133,7 @@ initialize_no_ram_check
 	ld (v_fail_ic), a
 	ld (v_fail_ic_contend), a
 	ld (v_fail_ic_uncontend), a
+	ld (v_fail_rom), a
 
 	ld (v_column), a
     	ld (v_row), a
@@ -1310,6 +1317,7 @@ rom_table_romplus2a
 rom_table_romplus3
 
 	defw	0xa624, str_romplus3_a_fail, 0xea97, str_romplus3_b_fail, 0x8a9b, str_romplus3_b_fail, 0x0000
+
 
 rom_table_romplus3esp
 
