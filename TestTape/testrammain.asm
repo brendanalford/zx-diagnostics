@@ -666,8 +666,8 @@ prt_scroll
 	include "..\input.asm"
 ;
 ;	Table to define ROM signatures
+;	Tape tests only verify ROM 0 on 128 machines.
 ;
-
 
 rom_signature_table
 
