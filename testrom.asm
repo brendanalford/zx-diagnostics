@@ -476,7 +476,7 @@ rom_test
 	ld (v_column), a
 	ld hl, str_romdiagboard
 	call print
-	jr rom_unknown_2
+	jp rom_unknown_2
 	
 rom_test_1
 
@@ -501,7 +501,7 @@ rom_check_loop
 	ld bc, (hl)
 	ld a, b
 	or c
-	jr z, rom_unknown
+	jp z, rom_unknown
 
 ;	Check saved ROM CRC in DE against value in table
 
@@ -510,7 +510,13 @@ rom_check_loop
 	jr nz, rom_check_next
 	ld a, e
 	xor c
-	jr nz, rom_check_next
+	jr z, rom_check_found
+
+rom_check_next
+
+	ld bc, 8
+	add hl, bc
+	jr rom_check_loop
 
 rom_check_found
 
@@ -524,34 +530,124 @@ rom_check_found
 	xor a
 	ld (v_column), a
 	call print
-	ld hl, str_testpass
-	call print
-	call newline
-
 	pop hl
-
-;	Call the appropriate testing routine
+	
+;	Store the address of the testing routine
 
 	ld de, 4
 	add hl, de
+	ld bc, (hl)
+	ld (v_test_rtn), bc
+	
+;	Check if additional ROM tests need to be run (128 machines)
 
+	inc hl
+	inc hl
+	ld de, (hl)
+	ld a, d
+	or e
+	jr z, rom_test_pass
+	
+;	Extra ROM tests here	
+;	HL points to the ROM check table address
+;	Pop it into IX for handiness sake
+
+	ld de, (hl)
+	ld ix, de
+	
+;	D tracks page number
+	ld d, 1
+
+additional_rom_check_loop
+
+;	Page in ROM number (d)
+
+	ld a, d
+	rla
+	and 0x04
+	ld bc, 0x1ffd
+	out (c), a
+	
+	ld a, d
+	rla
+	rla
+	rla
+	rla
+	and 0x10
+	ld bc, 0x7ffd
+	out (c), a
+
+	push de
+	call sys_romcrc
+	pop de
+	
+;	Check against the value at IX
+
+	ld a, (ix)
+	cp l
+	jr nz, additional_rom_fail
+	ld a, (ix + 1)
+	cp h
+	jr nz, additional_rom_fail
+	
+;	This ROM passed, skip ROM fail string pointer
+;	and increment ROM page
+
+	inc d
+	inc ix
+	inc ix
+	inc ix
+	inc ix
+	
+;	Any more ROM checksums?
+
+	ld b, (ix)
+	ld a, (ix + 1)
+	or b
+	jr nz, additional_rom_check_loop
+	
+;	All passed, say so and continue with a call to the routine at v_test_rtn
+
+	jr rom_test_pass
+
+additional_rom_fail
+	
+	ld a, 2
+	out (ULA_PORT), a
+	
+	ld hl, str_testfail
+	call print
+	call newline
+	
+	ld hl, str_check_rom
+	call print
+	ld de, (ix + 2)
+	ld hl, de
+	call print
+	ld hl, str_check_rom_2
+	call print
+
+	jp run_upper_ram_tests
+
+rom_test_pass
+
+	push hl
+	ld hl, str_testpass
+	call print
+	call newline
+	pop hl
+
+run_upper_ram_tests
+
+;	Call the appropriate testing routine
 ;	Set up return address to be the testinterrupts label
 
 	ld de, testinterrupts
 	push de
 
-	ld de, (hl)
+	ld de, (v_test_rtn)
 	ld hl, de
 	jp hl
-
-test_routine_return
-	jp testinterrupts
-
-rom_check_next
-
-	ld bc, 6
-	add hl, bc
-	jr rom_check_loop
 
 ; Unknown ROM, say so and prompt the user for manual selection
 
@@ -1151,34 +1247,116 @@ diagrom_exit
 	include "keyboardtest.asm"
 	include "membrowser.asm"
 ;
-;	Table to define ROM signatures
+;	Table to define ROM signatures.
+;	Format is initial ROM checksum (ROM 0 in 128 machines), 
+;	identification string, upper RAM test routine location
+;	and address of further ROM test table (0000 if 48K machine)
 ;
 
 rom_signature_table
 
-	defw 0xfd5e, str_rom48k, test_48k
-	defw 0xeffc, str_rom128k, test_128k
-	defw 0x3a1f, str_rom128esp, test_128k
-	defw 0x2aa3, str_romplus2, test_plus2
-	defw 0x3567, str_romplus2esp, test_plus2
-	defw 0xd3b4, str_romplus2fra, test_plus2
-	defw 0x3998, str_romplus2a, test_plus3
-	defw 0x88f9, str_romplus3, test_plus3
-	defw 0x5a18, str_romplus3esp, test_plus3
+	defw 0xfd5e, str_rom48k, test_48k, 0x0000 
+	defw 0xafcf, str_rom48kbeckman, test_48k, 0x0000
+	defw 0xeffc, str_rom128k, test_128k, rom_table_rom128k
+	defw 0x3a1f, str_rom128esp, test_128k, rom_table_rom128esp
+	defw 0x2aa3, str_romplus2, test_plus2, rom_table_romplus2
+	defw 0x3567, str_romplus2esp, test_plus2, rom_table_romplus2esp
+	defw 0xd3b4, str_romplus2fra, test_plus2, rom_table_romplus2fra
+	defw 0x3998, str_romplus2a, test_plus3,	rom_table_romplus2a
+	defw 0x88f9, str_romplus3, test_plus3, rom_table_romplus3
+	defw 0x5a18, str_romplus3esp, test_plus3, rom_table_romplus3esp
 ;	Some +3E ROM sets that might be out there
-	defw 0x8dfe, str_romplus3e_v1_38, test_plus3
-	defw 0xcaf2, str_romplus3e_v1_38esp, test_plus3
+	defw 0x8dfe, str_romplus3e_v1_38, test_plus3, rom_table_romplus3e_v1_38
+	defw 0xcaf2, str_romplus3e_v1_38esp, test_plus3, rom_table_romplus3e_v1_38esp
 ;	Soviet clones that some people are inexplicably fond of :)
-	defw 0xe2ec, str_orelbk08, test_48kgeneric 
+	defw 0xe2ec, str_orelbk08, test_48kgeneric, 0x0000 
 ;	Just Speccy 128 clone
-	defw 0xb023, str_js128, test_js128
+	defw 0xb023, str_js128, test_js128, rom_table_js128
 ;	Harlequin Rev F
-	defw 0x669e, str_harlequin_f, test_48kgeneric
+	defw 0x669e, str_harlequin_f, test_48kgeneric, 0x0000
 	defw 0x0000
 
+;
+;	Tables specifying rest of checksums for a particular machine. 
+;	Format starts with checksum for ROM 1, fail IC designation,
+;	and continues with checksum for further ROMS, or 0000 if no 
+;	more ROMs are expected.
+;
+
+rom_table_rom128k
+
+	defw	0xdcec, str_rom128_fail, 0x0000
+	
+rom_table_rom128esp
+
+	defw	0xc154, str_rom128_fail, 0x0000
+	
+rom_table_romplus2
+
+	defw	0xb0a2, str_romplus2_fail, 0x0000
+
+rom_table_romplus2esp
+	
+	defw	0x3dfd, str_romplus2_fail, 0x0000
+
+rom_table_romplus2fra
+
+	defw	0x1b07, str_romplus2_fail, 0x0000
+	
+rom_table_romplus2a
+
+	defw	0xe797, str_romplus3_a_fail, 0xf991, str_romplus3_b_fail, 0xbeeb, str_romplus3_b_fail, 0x0000
+	
+rom_table_romplus3
+
+	defw	0xa624, str_romplus3_a_fail, 0xea97, str_romplus3_b_fail, 0x8a9b, str_romplus3_b_fail, 0x0000
+
+rom_table_romplus3esp
+
+	defw	0xfe38, str_romplus3_a_fail, 0x6f7d, str_romplus3_b_fail, 0xfb2c, str_romplus3_b_fail, 0x0000
+
+rom_table_romplus3e_v1_38
+
+	defw	0x5004, str_romplus3_a_fail, 0x49e7, str_romplus3_b_fail, 0x8a9b, str_romplus3_b_fail, 0x0000
+
+rom_table_romplus3e_v1_38esp
+
+	defw	0xf4be, str_romplus3_a_fail, 0xd440, str_romplus3_b_fail, 0xfb2c, str_romplus3_b_fail, 0x0000
+
+rom_table_js128
+
+	defw	0xd8d8, str_romjs128_fail, 0x0000
+
+str_rom128_fail
+
+	defb 	"IC5", 0
+	
+str_romplus2_fail
+
+	defb	"IC8", 0
+	
+str_romplus3_a_fail
+
+	defb	"IC7", 0
+	
+str_romplus3_b_fail
+
+	defb 	"IC8", 0
+	
+str_romjs128_fail
+
+	defb	"U18", 0
+	
+;
+;	ROM ID Strings
+;
 str_rom48k
 
 	defb	"Spectrum 16/48K ROM...      ", 0
+
+str_rom48kbeckman
+	
+	defb 	"Beckman Spectrum 48K ROM... ", 0
 
 str_rom128k
 
@@ -1235,6 +1413,7 @@ str_harlequin_f
 str_romdiagboard
 
 	defb	AT, 4, 0, "Diagboard or SMART Card not detected", 0
+	
 ;
 ;	Table to define pointers to test routines
 ;
@@ -1419,7 +1598,7 @@ str_check_plus3_ula
 str_check_ic
 
 	defb	"Check the following IC's:\n", 0
-
+	
 str_ic
 
 	defb "IC", 0
@@ -1427,6 +1606,14 @@ str_u
 
 	defb "U", 0
 	
+str_check_rom
+
+	defb "Check ROM (", 0
+	
+str_check_rom_2
+
+	defb ")\n", 0
+	 
 ; 	
 ;	This ISR operates in two modes.
 ;	If I = 0, then we are in lower RAM test mode. If ints are

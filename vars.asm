@@ -55,7 +55,8 @@ v_128type		equ #7d39; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
 v_testcard		equ #7d3a; Workspace for testcard string
 v_testhwtype		equ #7d40; Type of interface we're running on. 0-none found, 1-Diagboard, 2-Retroleum SMART card
 v_hw_page		equ #7d41; Paged ROM index on startup (SMART only)
-v_keybuffer		equ #7d42; keyboard bitmap (8 bytes)
+v_test_rtn		equ #7d42;	Address of RAM test routine to run after ROM check
+v_keybuffer		equ #7d44; keyboard bitmap (8 bytes)
 
 ;	Relocation addresses for routines that need the original ROM paged
 
