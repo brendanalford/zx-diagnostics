@@ -262,7 +262,7 @@ rom_page_sel_chk
 	or b
 	ld bc, 0x1ffd
 	out (c), a
-	ld (v_paging), a
+	ld (v_paging_2), a
 		
 ;	Write 0x7ffd part 
 
