@@ -29,26 +29,25 @@
 		
 test_48k
 
-	call upperram_test
+;	Test if we can read/write 0x00 to the lowest byte
+; 	in upper RAM. If we get all bits set over time, then there's no RAM
+; 	present there at all, and we shouldn't test it.
 
-;	Contents of v_fail_ic system variable will be 
-;	non-zero if we have any failures.
-	  
-print_upperresult
+	ld b, 0xff
+	ld hl, 0x8000
+	ld (hl), 0
+	xor a
+	
+is_upper_ram_present
 
-	ld a, (v_fail_ic)
-   	cp 0
-	jr z, print_upperpass
-	ld hl, str_48ktestsfail
-	call print
-
-;	If all upper RAM IC's tested faulty, then
-;	chances are we're a 16K Spectrum
+	ld c, (hl)
+	or c
+	djnz is_upper_ram_present
 
 	cp 0xff
-	jr nz, print_upper_ic
+	jr nz, upper_ram_present
 
-;	Reset the error bitmap in ix
+;	No upper ram, reset the error bitmap in ix
 	
 	xor a
 	ld ixh, 0
@@ -62,6 +61,21 @@ print_upperresult
 	xor a 
 	ld (v_fail_ic), a
 	ret
+
+upper_ram_present
+
+	call upperram_test
+
+;	Contents of v_fail_ic system variable will be 
+;	non-zero if we have any failures.
+	  
+print_upperresult
+
+	ld a, (v_fail_ic)
+   	cp 0
+	jr z, print_upperpass
+	ld hl, str_48ktestsfail
+	call print
 	
 ; If possible, output the failing IC's to the screen
 
