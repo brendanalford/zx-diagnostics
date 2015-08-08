@@ -141,10 +141,17 @@ check_keys
 	jp z, cur_left
 	cp 'P'
 	jp z, cur_right
-	cp 'G'
+
+;	Option keys
+
+	cp 'T'
 	jp z, ram_page
 	cp 'R'
 	jp z, rom_page
+	cp 'U'
+	jp z, goto_upper
+	cp 'L'
+	jp z, goto_lower
 	cp BREAK
 	jr z, exit
 	
@@ -219,6 +226,20 @@ write_end
 exit
 	call diagrom_exit
 	
+
+goto_lower
+
+	ld hl, 0x4000
+	call refresh_mem_display
+	call print_cursor
+	jp mem_loop
+	
+goto_upper
+
+	ld hl, 0x8000
+	call refresh_mem_display
+	call print_cursor
+	jp mem_loop
 	
 rom_page
 
@@ -818,9 +839,9 @@ str_mem_browser_header
 	
 str_mem_browser_footer
 
-	defb	AT, 21, 0, "Q,Z,O,P moves cursor, W: PgUp X: PgDown\n"
-	defb	"0-9, A-F alters byte, R: Page ROM,\n"
-	defb	"G: Page RAM. Press BREAK to exit.",0
+	defb	AT, 21, 0, "Q,Z,O,P: cursor, 0-9,A-F: enter data\n"
+	defb	"W: PgUp X: PgDown R: Page ROM, T: Page RAM\n"
+	defb	"U/L: Goto Upper/Lower RAM. BREAK exits.",0
 	
 str_colon
 
@@ -834,3 +855,6 @@ str_selrampage
 
 	defb	TEXTBOLD, "RAM Page (0-7)?", TEXTNORM, 0
 	
+str_seladdr
+
+	defb	TEXTBOLD, "Go to address: ---- (Spc cancels)", TEXTNORM, 0
