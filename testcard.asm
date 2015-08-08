@@ -95,6 +95,14 @@ testcard_col
 	call print
 	
 	ld hl, str_pageout_msg
+	ld a, (v_ay_present)
+	cp 0
+	jr nz, print_pageout_msg
+	
+	ld hl, str_pageout_noay_msg
+	
+print_pageout_msg
+
 	call print
 
 	; Start the tone
@@ -104,6 +112,12 @@ tone_start
 	call brk_check
 	ld b, 1
 	call testcard_tone
+
+;	Don't check for A being pressed if there's no AY present
+
+	ld a, (v_ay_present)
+	cp 0
+	jr z, tone_start
 	
 ;	Test if the A key is being pressed, if true then go into AY test mode
 
@@ -196,7 +210,9 @@ testcard_tone
 	ld b, a
 	xor a
 	ld c, a
+
 testcard_tone_delay
+	
 	nop
 	nop
 	nop
@@ -227,6 +243,7 @@ ay_reset
 	ld d, 0
 	
 ay_reset_loop
+	
 	ld bc, AY_REG
 	out (c), d
 	ld bc, AY_DATA
@@ -235,6 +252,19 @@ ay_reset_loop
 	ld a, d
 	cp 0x0f
 	jr nz, ay_reset_loop
+
+;	Test to see if the AY is present by reading from a register.
+
+	ld bc, AY_REG
+	xor a
+	out (c), a
+	in a, (c)
+	cp 0
+	ret nz
+	
+	ld a, 0x1
+	ld (v_ay_present), a
+	
 	ret 
 
 ;
@@ -293,19 +323,32 @@ ay_test_data
 ;	The ZX Spectrum Diagnostics Banner 
 	
 str_testcardattr
+
 	defb	PAPER, 0, INK, 0, 0
+
 str_year
+
 	defb	BRIGHT, 0, 0x83, 0x81, BRIGHT, 1, 0x82, 0x86, 0
 
 str_testcard
+
 	defb	PAPER, 0, "    ", PAPER, 1, "    ", PAPER, 2, "    ", PAPER, 3, "    "
 	defb	PAPER, 4, "    ", PAPER, 5, "    ", PAPER, 6, "    ", PAPER, 7, "    ", 0
+
 str_pageout_msg
+
 	defb	AT, 22, 0, PAPER, 0, INK, 7, BRIGHT, 1, "  Hold 'A' for AY test, or BREAK to exit.", 0
+
+str_pageout_noay_msg
+
+	defb	AT, 22, 0, PAPER, 0, INK, 7, BRIGHT, 1, "   No AY chip found. Hold BREAK to exit. ", 0
+
 str_aytest_msg
+
 	defb	AT, 22, 0, PAPER, 0, INK, 7, BRIGHT, 1, "    AY Test active, hold BREAK to exit.  ", 0
 
 str_testcard_banner
+
 	defb	AT, 18, 0, PAPER, 0, INK, 7, BRIGHT, 1
 	defb    "                          " 
 	defb	TEXTNORM, PAPER, 0, INK, 2, 0x80, PAPER, 2, INK, 6, 0x80, PAPER, 6, INK, 4, 0x80
@@ -322,4 +365,4 @@ str_testcard_banner
 str_testcard_message
 
 	defb	AT, 19, 10, TEXTBOLD, BRIGHT, 1, INK, 7, PAPER, 0 
-	defb    "ZX Spectrum Diagnostics", ATTR, 56, 0
+	defb    "ZX Spectrum Diagnostics ", VERSION , ATTR, 56, 0

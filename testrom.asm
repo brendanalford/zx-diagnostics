@@ -1134,7 +1134,7 @@ initialize_no_ram_check
 	ld (v_fail_ic_contend), a
 	ld (v_fail_ic_uncontend), a
 	ld (v_fail_rom), a
-
+	ld (v_ay_present), a
 	ld (v_column), a
     	ld (v_row), a
 	ld (v_pr_ops), a
@@ -1272,15 +1272,25 @@ rom_signature_table
 	defw 0x3998, str_romplus2a, test_plus3,	rom_table_romplus2a
 	defw 0x88f9, str_romplus3, test_plus3, rom_table_romplus3
 	defw 0x5a18, str_romplus3esp, test_plus3, rom_table_romplus3esp
+
 ;	Some +3E ROM sets that might be out there
+
 	defw 0x8dfe, str_romplus3e_v1_38, test_plus3, rom_table_romplus3e_v1_38
 	defw 0xcaf2, str_romplus3e_v1_38esp, test_plus3, rom_table_romplus3e_v1_38esp
+
 ;	Soviet clones that some people are inexplicably fond of :)
+
 	defw 0xe2ec, str_orelbk08, test_48kgeneric, 0x0000 
+
 ;	Just Speccy 128 clone
+
 	defw 0xb023, str_js128, test_js128, rom_table_js128
+
 ;	Harlequin Rev F
+	
 	defw 0x669e, str_harlequin_f, test_48kgeneric, 0x0000
+
+;	End of ROM table
 	defw 0x0000
 
 ;
