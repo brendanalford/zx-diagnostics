@@ -16,7 +16,7 @@
 ;	Lesser General Public License for more details.
 ;
 ;	diagboard.asm
-;	
+;
 
 
 
@@ -48,9 +48,11 @@ romhw_pagein
 	jr z, romhw_pagein_diagboard
 	cp 2
 	jr z, romhw_pagein_smart
+	cp 3
+	jr z, romhw_pagein_zxc
 	ld a, 0xff
 	ret
-	
+
 romhw_pagein_diagboard
 
 	ld a, %00000000
@@ -58,27 +60,39 @@ romhw_pagein_diagboard
 	ret
 
 romhw_pagein_smart
-	
+
 	ld bc, SMART_ROM_PORT
 	ld a, (v_hw_page)
 	out (c), a
 	ret
-	
+
+romhw_pagein_zxc
+
+	ld hl, 0x3fc0
+	ld a, (v_hw_page)
+	and 0x7
+	and l
+	ld l, a
+	ld a, (hl)
+	ret
+
 ;	Command 2: Page out external ROM
 ;	BC = 0x1234: Jump to start of internal ROM
 
 romhw_pageout
-	
+
 	ld a, (v_testhwtype)
 	cp 1
 	jr z, romhw_pageout_diagboard
 	cp 2
 	jr z, romhw_pageout_smart
 	ld a, 0xff
+	cp 3
+	jr z, romhw_pageout_zxc
 	ret
-	
+
 romhw_pageout_diagboard
-	
+
 	ld a, %00100000
 	out (ROMPAGE_PORT), a
 	ld a, b
@@ -103,7 +117,17 @@ romhw_pageout_smart
 	cp 0x34
 	ret nz
 	jp 0
-	
+
+romhw_pageout_zxc
+
+	ld hl, 0x3fd0
+	ld a, (v_hw_page)
+	and 0x7
+	and l
+	ld l, a
+	ld a, (hl)
+	ret
+
 ;	Command 3: Test for diagnostic devices
 ;	Stores result in system variable v_testhwtype
 
@@ -129,7 +153,7 @@ romhw_test
 	ld a, (hl)
 	cp 'M'
 	jr z, romhw_test_smart
-	
+
 romhw_found_diagboard
 
 	ld a, 1
@@ -137,7 +161,7 @@ romhw_found_diagboard
 	ld a, 0
 	out (ROMPAGE_PORT), a
 	ret
-	
+
 romhw_test_smart
 
 	ld bc, SMART_ROM_PORT
@@ -166,17 +190,100 @@ romhw_test_smart
 	inc hl
 	ld a, (hl)
 	cp 'M'
-	jr z, romhw_not_found
-	
+	jr z, romhw_test_zxc
+
 romhw_found_smart
-	
+
 	ld a, 2
 	ld (v_testhwtype), a
 	ld a, (v_hw_page)
 	ld bc, SMART_ROM_PORT
 	out (c), a
 	ret
-	
+
+romhw_test_zxc
+
+;	First see if we can page ourselves out.
+
+	ld hl, 0x3fd0
+	ld a, (hl)
+
+	ld hl, str_rommagicstring
+	ld a, (hl)
+	cp 'T'
+	jr nz, romhw_found_zxc
+	inc hl
+	ld a, (hl)
+	cp 'R'
+	jr nz, romhw_found_zxc
+	inc hl
+	ld a, (hl)
+	cp 'O'
+	jr nz, romhw_found_zxc
+	inc hl
+	ld a, (hl)
+	cp 'M'
+	jr z, romhw_not_found
+
+;	Paged out successfully. Now we need to page each bank
+; back in turn to find our diags rom again.
+
+	ld de, 0x3fc0
+
+test_zxc_loop
+
+	ld hl, de
+	ld a, (hl)
+
+	ld hl, str_rommagicstring
+	ld a, (hl)
+	cp 'T'
+	jr nz, test_zxc_next
+	inc hl
+	ld a, (hl)
+	cp 'R'
+	jr nz, test_zxc_next
+	inc hl
+	ld a, (hl)
+	cp 'O'
+	jr nz, test_zxc_next
+	inc hl
+	ld a, (hl)
+	cp 'M'
+	jr nz, test_zxc_next
+
+	jr romhw_found_zxc
+
+test_zxc_next
+
+	inc de
+	bit 3, e
+	jr z, test_zxc_loop
+
+test_zxc_error
+
+;	Bugger. We paged out but couldn't page ourselves back in.
+;	Error time.
+
+	ld a, 250
+	out (ULA_PORT), a
+	ld a, 2
+	out (ULA_PORT), a
+	jr test_zxc_error
+
+romhw_found_zxc
+
+	ld a, 3
+	ld (v_testhwtype), a
+	ld a, e
+	and 0x7
+	ld (v_hw_page), a
+	ld hl, 0x3fc0
+	and l
+	ld l, a
+	ld a, (hl)
+	ret
+
 romhw_not_found
 
 	xor a
@@ -185,4 +292,3 @@ romhw_not_found
 	ret
 
 end_rompage_reloc
-	

@@ -50,7 +50,7 @@
 
 isr
 	jp isr_main
-	
+
 	BLOCK 0x0066-$, 0xff
 
 nmi
@@ -64,21 +64,21 @@ nmi
 	jp keyboard_test
 
 	BLOCK 0x0080-$, 0xff
-	
+
 str_build
-	
+
 	defb	"DiagBoard Test ROM ", VERSION, " built ", BUILD_TIMESTAMP , 0
 
 	BLOCK 0x0100-$, 0xff
-	
+
 start
 
 ;	I = 0 to signify basic ISR functionality
-	
+
 	ld a, 0
 	ld i, a
 	im 1
-	
+
 ;	Blank the screen, (and all lower RAM)
 
 	BLANKMEM 16384, 16384, 0
@@ -117,7 +117,7 @@ start
 	in a, (c)
 	bit 3, a
 	jp z, ulatest
-	
+
 ;	Jump to keyboard test if K is pressed
 
 	ld bc, 0xbffe
@@ -222,7 +222,7 @@ lowerram_random
 	out (LED_PORT), a
 
 lower_ram_fail
-	
+
 ;
 ;	Paint the RAM FAIL message on screen
 ;	Set a black border here too
@@ -233,14 +233,14 @@ lower_ram_fail
 	ld bc, 0xff
 	ld (hl), 0
 	ldir
-	
+
 	xor a
 	out (ULA_PORT), a
-	
+
 	ld hl, fail_ram_bitmap
 	ld de, 0x5900
 	ld b, 0x20
-	
+
 fail_msg_loop
 
 	ld c, 8
@@ -254,21 +254,21 @@ fail_msg_byte
 	ex de, hl
 	ld (hl), 0x7f
 	ex de, hl
-	
+
 fail_msg_next
 
 	inc de
-	rla 
+	rla
 	dec c
 	jr nz, fail_msg_byte
 
-	inc hl	
+	inc hl
 	dec b
 
 	jr nz, fail_msg_loop
-	
+
 ;
-;	Lower RAM failure detected, default ISR with I=0 
+;	Lower RAM failure detected, default ISR with I=0
 ;	jumps to routine that paints the bits in the border.
 ;	This'll work on a machine with no RAM and no floating bus.
 ;
@@ -286,18 +286,18 @@ fail_border
 
 	; Failed bitmap is in IXH, transfer to DE
 	ld de, ix
-	
+
 	ld a, d
 	cp 0
 	jr nz, fail_border_init
-	
+
 ;	Don't paint stripes if all RAM has passed
 ;	(We've ended up here from one of the other
 ;	test routines that's done a cursory RAM check)
 
 	ei
 	halt
-	
+
 fail_border_init
 
 ;	Starting border black until we need stripes
@@ -423,7 +423,7 @@ use_uppermem
     	ld sp, sys_stack
 
 	call initialize_no_ram_check
-	
+
     	ld a, BORDERWHT
     	out (ULA_PORT), a
 
@@ -470,14 +470,14 @@ rom_test
 	ld a, (v_testhwtype)
 	cp 0
 	jr nz, rom_test_1
-	
+
 ;	No diagnostic hardware, skip the check
 
 	ld (v_column), a
 	ld hl, str_romdiagboard
 	call print
 	jp rom_unknown_2
-	
+
 rom_test_1
 
 ; 	Call CRC generator in RAM, CRC ends up in HL
@@ -531,14 +531,14 @@ rom_check_found
 	ld (v_column), a
 	call print
 	pop hl
-	
+
 ;	Store the address of the testing routine
 
 	ld de, 4
 	add hl, de
 	ld bc, (hl)
 	ld (v_test_rtn), bc
-	
+
 ;	Check if additional ROM tests need to be run (128 machines)
 
 	inc hl
@@ -547,14 +547,14 @@ rom_check_found
 	ld a, d
 	or e
 	jr z, rom_test_pass
-	
-;	Extra ROM tests here	
+
+;	Extra ROM tests here
 ;	HL points to the ROM check table address
 ;	Pop it into IX for handiness sake
 
 	ld de, (hl)
 	ld ix, de
-	
+
 ;	D tracks page number
 	ld d, 1
 
@@ -564,11 +564,11 @@ additional_rom_check_loop
 
 	ld a, d
 	call pagein_rom
-	
+
 	push de
 	call sys_romcrc
 	pop de
-	
+
 ;	Check against the value at IX
 
 	ld a, (ix)
@@ -577,7 +577,7 @@ additional_rom_check_loop
 	ld a, (ix + 1)
 	cp h
 	jr nz, additional_rom_fail
-	
+
 ;	This ROM passed, skip ROM fail string pointer
 ;	and increment ROM page
 
@@ -586,27 +586,27 @@ additional_rom_check_loop
 	inc ix
 	inc ix
 	inc ix
-	
+
 ;	Any more ROM checksums?
 
 	ld b, (ix)
 	ld a, (ix + 1)
 	or b
 	jr nz, additional_rom_check_loop
-	
+
 ;	All passed, say so and continue with a call to the routine at v_test_rtn
 
 	jr rom_test_pass
 
 additional_rom_fail
-	
+
 	ld a, 2
 	out (ULA_PORT), a
-	
+
 	ld hl, str_testfail
 	call print
 	call newline
-	
+
 	ld hl, str_check_rom
 	call print
 	ld de, (ix + 2)
@@ -614,7 +614,7 @@ additional_rom_fail
 	call print
 	ld hl, str_check_rom_2
 	call print
-	
+
 ;	Signify a ROM checksum failure
 
 	ld a, 0xff
@@ -625,10 +625,10 @@ additional_rom_fail
 rom_test_pass
 
 ;	Page in start ROM 0 again
-	
+
 	xor a
 	call pagein_rom
-	
+
 	push hl
 	ld hl, str_testpass
 	call print
@@ -842,7 +842,7 @@ tests_complete
 	ld a, (v_fail_rom)
 	cp 0
 	jr z, soak_test_check
-	
+
 ;	Yes we did - say so and halt
 
 tests_failed_halt
@@ -926,7 +926,7 @@ waitloop
 	ld (v_row), a
 	ld a, 41 * 6
 	ld (v_column), a
-	
+
 	ld a, b
 	add '0'
 	call putchar
@@ -962,7 +962,7 @@ waitloop
 
 page_speccy_rom
 
-;	Passing 0x1234 to the pageout routine forces a jump to 
+;	Passing 0x1234 to the pageout routine forces a jump to
 ;	the system ROM when done
 
 	ld a, 2
@@ -1001,7 +1001,7 @@ fail_print_ic_loop
 	jr nz, print_ic_label
 
 	ld hl, str_u
-	
+
 print_ic_label
 
 	call print
@@ -1100,13 +1100,13 @@ initialize
 
 	ld hl, 0x5b00
 	ld ix, 0
-	
+
 ; 	Save return address from the stack
 
 	pop de
 
 init_loop
-	
+
 	ld (hl), 0x00
 	ld a, (hl)
 	cp 0x00
@@ -1119,13 +1119,13 @@ init_loop
 	ld a, h
 	cp 0x80
 	jr c, init_loop
-	
+
 initialize_ram_good
 
 ;	Restore return address
 
 	push de
-	
+
 initialize_no_ram_check
 
 	xor a
@@ -1144,7 +1144,7 @@ initialize_no_ram_check
 	ld (v_scroll), a
 	ld a, 21
 	ld (v_scroll_lines), a
-	
+
 	ld a, 6
 	ld (v_width), a
 	ld a, 0xff
@@ -1154,7 +1154,7 @@ initialize_no_ram_check
 
 	ld hl, 0
 	ld (v_paging), hl
-	ld (v_userint), hl 
+	ld (v_userint), hl
 	ld (v_intcount), hl
 	ld (v_intcount + 2), hl
 
@@ -1191,7 +1191,7 @@ decstr_init
 	ld de, sys_romcrc
 	ld bc, romcrc_end-romcrc
 	ldir
-	
+
 	ld hl, rompage_reloc
 	ld de, sys_rompaging
 	ld bc, end_rompage_reloc-rompage_reloc
@@ -1200,7 +1200,7 @@ decstr_init
 
 ;	Ensure that on 128 machines, the default ROM is paged in.
 ;	This'll do nothing on 48K models.
-	
+
 	xor a
 	ld bc, 0x7ffd
 	out (c), a
@@ -1212,17 +1212,17 @@ decstr_init
 
 	ld a, 0x3f
 	ld i, a
-	
+
 ;	Check for whatever diagnostic hardware is present.
 ;	Result will be stored in system variable v_testhwtype.
 
 	xor a
 	call sys_rompaging
-	
+
 ;	Reset the AY chip if present.
 
 	call ay_reset
-	
+
 	ret
 
 ;
@@ -1237,10 +1237,10 @@ diagrom_exit
 	jp z, 0000
 
 ;	Else page the diagnostic ROM out and start the machine's own ROM
-	
+
 	ld bc, 0x1234
 	ld a, 2
-	call sys_rompaging 	; Page out and restart the machine	
+	call sys_rompaging 	; Page out and restart the machine
 
 
 	include "crc16.asm"
@@ -1255,14 +1255,14 @@ diagrom_exit
 	include "membrowser.asm"
 ;
 ;	Table to define ROM signatures.
-;	Format is initial ROM checksum (ROM 0 in 128 machines), 
+;	Format is initial ROM checksum (ROM 0 in 128 machines),
 ;	identification string, upper RAM test routine location
 ;	and address of further ROM test table (0000 if 48K machine)
 ;
 
 rom_signature_table
 
-	defw 0xfd5e, str_rom48k, test_48k, 0x0000 
+	defw 0xfd5e, str_rom48k, test_48k, 0x0000
 	defw 0xafcf, str_rom48kbeckman, test_48k, 0x0000
 	defw 0xeffc, str_rom128k, test_128k, rom_table_rom128k
 	defw 0x3a1f, str_rom128esp, test_128k, rom_table_rom128esp
@@ -1280,50 +1280,50 @@ rom_signature_table
 
 ;	Soviet clones that some people are inexplicably fond of :)
 
-	defw 0xe2ec, str_orelbk08, test_48kgeneric, 0x0000 
+	defw 0xe2ec, str_orelbk08, test_48kgeneric, 0x0000
 
 ;	Just Speccy 128 clone
 
 	defw 0xb023, str_js128, test_js128, rom_table_js128
 
 ;	Harlequin Rev F
-	
+
 	defw 0x669e, str_harlequin_f, test_48kgeneric, 0x0000
 
 ;	End of ROM table
 	defw 0x0000
 
 ;
-;	Tables specifying rest of checksums for a particular machine. 
+;	Tables specifying rest of checksums for a particular machine.
 ;	Format starts with checksum for ROM 1, fail IC designation,
-;	and continues with checksum for further ROMS, or 0000 if no 
+;	and continues with checksum for further ROMS, or 0000 if no
 ;	more ROMs are expected.
 ;
 
 rom_table_rom128k
 
 	defw	0xdcec, str_rom128_fail, 0x0000
-	
+
 rom_table_rom128esp
 
 	defw	0xc154, str_rom128_fail, 0x0000
-	
+
 rom_table_romplus2
 
 	defw	0xb0a2, str_romplus2_fail, 0x0000
 
 rom_table_romplus2esp
-	
+
 	defw	0x3dfd, str_romplus2_fail, 0x0000
 
 rom_table_romplus2fra
 
 	defw	0x1b07, str_romplus2_fail, 0x0000
-	
+
 rom_table_romplus2a
 
 	defw	0xe797, str_romplus3_a_fail, 0xf991, str_romplus3_b_fail, 0xbeeb, str_romplus3_b_fail, 0x0000
-	
+
 rom_table_romplus3
 
 	defw	0xa624, str_romplus3_a_fail, 0xea97, str_romplus3_b_fail, 0x8a9b, str_romplus3_b_fail, 0x0000
@@ -1348,23 +1348,23 @@ rom_table_js128
 str_rom128_fail
 
 	defb 	"IC5", 0
-	
+
 str_romplus2_fail
 
 	defb	"IC8", 0
-	
+
 str_romplus3_a_fail
 
 	defb	"IC7", 0
-	
+
 str_romplus3_b_fail
 
 	defb 	"IC8", 0
-	
+
 str_romjs128_fail
 
 	defb	"U18", 0
-	
+
 ;
 ;	ROM ID Strings
 ;
@@ -1373,7 +1373,7 @@ str_rom48k
 	defb	"Spectrum 16/48K ROM...      ", 0
 
 str_rom48kbeckman
-	
+
 	defb 	"Beckman Spectrum 48K ROM... ", 0
 
 str_rom128k
@@ -1387,7 +1387,7 @@ str_rom128esp
 str_js128
 
 	defb	"Just Speccy 128 ROM...          ", 0
-	
+
 str_romplus2
 
 	defb	"Spectrum +2 (Grey) ROM...   ", 0
@@ -1430,8 +1430,8 @@ str_harlequin_f
 
 str_romdiagboard
 
-	defb	AT, 4, 0, "Diagboard or SMART Card not detected", 0
-	
+	defb	AT, 4, 0, "Diagnostic hardware not detected", 0
+
 ;
 ;	Table to define pointers to test routines
 ;
@@ -1616,23 +1616,23 @@ str_check_plus3_ula
 str_check_ic
 
 	defb	"Check the following IC's:\n", 0
-	
+
 str_ic
 
 	defb "IC", 0
 str_u
 
 	defb "U", 0
-	
+
 str_check_rom
 
 	defb "Check ROM (", 0
-	
+
 str_check_rom_2
 
 	defb ")\n", 0
-	 
-; 	
+
+;
 ;	This ISR operates in two modes.
 ;	If I = 0, then we are in lower RAM test mode. If ints are
 ;	enabled here, lower RAM testing as failed, so unconditionally
@@ -1652,7 +1652,7 @@ isr_main
 	pop af
 	jp fail_border
 isr_2
-	
+
 	push hl
 	push de
 	push bc
@@ -1707,22 +1707,22 @@ str_rommagicstring
 ;
 fail_ram_bitmap
 
-	defb %00000000, %00000000, %00000000, %00000000 
-	defb %01100010, %01010000, %11100100, %11101000 
-	defb %01010101, %01110000, %10001010, %01001000 
-	defb %01010101, %01110000, %11001010, %01001000 
-	defb %01100111, %01010000, %10001110, %01001000 
-	defb %01010101, %01010000, %10001010, %01001000 
-	defb %01010101, %01010000, %10001010, %11101110 
-	defb %00000000, %00000000, %00000000, %00000000 
- 
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %01100010, %01010000, %11100100, %11101000
+	defb %01010101, %01110000, %10001010, %01001000
+	defb %01010101, %01110000, %11001010, %01001000
+	defb %01100111, %01010000, %10001110, %01001000
+	defb %01010101, %01010000, %10001010, %01001000
+	defb %01010101, %01010000, %10001010, %11101110
+	defb %00000000, %00000000, %00000000, %00000000
+
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
-	BLOCK 0x3ae0-$, 0xff	
-	
+	BLOCK 0x3ae0-$, 0xff
+
 str_bit_ref
-	
+
 	defb "0 ", 0, 0,  "1 ", 0, 0, "2 ", 0, 0, "3 ", 0, 0, "4 ", 0, 0, "5 ", 0, 0, "6 ", 0, 0, "7 ", 0, 0
 
 str_48_ic
@@ -1768,9 +1768,15 @@ str_plus3_ic_uncontend
 
 	include "charset.asm"
 
-;	Fill ROM space up to 0x3FFF with FF's
 
-	BLOCK 0x4000-$, 0xff
+;	Fill ROM space up to 0x3FBF with FF's
+
+	BLOCK 0x3FC0-$, 0xff
+
+;	3FC0 to 3FFF must be left unused for compatibility with the
+;	ZXC3/ZXC4 cartridge paging mechanism.
+
+	BLOCK 0x4000-$, 0x00
 
 ;	Define the system variable locations in upper RAM
 
