@@ -1,0 +1,6 @@
+@echo off
+echo Building Spectranet Test ROM module...
+sjasmplus testmodule.sjasm
+echo Building tape image...
+bin2tap -a 32768 -o testmodule.tap testmodule.bin
+echo Done!
