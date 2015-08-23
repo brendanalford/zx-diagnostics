@@ -29,7 +29,9 @@
 	include "..\version.asm"
 	include "spectranet.asm"
 
-v_border	equ 0x3fef
+	LUA ALLPASS
+	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
+	ENDLUA
 	
 	org 0x2000
 
@@ -256,49 +258,14 @@ tests_done
 	
 	ld hl, str_16kpassed
 	call PRINT42
-	
-	ld hl, str_furthertests
-	call PRINT42
-	call GETKEY
-	cp 'c'
+	ld hl, 0xbb00
+	rst MODULECALL_NOPAGE
+	ret nc
+	cp 0xff
 	ret nz
-	
-	ld hl, str_bootstrap
+	ld hl, str_modulefail
 	call PRINT42
 	call GETKEY
-	
-;	Load the tape based tests from remote host
-
-	
-	ld hl, str_bootstrap_host
-	ld de, 0x5b00
-	call GETHOSTBYNAME
-	jr c, bootstrap_error
-	ret
-	
-	ld c, 1 ;SOCK_STREAM
-	call SOCKET
-	jr c, bootstrap_error
-	ld (0x5b04), a
-	
-	ld de, 0x5b00
-	ld bc, 80
-	call CONNECT
-	jr c, bootstrap_error
-
-success
-
-	ld hl, str_bootstrap_success
-	call PRINT42
-	
-success_2
-
-	jr success_2
-	
-bootstrap_error
-
-	ld hl, str_bootstrap_error
-	call PRINT42
 	ret
 	
 initroutine
@@ -347,17 +314,23 @@ test_cmd
 	call PRINT42
 	ret
 	
-	
 parsetable
 
 	defb 0x0b
 	defw test_cmd_string
 	defb 0xff
-	defw modulecall
-		
+	defw print_version
+	
+print_version
+
+	call CLEAR42
+	ld hl, str_version
+	call PRINT42
+	ret
+	
 test_cmd_string
 
-	defb "%test", 0
+	defb "%zxdiags", 0
 	
 fail_ram_bitmap
 
@@ -389,7 +362,13 @@ str_cmd_fail
 	
 str_identity
 
-	defb "ZX-Diagnostics ", VERSION, 0 
+	defb "ZX-Diagnostics ", VERSION, " [1/2]", 0 
+	
+str_version
+
+	defb "ZX-Diagnostics ", VERSION, " B. Alford, D. Smith\n"
+	defb "Build: ", BUILD_TIMESTAMP, "\n"
+	defb "http://github.io/vkf1o\n", 0
 	
 str_press_r
 
@@ -411,32 +390,14 @@ str_failedbits
 
 	defb "Failed bit locations: ", 0
 	
-str_furthertests
-
-	defb "Press C to continue tests, or any other\nkey to exit.\n", 0
-	
-str_bootstrap
-
-	defb "Requesting test code from server...\n", 0
-	
-str_bootstrap_host
-
-	defb "www.bennyalford.com", 0
-	
-str_bootstrap_httpget
-
-	defb "GET /testrammain.bin HTTP/1.0\n", 0
-	
-str_bootstrap_error
-
-	defb "Could not retrieve test code.\n", 0
-	
-str_bootstrap_success
-
-	defb "Test code loaded, starting...\n", 0
 	
 str_pressanykey
 
 	defb "Press any key to continue.\n\n", 0
+	
+str_modulefail
+
+	defb "FATAL: Error calling ROM module", 0
+	
 	
 	BLOCK 0x2fff-$, 0xff
