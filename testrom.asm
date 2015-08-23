@@ -142,6 +142,14 @@ start
 	in a, (c)
 	bit 1, a
 	jr nz, start_testing
+	
+;	Andrew Bunker special :) Check if FIRE button of Kempston is being held,
+;	initiate soak tests if so
+
+	xor a
+	in a, 0x1f
+	bit 4, a
+	jr z, start_testing
 
 	ld iy, 1	; Soak testing - start at iteration 1
 	BEEP 0x10, 0x300
@@ -228,18 +236,15 @@ lower_ram_fail
 ;	Set a black border here too
 ;
 
-	ld hl, 0x5900
-	ld de, 0x5901
-	ld bc, 0xff
+	ld hl, 0x5880
+	ld de, 0x5881
+	ld bc, 0x1ff
 	ld (hl), 0
 	ldir
 
-	xor a
-	out (ULA_PORT), a
-
 	ld hl, fail_ram_bitmap
-	ld de, 0x5900
-	ld b, 0x20
+	ld de, 0x5880
+	ld b, 0x40
 
 fail_msg_loop
 
@@ -264,8 +269,52 @@ fail_msg_next
 
 	inc hl
 	dec b
-
 	jr nz, fail_msg_loop
+	
+	
+;	Blank out the working RAM digits
+
+	ld hl, 0x5980
+	ld c, ixh
+
+	ld d, 8
+	
+fail_bits_outer_loop
+
+	ld b, 8
+	
+fail_bits_loop
+
+	bit 0, c
+	jr nz, fail_bits_ok
+	ld a, 0
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	inc hl
+	jr fail_bits_next
+	
+fail_bits_ok
+
+	inc hl
+	inc hl
+	inc hl
+	inc hl
+	
+fail_bits_next
+
+	rrc c
+	djnz fail_bits_loop
+	
+	dec d
+	ld a, d
+	cp 0
+	jr nz, fail_bits_outer_loop
+	
 
 ;
 ;	Lower RAM failure detected, default ISR with I=0
@@ -1253,180 +1302,7 @@ diagrom_exit
 	include "ulatest.asm"
 	include "keyboardtest.asm"
 	include "membrowser.asm"
-;
-;	Table to define ROM signatures.
-;	Format is initial ROM checksum (ROM 0 in 128 machines),
-;	identification string, upper RAM test routine location
-;	and address of further ROM test table (0000 if 48K machine)
-;
-
-rom_signature_table
-
-	defw 0xfd5e, str_rom48k, test_48k, 0x0000
-	defw 0xafcf, str_rom48kbeckman, test_48k, 0x0000
-	defw 0xeffc, str_rom128k, test_128k, rom_table_rom128k
-	defw 0x3a1f, str_rom128esp, test_128k, rom_table_rom128esp
-	defw 0x2aa3, str_romplus2, test_plus2, rom_table_romplus2
-	defw 0x3567, str_romplus2esp, test_plus2, rom_table_romplus2esp
-	defw 0xd3b4, str_romplus2fra, test_plus2, rom_table_romplus2fra
-	defw 0x3998, str_romplus2a, test_plus3,	rom_table_romplus2a
-	defw 0x88f9, str_romplus3, test_plus3, rom_table_romplus3
-	defw 0x5a18, str_romplus3esp, test_plus3, rom_table_romplus3esp
-
-;	Some +3E ROM sets that might be out there
-
-	defw 0x8dfe, str_romplus3e_v1_38, test_plus3, rom_table_romplus3e_v1_38
-	defw 0xcaf2, str_romplus3e_v1_38esp, test_plus3, rom_table_romplus3e_v1_38esp
-
-;	Soviet clones that some people are inexplicably fond of :)
-
-	defw 0xe2ec, str_orelbk08, test_48kgeneric, 0x0000
-
-;	Just Speccy 128 clone
-
-	defw 0xb023, str_js128, test_js128, rom_table_js128
-
-;	Harlequin Rev F
-
-	defw 0x669e, str_harlequin_f, test_48kgeneric, 0x0000
-
-;	End of ROM table
-	defw 0x0000
-
-;
-;	Tables specifying rest of checksums for a particular machine.
-;	Format starts with checksum for ROM 1, fail IC designation,
-;	and continues with checksum for further ROMS, or 0000 if no
-;	more ROMs are expected.
-;
-
-rom_table_rom128k
-
-	defw	0xdcec, str_rom128_fail, 0x0000
-
-rom_table_rom128esp
-
-	defw	0xc154, str_rom128_fail, 0x0000
-
-rom_table_romplus2
-
-	defw	0xb0a2, str_romplus2_fail, 0x0000
-
-rom_table_romplus2esp
-
-	defw	0x3dfd, str_romplus2_fail, 0x0000
-
-rom_table_romplus2fra
-
-	defw	0x1b07, str_romplus2_fail, 0x0000
-
-rom_table_romplus2a
-
-	defw	0xe797, str_romplus3_a_fail, 0xf991, str_romplus3_b_fail, 0xbeeb, str_romplus3_b_fail, 0x0000
-
-rom_table_romplus3
-
-	defw	0xa624, str_romplus3_a_fail, 0xea97, str_romplus3_b_fail, 0x8a9b, str_romplus3_b_fail, 0x0000
-
-
-rom_table_romplus3esp
-
-	defw	0xfe38, str_romplus3_a_fail, 0x6f7d, str_romplus3_b_fail, 0xfb2c, str_romplus3_b_fail, 0x0000
-
-rom_table_romplus3e_v1_38
-
-	defw	0x5004, str_romplus3_a_fail, 0x49e7, str_romplus3_b_fail, 0x8a9b, str_romplus3_b_fail, 0x0000
-
-rom_table_romplus3e_v1_38esp
-
-	defw	0xf4be, str_romplus3_a_fail, 0xd440, str_romplus3_b_fail, 0xfb2c, str_romplus3_b_fail, 0x0000
-
-rom_table_js128
-
-	defw	0xd8d8, str_romjs128_fail, 0x0000
-
-str_rom128_fail
-
-	defb 	"IC5", 0
-
-str_romplus2_fail
-
-	defb	"IC8", 0
-
-str_romplus3_a_fail
-
-	defb	"IC7", 0
-
-str_romplus3_b_fail
-
-	defb 	"IC8", 0
-
-str_romjs128_fail
-
-	defb	"U18", 0
-
-;
-;	ROM ID Strings
-;
-str_rom48k
-
-	defb	"Spectrum 16/48K ROM...      ", 0
-
-str_rom48kbeckman
-
-	defb 	"Beckman Spectrum 48K ROM... ", 0
-
-str_rom128k
-
-	defb	"Spectrum 128K ROM...        ", 0
-
-str_rom128esp
-
-	defb	"Spectrum 128K (Spanish) ROM...  ", 0
-
-str_js128
-
-	defb	"Just Speccy 128 ROM...          ", 0
-
-str_romplus2
-
-	defb	"Spectrum +2 (Grey) ROM...   ", 0
-
-str_romplus2esp
-
-	defb	"Spectrum +2 (Spanish) ROM...    ", 0
-
-str_romplus2fra
-
-	defb	"Spectrum +2 (French) ROM...    ", 0
-
-str_romplus3
-
-	defb	"Spectrum +3 (v4.0) ROM...   ", 0
-
-str_romplus2a
-
-	defb    "Spectrum +2A (v4.1) ROM...  ", 0
-
-str_romplus3esp
-
-	defb	"Spectrum +2A/+3 (Spanish) ROM... ", 0
-
-str_romplus3e_v1_38
-
-	defb 	"Spectrum +3E v1.38 ROM...   ", 0
-
-str_romplus3e_v1_38esp
-
-	defb	"Spectrum +3E v1.38 (Spanish) ROM... ", 0
-
-str_orelbk08
-
-	defb	"Orel BK-08 ROM...           ", 0
-
-str_harlequin_f
-
-	defb	"Harlequin Rev. F...         ", 0
+	include "romtables.asm"
 
 str_romdiagboard
 
@@ -1715,7 +1591,16 @@ fail_ram_bitmap
 	defb %01010101, %01010000, %10001010, %01001000
 	defb %01010101, %01010000, %10001010, %11101110
 	defb %00000000, %00000000, %00000000, %00000000
-
+	
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %01000100, %01001110, %00101110, %01101110
+	defb %10101100, %10100010, %10101000, %10000010
+	defb %10100100, %00100100, %10100100, %11000100
+	defb %10100100, %01000010, %11100010, %10100100
+	defb %10100100, %10001010, %00101010, %10101000
+	defb %01001110, %11100100, %00100100, %01001000
+	defb %00000000, %00000000, %00000000, %00000000	
+	
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
