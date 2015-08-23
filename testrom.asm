@@ -147,7 +147,7 @@ start
 ;	initiate soak tests if so
 
 	xor a
-	in a, 0x1f
+	in a, (0x1f)
 	bit 4, a
 	jr z, start_testing
 
