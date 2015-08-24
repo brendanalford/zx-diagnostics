@@ -323,10 +323,13 @@ parsetable
 	
 print_version
 
+	call STATEMENT_END
+	
 	call CLEAR42
 	ld hl, str_version
 	call PRINT42
-	ret
+
+	jp EXIT_SUCCESS
 	
 test_cmd_string
 
@@ -362,11 +365,11 @@ str_cmd_fail
 	
 str_identity
 
-	defb "ZX-Diagnostics ", VERSION, " [1/2]", 0 
+	defb "ZX Diagnostics ", VERSION, " [1/2]", 0 
 	
 str_version
 
-	defb "ZX-Diagnostics ", VERSION, " B. Alford, D. Smith\n"
+	defb "ZX Diagnostics ", VERSION, "  B. Alford, D. Smith\n"
 	defb "Build: ", BUILD_TIMESTAMP, "\n"
 	defb "http://github.io/vkf1o\n", 0
 	

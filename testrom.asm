@@ -141,7 +141,7 @@ start
 	ld bc, 0xfdfe
 	in a, (c)
 	bit 1, a
-	jr nz, start_testing
+	jr z, enable_soak_test
 	
 ;	Andrew Bunker special :) Check if FIRE button of Kempston is being held,
 ;	initiate soak tests if so
@@ -149,7 +149,11 @@ start
 	xor a
 	in a, (0x1f)
 	bit 4, a
-	jr z, start_testing
+	jr nz, enable_soak_test
+
+	jr start_testing
+	
+enable_soak_test
 
 	ld iy, 1	; Soak testing - start at iteration 1
 	BEEP 0x10, 0x300
