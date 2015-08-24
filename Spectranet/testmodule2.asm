@@ -292,6 +292,10 @@ fail_bits_next
 	call GETKEY
 	ret
 
+;
+;	Lower RAM tests done, say so then call Module 1
+;	to continue testing.
+;
 tests_done
 	
 	ld hl, str_16kpassed
@@ -305,7 +309,7 @@ tests_done
 	cp 0xff
 	ret nz
 
-;	Module 2 was not called successfully.
+;	Module 1 was not called successfully.
 
 	ld hl, str_modulefail
 	call PRINT42
@@ -340,6 +344,15 @@ print_version
 	call PRINT42
 
 	jp EXIT_SUCCESS
+	
+	include "..\romtables.asm"
+
+test_48k
+test_128k
+test_plus2
+test_plus3
+test_48kgeneric
+test_js128
 	
 test_cmd_string
 

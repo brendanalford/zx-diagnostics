@@ -85,8 +85,6 @@ test_ram_page
 	ld (v_paging), a
 	ld hl, v_paging
 	call print
-	ld hl, str_dblbackspace
-	call print
 
 	xor a
 	ld (v_fail_ic), a
@@ -97,25 +95,50 @@ test_ram_page
 ;	to keep track of the current page being tested.
 	
 	push bc
-	SAVESTACK
-	WALKLOOP 49152,16384
-	TESTRESULT128
 
-	ALTPATA 49152, 16384, 0 
-	ALTPATA 49152, 16384, 255
-	ALTPATB 49152, 16384, 0
-	ALTPATB 49152, 16384, 255
-	TESTRESULT128
+	ld hl, 49152
+	ld de, 16384
+	call walkloop
+	call testresult128
 
-	MARCHTEST 49152, 16384
-	TESTRESULT128
+	ld hl, 49152
+	ld bc, 16384
+	ld d, 0
+	call altpata
+
+	ld hl, 49152
+	ld bc, 16384
+	ld d, 255
+	call altpata
+
+	ld hl, 49152
+	ld bc, 16384
+	ld d, 0
+	call altpatb
+
+	ld hl, 49152
+	ld bc, 16384
+	ld d, 255
+	call altpatb
+	call testresult128
+
+	ld hl, 49152
+	ld bc, 16384
+	call marchtest
+	call testresult128
 	
-	RANDFILLUP 49152, 8192, 11
-	RANDFILLDOWN 65534, 8191, 17
+	
+	ld hl, 49152
+	ld de, 8192
+	ld bc, 11
+	call randfillup
+	
+	ld hl, 65534
+	ld de, 8191
+	ld bc, 17
+	call randfilldown
+	call testresult128
 
-	TESTRESULT128
-
-	RESTORESTACK
 	pop bc
 
 ; Check if we got a failure for this bank
@@ -178,14 +201,6 @@ test_ram_fail_contend
 
 test_ram_page_next
 	
-;	First write the pass/fail attribute back
-
-	ld (v_attr), a
-	ld hl, v_paging
-	call print
-	ld a, 56
-	ld (v_attr), a
-
 test_ram_page_skip
 
 	inc b
@@ -330,9 +345,6 @@ skip_write_page5
 ;	Pages all written, now page each one back in turn
 ;	and verify that the expected pattern is in each one.
 
-	;ld a, 128
-	;FLASH
-
 	ld a, 0
 	ld b, a
 
@@ -351,8 +363,6 @@ test_read_paging
 	or 0x30
 	ld (v_paging), a
 	ld hl, v_paging
-	call print
-	ld hl, str_dblbackspace
 	call print
 
 ; Test the full page to see if it matches what was written
@@ -377,19 +387,6 @@ test_read_loop
 	or l
 	jr nz, test_read_loop
 
-;	Attrs - red text 
-
-	ld a, 60
-	ld (v_attr), a
-
-	ld hl, v_paging
-	call print
-
-;	Attrs back to normal black
-
-	ld a, 56
-	ld (v_attr), a
-
 skip_read_page5
 
 ;	Any more pages to test paging with?
@@ -408,13 +405,6 @@ skip_read_page5
 	ret
 
 test_paging_fail
-
-	ld a, 58
-	ld (v_attr), a
-	ld hl, v_paging
-	call print
-	ld a, 56
-	ld (v_attr), a
 
 ;	Give the user the bad news
 
@@ -463,32 +453,3 @@ plus3_ula_msg
 ;	Inputs: A=attribute to paint
 ;
 	
-set_page_success_status
-
-	push hl
-	push af
-
-	ld a, (v_row)
-	srl a
-	srl a
-	srl a
-	and 3
-	or 0x58
-	ld h, a
-	ld a, (v_row)
-	sla a
-	sla a
-	sla a
-	sla a
-	sla a
-	ld l, a
-	ld a, (v_column)
-	dec a
-	dec a
-	add a, l
-	ld l, a
-
-	pop af
-	ld (hl), a
-	pop hl
-	ret
