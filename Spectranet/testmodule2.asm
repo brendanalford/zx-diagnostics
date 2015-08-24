@@ -35,6 +35,9 @@
 	include "..\version.asm"
 	include "spectranet.asm"
 	
+CALLBAS equ 0x0010
+ZXNEWLINE equ 0x0D	; ZX print routine newline
+	
 ; store variables within spectranet's buf_workspace area
 v_sockfd equ 0x3D00
 v_connfd equ 0x3D01
@@ -435,11 +438,26 @@ print_version
 
 	call STATEMENT_END
 	
-	call CLEAR42
+	rst CALLBAS
+	defw 0x0D6B	; CLS
+	
+	rst CALLBAS
+	defw 0x1642	; Channel S
+
 	ld hl, str_version
-	call PRINT42
+	call zx_print
 
 	jp EXIT_SUCCESS
+
+zx_print
+	ld a, (hl)
+	and a
+	ret z
+	rst CALLBAS
+	defw 0x10	; print character using ROM routine
+	inc hl
+	jr zx_print
+
 	
 	include "..\romtables.asm"
 
@@ -488,10 +506,11 @@ str_identity
 	
 str_version
 
-	defb "ZX Diagnostics ", VERSION, "  B. Alford, D. Smith\n"
-	defb "Installer by ZXGuesser\n"
-	defb "Build: ", BUILD_TIMESTAMP, "\n"
-	defb "http://git.io/vkf1o\n", 0
+	defb "ZX Diagnostics ", VERSION, ZXNEWLINE
+	defb "B. Alford, D. Smith", ZXNEWLINE
+	defb "http://git.io/vkf1o", ZXNEWLINE, ZXNEWLINE
+	defb "Installer by ZXGuesser", ZXNEWLINE, ZXNEWLINE
+	defb "Build: ", BUILD_TIMESTAMP, ZXNEWLINE, 0
 	
 str_press_t
 
