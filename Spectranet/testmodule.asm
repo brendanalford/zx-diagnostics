@@ -56,16 +56,14 @@ modulecall
 	call PRINT42
 	call GETKEY
 	
-loop
-	jr loop
-	
+	ret
 ;
 ;	Text strings
 ;
 
 str_callok
 
-	defb "Now running from ROM image 0xBA!",0
+	defb "Now running from ROM image 0xBA!\n",0
 
 
 str_ic

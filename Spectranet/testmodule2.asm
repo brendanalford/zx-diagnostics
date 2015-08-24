@@ -34,6 +34,11 @@
 	include "..\defines.asm"
 	include "..\version.asm"
 	include "spectranet.asm"
+	
+; store variables within spectranet's buf_workspace area
+v_sockfd equ 0x3D00
+v_connfd equ 0x3D01
+netflag equ 0x3D02
 
 	LUA ALLPASS
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
@@ -87,15 +92,21 @@ press_t_loop
 
 run_tests
 
-	;	Blank the screen, (and all lower RAM)
-
-	BLANKMEM 16384, 16384, 0
-
 ;	Sound a brief tone to indicate tests are starting.
 ;	This also verifies that the CPU and ULA are working.
 
 	ld l, 1				; Border colour to preserve
 	BEEP 0x48, 0x0300
+
+	ld hl, str_waiting
+	call PRINT42
+	call waitforconnection
+	ret c				; fatal error
+
+	;	Blank the screen, (and all lower RAM)
+	BLANKMEM 16384, 16384, 0
+
+	ld l, 1				; Border colour to preserve
 	BEEP 0x23, 0x0150
 
 start_testing
@@ -170,9 +181,9 @@ lowerram_random
 ;	Lower memory is no good, give up now.
 
 	ld hl, str_16kfailed
-	call PRINT42
+	call outputstring
 	ld hl, str_failedbits
-	call PRINT42
+	call outputstring
 	
 	ld c, ixh
 	ld b, 0
@@ -184,9 +195,9 @@ fail_loop
 	ld a, b
 	add '0'
 	push bc
-	call PUTCHAR42
+	call outputchar
 	ld a, ' '
-	call PUTCHAR42
+	call outputchar
 	pop bc
 	
 fail_next
@@ -198,7 +209,7 @@ fail_next
 	jr nz, fail_loop
 	
 	ld a, '\n'
-	call PUTCHAR42
+	call outputchar
 	
 	
 ;
@@ -288,28 +299,112 @@ fail_bits_next
 ;	Wait for a key, then exit.
 
 	ld hl, str_pressanykey
-	call PRINT42
-	call GETKEY
+	call outputstring
+	call waitkey
 	ret
 
 tests_done
 	
 	ld hl, str_16kpassed
-	call PRINT42
+	call outputstring
 	ld hl, 0xBA00
 	rst MODULECALL_NOPAGE
 	
 ;	return to here from modulecall
-
-	ret nc
-	cp 0xff
-	ret nz
-
+	jr c, modulecallerror
+	
+	ld a, (v_connfd)
+	call CLOSE			; close the connection
+	jp closesocket		; close our socket and return
+	
+modulecallerror
 ;	Module 2 was not called successfully.
-
 	ld hl, str_modulefail
+	call outputstring
+	call waitkey
+	ret
+
+;
+;	wait for an incoming connection or the user to press L
+;
+waitforconnection
+
+	ld c, SOCK_STREAM	; open a TCP socket
+	call SOCKET
+	jp c, sockerror
+	ld (v_sockfd), a	; save the socket
+	ld de, 23			; bind it to the telnet port
+	call BIND
+	jp c, sockerror
+	ld a, (v_sockfd)
+	call LISTEN
+	jp c, sockerror
+	
+acceptloop
+	ld bc, 0xBFFE
+	in a,(c)
+	bit 1, a
+	jr z, uselocal		; user pressed L so forget network stuff
+	ld a, (v_sockfd)
+	call POLLFD			; poll our socket
+	jr z, acceptloop	; socket is not ready
+	ld a, (v_sockfd)
+	call ACCEPT
+	jp c, sockerrorclose
+	ld (v_connfd),a		; save connection descriptor
+	ld a,1
+	ld (netflag), a		; use network ui
+	ret
+
+uselocal
+	xor a
+	ld (netflag), a		; use local ui
+closesocket
+	ld a, (v_sockfd)
+	call CLOSE
+	jp c, sockerror
+	ret
+	
+sockerrorclose
+	ld a, (v_sockfd)
+	call CLOSE
+sockerror
+	ld hl, str_sockerror
 	call PRINT42
 	call GETKEY
+	scf
+	ret
+
+outputstring
+	ld a,(netflag)
+	cp 0
+	jr nz, outputstringnet
+	call PRINT42
+	ret
+outputstringnet
+	; todo: implement this
+	ret
+
+outputchar
+	ld b,a
+	ld a,(netflag)
+	cp 0
+	jr nz, outputcharnet
+	ld a,b
+	call PUTCHAR42
+	ret
+outputcharnet
+	; todo: implement this
+	ret
+
+waitkey
+	ld a,(netflag)
+	cp 0
+	jr nz, waitkeynet
+	call GETKEY
+	ret
+waitkeynet
+	;todo: implement this
 	ret
 
 ;
@@ -402,7 +497,10 @@ str_16kfailed
 str_failedbits
 
 	defb "Failed bit locations: ", 0
-	
+
+str_waiting
+
+	defb "Waiting for connection\nPress L for local output\n", 0
 	
 str_pressanykey
 
@@ -411,6 +509,8 @@ str_pressanykey
 str_modulefail
 
 	defb "FATAL: Error calling ROM module", 0
-	
+
+str_sockerror
+	defb "FATAL: Socket error",0
 	
 	BLOCK 0x2fff-$, 0xff
