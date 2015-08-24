@@ -5,9 +5,9 @@ if not exist "%~n1%~x1" goto filenotfound
 if not "%~x1"==".module" goto notamodule
 if %~z1 GTR 4096 goto filetoobig
 
-bin2tap.exe "%~n1%~x1" -o module.tap -a 36864
-copy /b "%~d0%~p0installer-dist" + module.tap %~n1.pkg > NUL
-del module.tap
+bin2tap.exe "%~n1%~x1" -o data.tap -a 36864
+copy /b "%~d0%~p0installer-dist" + data.tap %~n1.pkg > NUL
+del data.tap
 echo load installer with '%%tapein %~n1.pkg' and 'LOAD ""'
 goto :EOF
 
