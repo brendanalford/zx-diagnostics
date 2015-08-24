@@ -4,4 +4,4 @@
   define LENGTH 0x1000
   device zxspectrum48
   include testmodule2.asm
-  savebin "testmodule2.bin",ORG,LENGTH
+  savebin "testmodule2.module",ORG,LENGTH
