@@ -380,6 +380,7 @@ str_identity
 str_version
 
 	defb "ZX Diagnostics ", VERSION, "  B. Alford, D. Smith\n"
+	defb "Installer by ZXGuesser\n"
 	defb "Build: ", BUILD_TIMESTAMP, "\n"
 	defb "http://git.io/vkf1o\n", 0
 	
