@@ -53,7 +53,39 @@
 	defw 0xffff			; Reserved
 	defw str_identity	; Identity string
 
-modulecall
+	ret                 ; this module doesn't need to service modulecalls
+
+initroutine
+
+	call test_cmd		; install basic extension
+
+; 	see if the user's pressing 't' to initiate testing
+
+	ld hl, str_press_t
+	call PRINT42
+	
+	ld bc, 0xffff
+	
+press_t_loop
+
+	push bc
+	ld bc, 0xfbfe
+	in a, (c)
+	pop bc
+	bit 4, a
+	jr z, run_tests
+	dec bc
+	ld a, b
+	or c
+	jr nz, press_t_loop
+	
+;	T not pressed, exit and allow other ROMs to init
+
+	ld hl, str_not_testing
+	call PRINT42
+	ret
+
+run_tests
 
 	;	Blank the screen, (and all lower RAM)
 
@@ -267,8 +299,7 @@ tests_done
 	ld hl, 0xBA00
 	rst MODULECALL_NOPAGE
 	
-;	Not sure we should ever get back here - check the MODULECALL 
-;	result just in case
+;	return to here from modulecall
 
 	ret nc
 	cp 0xff
@@ -280,43 +311,9 @@ tests_done
 	call PRINT42
 	call GETKEY
 	ret
-	
-initroutine
-
-; 	First see if the user's pressing 'r' to initiate testing
-
-	ld hl, str_press_r
-	call PRINT42
-	
-	ld bc, 0xffff
-	
-press_r_loop
-
-	push bc
-	ld bc, 0xfbfe
-	in a, (c)
-	pop bc
-	bit 4, a
-	jr z, run_tests
-	dec bc
-	ld a, b
-	or c
-	jr nz, press_r_loop
-	
-;	R not pressed, exit and allow other ROMs to init
-
-	ld hl, str_not_testing
-	call PRINT42
-	call test_cmd
-	ret
-
-run_tests
-
-	call modulecall
-	ret
 
 ;
-;	Implementation of the '.test' command
+;	Implementation of the '%zxdiags' basic extension
 ;	
 test_cmd
 
@@ -384,9 +381,9 @@ str_version
 
 	defb "ZX Diagnostics ", VERSION, "  B. Alford, D. Smith\n"
 	defb "Build: ", BUILD_TIMESTAMP, "\n"
-	defb "http://github.io/vkf1o\n", 0
+	defb "http://git.io/vkf1o\n", 0
 	
-str_press_r
+str_press_t
 
 	defb "\nZX-Diagnostics: Press T to initiate tests\n", 0
 	

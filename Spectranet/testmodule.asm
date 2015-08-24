@@ -37,7 +37,7 @@
 
 	defb 0xAA			; Code module
 	defb 0xba			; ROM identity - needs to change
-	defw initroutine	; Address of reset vector
+	defw 0xffff			; No init routine 
 	defw 0xffff			; Mount vector - unused
 	defw 0xffff			; Reserved
 	defw 0xffff			; Address of NMI Routine
@@ -59,14 +59,6 @@ modulecall
 loop
 	jr loop
 	
-;
-;	No init routine - this ROM should not respond to reset or any other events
-;
-
-initroutine
-
-	ret
-
 ;
 ;	Text strings
 ;
