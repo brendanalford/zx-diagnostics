@@ -54,7 +54,7 @@ is_upper_ram_present
 	
 	call newline
 	ld hl, str_isthis16k
-	call print
+	call outputstring
 	
 ;	Don't flag errors if all upper RAM failed
 
@@ -75,14 +75,14 @@ print_upperresult
    	cp 0
 	jr z, print_upperpass
 	ld hl, str_48ktestsfail
-	call print
+	call outputstring
 	
 ; If possible, output the failing IC's to the screen
 
 print_upper_ic
 
 	ld hl, str_check_ic
-	call print
+	call outputstring
 
 	ld a, (v_fail_ic)
 	ld d, a
@@ -90,8 +90,8 @@ print_upper_ic
 
 	call print_fail_ic
 
-	ld hl, str_newline
-	call print
+	ld hl, RETURN
+	call outputstring
 	ret 
 
 ;	Upper RAM tests passed, give the user the good news
@@ -99,7 +99,7 @@ print_upper_ic
 print_upperpass
 
 	ld hl, str_48ktestspass
-	call print
+	call outputstring
 	
 ;	48K tests passed at this point
 
@@ -127,7 +127,7 @@ test_48kgeneric
     	cp 0
 	jr z, print_upperpass_gen
 	ld hl, str_48ktestsfail
-	call print
+	call outputstring
 
 ;	If all upper RAM IC's tested faulty, then
 ;	chances are we're a 16K Spectrum
@@ -141,7 +141,7 @@ test_48kgeneric
 	ld ixh, 0
 	
 	ld hl, str_isthis16k
-	call print
+	call outputstring
 	
 ;	Don't flag errors if all upper RAM failed
 
@@ -154,7 +154,7 @@ test_48kgeneric
 print_upper_ic_gen
 
 	ld hl, str_check_bits
-	call print
+	call outputstring
 
 	ld a, (v_fail_ic)
 	ld d, a
@@ -169,7 +169,7 @@ fail_print_bit_loop
 ;	Bad IC, print out the corresponding location for a 48K machine
 
 	ld hl, str_bit
-	call print
+	call outputstring
 	ld hl, ix
 
 ;	Strings are aligned to nearest 32 bytes, so we can just replace
@@ -181,7 +181,7 @@ fail_print_bit_loop
 	or l
 	ld l, a
 
-	call print
+	call outputstring
 	ld a, 5
 
 bit_ok
@@ -206,7 +206,7 @@ bit_ok
 print_upperpass_gen
 
 	ld hl, str_48ktestspass
-	call print
+	call outputstring
 	
 ;	48K tests passed at this point
 
@@ -223,7 +223,7 @@ upperram_test
 	ld (v_fail_ic), a
 	
 	ld hl, str_test4
-	call print
+	call outputstring
 
 	call preparehreg
 	ld hl, 32768
@@ -236,7 +236,7 @@ upperram_test
 upperram_inversion
 
 	ld hl, str_test5
-	call print
+	call outputstring
 
 	call preparehreg
 
@@ -267,7 +267,7 @@ upperram_inversion
 upperram_march
 
 	ld hl, str_test6
-	call print
+	call outputstring
 
 	call preparehreg
 
@@ -281,7 +281,7 @@ upperram_march
 upperram_random
 
 	ld hl, str_test7
-	call print
+	call outputstring
 	  
 	call preparehreg
 

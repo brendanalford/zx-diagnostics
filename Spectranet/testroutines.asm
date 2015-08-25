@@ -656,7 +656,7 @@ testresult
 .test.pass
 
 	ld hl, str_testpass
-	call print
+	call outputstring
 	call newline
 
 	jr .test.end
@@ -667,7 +667,7 @@ testresult
 	or b
 	ld (v_fail_ic), a
 	ld hl, str_testfail
-	call print
+	call outputstring
 	call newline
 
 .test.end

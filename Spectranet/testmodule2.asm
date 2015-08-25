@@ -31,6 +31,7 @@
 ;	call anything in the second module via MODULECALL as it hasn't been
 ;	loaded yet!
 
+	include "vars.asm"
 	include "..\defines.asm"
 	include "..\version.asm"
 	include "spectranet.asm"
@@ -106,6 +107,9 @@ run_tests
 
 start_testing
 
+	ld hl, str_commencing_tests
+	call outputstring
+	
 	ld iy, 0
 	add iy, sp
 	
@@ -497,13 +501,21 @@ str_testfail
 
 	defb "FAIL", 0
 	
+str_commence_tests
+
+	defb "Press any key to commence RAM tests.", RETURN, RETURN, 0
+	
+str_commencing_tests
+
+	defb "Commencing Lower/Page 5 RAM tests...", RETURN, 0
+	
 str_16kpassed
 
-	defb "Lower/Page 5 RAM tests passed.\r\n", 0
+	defb "Lower/Page 5 RAM tests passed.", RETURN, 0
 	
 str_16kfailed
 
-	defb "Lower/Page 5 RAM tests failed!\r\n", 0
+	defb "Lower/Page 5 RAM tests failed!", RETURN, 0
 
 str_failedbits
 
@@ -518,7 +530,7 @@ str_connected
 
 str_pressanykey
 
-	defb "Press enter key to continue.\r\n\n", 0
+	defb "Press enter key to continue.", RETURN, RETURN, 0
 	
 str_modulefail
 
@@ -530,4 +542,3 @@ str_sockerror
 	
 	BLOCK 0x2fff-$, 0xff
 
-	include "vars.asm"

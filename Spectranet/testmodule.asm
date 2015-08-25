@@ -25,6 +25,7 @@
 ;	v0.2 modifications and 128K testing by Brendan Alford.
 ;
 	
+	include "vars.asm"
 	include "..\defines.asm"
 	include "..\version.asm"
 	include "spectranet.asm"
@@ -365,10 +366,6 @@ str_testpass
 str_testfail
 
 	defb "FAIL", 0
-	
-str_newline
-
-	defb "\r\n", 0
 		
 str_romcrc	
 
@@ -502,5 +499,3 @@ str_js128_ic_uncontend
 	defb "29 ",0, "28 ",0, "10 ",0, "9  ",0, "30 ",0, "31 ",0, "32 ",0, "33 ", 0
 
 	BLOCK 0x2fff-$, 0xff
-
-	include "vars.asm"
