@@ -113,6 +113,19 @@ blankmem
 altpata
 
 	push hl
+	push de
+	push bc
+	
+	ld a, d
+	ld (hl), a
+	ld de, hl
+	inc de
+	ldir
+	
+	pop bc
+	pop de
+	pop hl
+	push hl
 	push bc
 	
 .altpat1.wrloop1
@@ -188,6 +201,19 @@ altpata
 
 altpatb
 
+	push hl
+	push de
+	push bc
+	
+	ld a, d
+	ld (hl), a
+	ld de, hl
+	inc de
+	ldir
+	
+	pop bc
+	pop de
+	pop hl
 	push hl
 	push bc
 	
@@ -340,8 +366,6 @@ marchtest
 	
 	pop bc
 	pop hl
-	push hl
-	push bc
 	
 	dec bc
 	add hl, bc

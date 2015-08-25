@@ -50,10 +50,13 @@ modulecall
 ;	Page in ROM 0 (if running on 128 hardware) in preparation
 ;	for ROM test.
 
-	ld hl, str_callok
-	call PRINT42
-	call GETKEY
-	
+	ld hl, test_return
+	push hl
+	ld hl, (v_test_rtn)
+	jp hl
+
+test_return
+
 	ret
 	include "..\paging.asm"
 	include "testroutines.asm"
@@ -61,11 +64,6 @@ modulecall
 	include "128tests.asm"
 ;	include "..\romtables.asm"
 	
-
-str_callok
-
-	defb "Now running from ROM image 0xBA!\n",0
-
 ;
 ;	Subroutine to print a list of failing IC's.
 ;   	Inputs: D=bitmap of failed IC's, IX=start of IC number list
@@ -198,7 +196,7 @@ str_test7
 
 str_48ktestspass
 
-	defb	"\n48K RAM Tests Passed", 0
+	defb	"\n48K RAM Tests Passed\n", 0
 
 str_48ktestsfail
 
@@ -232,7 +230,7 @@ str_bankm
 	
 str_128ktestspass
 
-	defb	"\n128K RAM Tests Passed", 0
+	defb	"\n128K RAM Tests Passed\n", 0
 	
 str_128ktestsfail
 
