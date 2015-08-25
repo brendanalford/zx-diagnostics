@@ -169,7 +169,13 @@ fail_print_bit_loop
 ;	Bad IC, print out the corresponding location for a 48K machine
 
 	ld hl, str_bit
+	push bc
+	push de
+	push ix
 	call outputstring
+	pop ix
+	pop de
+	pop bc
 	ld hl, ix
 
 ;	Strings are aligned to nearest 32 bytes, so we can just replace
@@ -181,7 +187,13 @@ fail_print_bit_loop
 	or l
 	ld l, a
 
+	push bc
+	push de
+	push ix
 	call outputstring
+	pop ix
+	pop de
+	pop bc
 	ld a, 5
 
 bit_ok
