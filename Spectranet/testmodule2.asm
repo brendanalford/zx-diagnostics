@@ -372,7 +372,8 @@ acceptloop
 	ld a,1
 	ld (netflag), a		; use network ui
 	call readnetstring	; empty buffer of telnet protocol gubbins
-	ret
+	ld hl, str_connected
+	jp outputstringnet
 
 uselocal
 	xor a
@@ -523,7 +524,10 @@ str_failedbits
 str_waiting
 
 	defb "Waiting for connection\nPress L for local output\n", 0
-	
+
+str_connected
+	defb "Running Lower/Page 5 RAM tests\r\n",0
+
 str_pressanykey
 
 	defb "Press enter key to continue.", RETURN, RETURN, 0
