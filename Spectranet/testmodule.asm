@@ -173,6 +173,13 @@ call_test_routine
 	jp hl
 
 test_return
+	; set paging back as spectranet needs it
+	ld bc, 0x1FFD		; set port 0x1ffd
+	ld a, 0x04
+	out (c), a
+	ld b, 0x7F		; set port 0x7ffd which must be done
+	ld a, 0x10		; second due to toastrack 128K machines
+	out (c), a		; responding also to 0x1ffd
 
 	ret
 	
