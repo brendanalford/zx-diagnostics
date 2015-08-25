@@ -212,6 +212,8 @@ fail_next
 	cp 8
 	jr nz, fail_loop
 	
+	ld a, '\r'
+	call outputchar
 	ld a, '\n'
 	call outputchar
 	
@@ -305,7 +307,10 @@ fail_bits_next
 	ld hl, str_pressanykey
 	call outputstring
 	call waitkey
-	ret
+	
+	ld a, (v_connfd)
+	call CLOSE			; close the connection
+	jp closesocket		; close our socket and return
 
 ;
 ;	Lower RAM tests completed successfully.
@@ -460,6 +465,21 @@ acceptloop
 	ld (v_connfd),a		; save connection descriptor
 	ld a,1
 	ld (netflag), a		; use network ui
+	call readnetstring	; empty buffer of telnet protocol gubbins
+	ret
+
+readnetstring
+	ld hl, stringbuffer
+	ld de, stringbuffer+1
+	ld bc, 255
+	ld (hl),0
+	ldir			;zero out buffer
+	
+	ld de, stringbuffer
+	ld bc, 256
+	ld a, (v_connfd)
+	call RECV
+	; todo: error checking
 	ret
 
 uselocal
@@ -521,7 +541,10 @@ waitkey
 	call GETKEY
 	ret
 waitkeynet
-	;todo: implement this
+	call readnetstring
+	; todo: error checking
+	
+	; right now this is reading a string while the local one gets a keypress
 	ret
 
 ; String length returned in A for the string at HL
@@ -739,19 +762,19 @@ str_testfail
 	
 str_16kpassed
 
-	defb "Lower/Page 5 RAM tests passed.\n", 0
+	defb "Lower/Page 5 RAM tests passed.\r\n", 0
 	
 str_16kfailed
 
-	defb "Lower/Page 5 RAM tests failed!\n", 0
+	defb "Lower/Page 5 RAM tests failed!\r\n", 0
 	
 str_romcrc	
 
-	defb	"\nChecking ROM version...", 0
+	defb	"\r\nChecking ROM version...", 0
 
 str_romunknown
 
-	defb "Unknown or corrupt ROM\n", 0
+	defb "Unknown or corrupt ROM\r\n", 0
 
 str_failedbits
 
@@ -763,7 +786,7 @@ str_waiting
 	
 str_pressanykey
 
-	defb "Press any key to continue.\n\n", 0
+	defb "Press enter key to continue.\r\n\n", 0
 	
 str_modulefail
 
