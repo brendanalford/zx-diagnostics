@@ -294,7 +294,13 @@ fail_print_ic_loop
 ;	Bad IC, print out the correspoding location for a 48K machine
 
 	ld hl, str_ic
+	push bc
+	push de
+	push ix
 	call print
+	pop ix
+	pop de
+	pop bc
 	ld hl, ix
 
 ;	Strings are aligned to nearest 32 bytes, so we can just replace
@@ -305,8 +311,13 @@ fail_print_ic_loop
 	rlca
 	or l
 	ld l, a
-	
+	push bc
+	push de
+	push ix
 	call print
+	pop ix
+	pop de
+	pop bc
 	ld a, 5
 
 ic_ok
@@ -341,7 +352,13 @@ print_fail_ic_4bit
 ;	Bad IC, print out the correspoding location 
 
 	ld hl, str_ic
+	push bc
+	push de
+	push ix
 	call print
+	pop ix
+	pop de
+	pop bc
 	ld hl, ix
 	call print
 	
@@ -355,7 +372,13 @@ next_4_bits
 	jr z, bit4_check_done
 
 	ld hl, str_ic
+	push bc
+	push de
+	push ix
 	call print
+	pop ix
+	pop de
+	pop bc
 	ld hl, ix
 	call print
 	
