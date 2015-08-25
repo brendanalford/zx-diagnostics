@@ -387,7 +387,7 @@ str_romcrc
 
 str_romunknown
 
-	defb "Unknown or corrupt ROM...", 0
+	defb	"Unknown or corrupt ROM: 0x", 0
 
 str_test4
 
