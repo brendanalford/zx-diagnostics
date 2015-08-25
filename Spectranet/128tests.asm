@@ -325,7 +325,7 @@ test_write_paging
 
 ;	Ok, it's a really simple pattern (RAM page number) :)
 
-	ld (hl), b
+	ld (hl), a
 	ldir
 	pop bc
 
@@ -358,8 +358,10 @@ test_read_paging
 	or 0x30
 	ld (v_paging), a
 	ld hl, v_paging
+	push bc
 	call print
-
+	pop bc
+	
 ; Test the full page to see if it matches what was written
 
 	ld hl, 0xc000
