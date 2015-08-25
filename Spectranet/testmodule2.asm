@@ -180,7 +180,7 @@ lowerram_random
 
     ld a, ixh
     cp 0
-    jp z, tests_done
+    ;jp z, tests_done
 
 ;	Lower memory is no good, give up now.
 
@@ -189,7 +189,8 @@ lowerram_random
 	ld hl, str_failedbits
 	call outputstring
 	
-	ld c, ixh
+	;ld c, ixh
+	ld c,55
 	ld b, 0
 	
 fail_loop
@@ -308,9 +309,7 @@ fail_bits_next
 	call outputstring
 	call waitkey
 	
-	ld a, (v_connfd)
-	call CLOSE			; close the connection
-	jp closesocket		; close our socket and return
+	jp exitcleanly
 
 ;
 ;	Lower RAM tests completed successfully.
@@ -423,16 +422,23 @@ call_test_routine
 ;	return to here from modulecall
 	jr c, modulecallerror
 	
-	ld a, (v_connfd)
-	call CLOSE			; close the connection
-	jp closesocket		; close our socket and return
+	jp exitcleanly
 	
 modulecallerror
 ;	Module 2 was not called successfully.
 	ld hl, str_modulefail
 	call outputstring
 	call waitkey
-	ret
+	jp exitcleanly
+
+exitcleanly
+	ld a,(netflag)
+	cp 0
+	ret z				; no sockets to close, return
+	
+	ld a, (v_connfd)
+	call CLOSE			; close the connection
+	jp closesocket		; close our socket and return
 
 ;
 ;	wait for an incoming connection or the user to press L
