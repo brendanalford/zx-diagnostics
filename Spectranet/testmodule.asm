@@ -50,19 +50,210 @@ modulecall
 ;	Page in ROM 0 (if running on 128 hardware) in preparation
 ;	for ROM test.
 
+;	Perform some ROM checksum testing to determine what
+;	model we're running on
+
+; 	Assume 128K toastrack (so far)
+
+	xor a 
+	ld (v_128type), a    
+	
+	ld hl, str_romcrc
+    call outputstring
+
+;	Copy the checksum code into RAM
+
+	ld hl, start_romcrc
+	ld de, do_romcrc
+	ld bc, end_romcrc-start_romcrc
+	ldir
+	
+;	Checksum the ROM
+
+	ld(v_stacktmp), sp
+	ld sp, tempstack
+	call do_romcrc
+	ld sp, (v_stacktmp)
+		
+;	Save it in DE temporarily
+	
+	ld de, hl
+	ld hl, rom_signature_table
+		
+; 	Check for a matching ROM
+
+rom_check_loop
+
+;	Check for 0000 end marker
+
+	ld bc, (hl)
+	ld a, b
+	or c
+	jr z, rom_unknown
+	
+;	Check saved ROM CRC in DE against value in table
+	
+	ld a, d
+	xor b
+	jr nz, rom_check_next
+	ld a, e
+	xor c
+	
+	jr z, rom_check_found
+
+rom_check_next
+
+	ld bc, 6
+	add hl, bc
+	jr rom_check_loop
+
+; Unknown ROM, say so and prompt the user for manual selection
+
+rom_unknown
+
+	push de
+	ld hl, str_romunknown
+	call outputstring
+	pop hl
+    ld de, v_hexstr
+    call Num2Hex
+    xor a
+    ld (v_hexstr+4), a
+    ld hl, v_hexstr
+    call outputstring
+
+;	Run 48K tests by default
+	ld hl, test_48k
+	jp call_test_routine
+	
+rom_check_found
+
+;	Print the appropriate ROM type to screen
+
+	push hl
+	inc hl
+	inc hl
+	ld de, (hl)
+	ld hl, de
+
+	call outputstring
+	ld hl, str_testpass
+	call outputstring
+	pop hl
+
+;	Call the appropriate testing routine
+
+	ld de, 4
+	add hl, de
+	
+call_test_routine
+
+	ld de, hl
+	
 	ld hl, test_return
 	push hl
-	ld hl, (v_test_rtn)
-	jp hl
+
+	jp test_48k
+;	ld hl, de
+;	jp hl
 
 test_return
 
 	ret
+	
+	include "output.asm"
 	include "..\paging.asm"
 	include "testroutines.asm"
 	include "48tests.asm"
 	include "128tests.asm"
-;	include "..\romtables.asm"
+	include "..\romtables.asm"
+	
+;
+;	Prints a 16-bit hex number to the buffer pointed to by DE.
+;	Inputs: HL=number to print.
+;
+
+Num2Hex
+
+	ld	a,h
+	call	Num1
+	ld	a,h
+	call	Num2
+
+;	Call here for a single byte conversion to hex
+
+Byte2Hex
+
+	ld	a,l
+	call	Num1
+	ld	a,l
+	jr	Num2
+
+Num1
+
+	rra
+	rra
+	rra
+	rra
+
+Num2
+
+	or	0xF0
+	daa
+	add	a,#A0
+	adc	a,#40
+
+	ld	(de),a
+	inc	de
+	ret
+
+;
+;	Routine to calculate the checksum of the 
+;	currently installed ROM.
+;
+start_romcrc
+
+;	Unpage the Spectranet
+	call 0x007c
+	
+	ld de, 0
+	ld hl,0xFFFF
+	
+Read
+	
+	ld a, (de)
+	inc	de
+	xor	h
+	ld	h,a
+	ld	b,8
+	
+CrcByte
+    
+	add	hl, hl
+	jr	nc, Next
+	ld	a,h
+	xor	10h
+	ld	h,a
+	ld	a,l
+	xor	21h
+	ld	l,a
+	
+Next	
+	
+	djnz	CrcByte
+	ld a, d
+	cp 0x40     ; 0x4000 = end of rom
+	jr	nz,Read
+	
+	push hl
+	pop bc
+	
+;	Restore Spectranet ROM/RAM
+
+	call 0x3ff9
+	ret	   
+	
+end_romcrc
 	
 ;
 ;	Subroutine to print a list of failing IC's.
@@ -177,7 +368,15 @@ str_testfail
 str_newline
 
 	defb "\n", 0
-	
+		
+str_romcrc	
+
+	defb	"\r\nChecking ROM version...\n", 0
+
+str_romunknown
+
+	defb "Unknown or corrupt ROM\r\n", 0
+
 str_test4
 
 	defb	"\nUpper RAM Walk test...      ", 0 
@@ -302,11 +501,19 @@ str_js128_ic_uncontend
 	defb "29 ",0, "28 ",0, "10 ",0, "9  ",0, "30 ",0, "31 ",0, "32 ",0, "33 ", 0
 
 	BLOCK 0x2fff-$, 0xff
-	
+
+; store variables within spectranet's buf_workspace area
+stringbuffer equ 0x3D00	; reserve 256 bytes for a buffer
+v_sockfd equ 0x3E00
+v_connfd equ 0x3E01
+netflag equ 0x3E02
 	
 v_hexstr		equ #7f90; 5
 v_intcount		equ #7f9a; 4
 v_decstr		equ #7fa0; 6
+
+tempstack		equ #7dfe;	Temporary stack location with running ROM CRC
+do_romcrc		equ #7e00;	Location in RAM to run ROM CRC test routine from
 
 ;	Testing variables
 
@@ -317,7 +524,7 @@ v_fail_ic		equ #7fb6; Failed IC bitmap (48K)
 v_fail_ic_uncontend	equ #7fb7; Failed IC bitmap, uncontended memory banks 0,2,4,8 (128k)
 v_fail_ic_contend	equ #7fb8; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
 v_128type		equ #7fb9; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
-v_test_rtn		equ #7fba;	Address of test routine for extra memory (48/128)
+v_test_rtn		equ #7fba;	Test type to run
 v_keybuffer		equ #7fbc; Keyboard bitmap (8 bytes)
 v_rand_addr		equ #7fbe;	Random fill test base addr
 v_rand_seed		equ #7fc0;	Random fill test rand seed
