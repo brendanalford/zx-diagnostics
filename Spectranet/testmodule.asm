@@ -344,13 +344,14 @@ bit4_check_done
 ;	
 print
 
-	call PRINT42
-	ret
+	jp outputstring
 	
 newline
 
+	ld a, '\r'
+	call outputchar
 	ld a, '\n'
-	call PUTCHAR42
+	call outputchar
 	ret
 
 str_identity
@@ -367,11 +368,11 @@ str_testfail
 	
 str_newline
 
-	defb "\n", 0
+	defb "\r\n", 0
 		
 str_romcrc	
 
-	defb	"\r\nChecking ROM version...\n", 0
+	defb	"\r\nChecking ROM version...\r\n", 0
 
 str_romunknown
 
@@ -379,7 +380,7 @@ str_romunknown
 
 str_test4
 
-	defb	"\nUpper RAM Walk test...      ", 0 
+	defb	"\r\nUpper RAM Walk test...      ", 0 
 
 str_test5
 
@@ -395,20 +396,20 @@ str_test7
 
 str_48ktestspass
 
-	defb	"\n48K RAM Tests Passed\n", 0
+	defb	"\r\n48K RAM Tests Passed\n", 0
 
 str_48ktestsfail
 
-	defb	"\n48K tests FAILED\n", 0
+	defb	"\r\n48K tests FAILED\r\n", 0
 
 str_isthis16k
 
-	defb	"This appears to be a 16K Spectrum\n"
+	defb	"This appears to be a 16K Spectrum\r\n"
 	defb    "If 48K, check IC23-IC26 (74LS157, 32, 00)",0
 
 str_check_ic
 
-	defb	"Check the following IC's:\n", 0
+	defb	"Check the following IC's:\r\n", 0
 
 str_ic
 
@@ -416,7 +417,7 @@ str_ic
 	
 str_testingbank
 
-	defb	"\nTesting RAM bank  ", 0
+	defb	"\r\nTesting RAM bank  ", 0
 
 str_testingpaging
 
@@ -429,15 +430,15 @@ str_bankm
 	
 str_128ktestspass
 
-	defb	"\n128K RAM Tests Passed\n", 0
+	defb	"\r\n128K RAM Tests Passed\r\n", 0
 	
 str_128ktestsfail
 
-	defb	"\n128K tests FAILED\n\n", 0
+	defb	"\r\n128K tests FAILED\r\n\n", 0
 
 str_128kpagingfail
 
-	defb	"\n128K Paging tests FAILED\n\n", 0
+	defb	"\r\n128K Paging tests FAILED\r\n\n", 0
 
 str_check_128_hal
 
