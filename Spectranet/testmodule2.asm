@@ -39,9 +39,10 @@ CALLBAS equ 0x0010
 ZXNEWLINE equ 0x0D	; ZX print routine newline
 	
 ; store variables within spectranet's buf_workspace area
-v_sockfd equ 0x3D00
-v_connfd equ 0x3D01
-netflag equ 0x3D02
+stringbuffer equ 0x3D00	; reserve 256 bytes for a buffer
+v_sockfd equ 0x3E00
+v_connfd equ 0x3E01
+netflag equ 0x3E02
 
 	LUA ALLPASS
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
@@ -490,6 +491,7 @@ outputstringnet
 	call strlen
 	ld b,0
 	ld c,a		; bc = length of string
+dosendstring
 	ex hl,de	; de = string address
 	ld a, (v_connfd)
 	call SEND
@@ -505,8 +507,12 @@ outputchar
 	call PUTCHAR42
 	ret
 outputcharnet
-	; todo: implement this
-	ret
+	ld hl, stringbuffer+1
+	ld (hl),0
+	dec hl
+	ld (hl),b
+	ld bc, 2
+	jr dosendstring
 
 waitkey
 	ld a,(netflag)
