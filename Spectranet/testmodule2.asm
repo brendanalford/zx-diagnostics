@@ -487,7 +487,13 @@ outputstring
 	call PRINT42
 	ret
 outputstringnet
-	; todo: implement this
+	call strlen
+	ld b,0
+	ld c,a		; bc = length of string
+	ex hl,de	; de = string address
+	ld a, (v_connfd)
+	call SEND
+	;todo: error checking
 	ret
 
 outputchar
@@ -510,6 +516,18 @@ waitkey
 	ret
 waitkeynet
 	;todo: implement this
+	ret
+
+; String length returned in A for the string at HL
+; don't call this on really long or unterminated strings...
+strlen
+	push hl
+	xor a
+	ld bc, 0x100
+	cpir
+	ld a, c
+	cpl
+	pop hl
 	ret
 
 ;
