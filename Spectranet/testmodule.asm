@@ -51,6 +51,19 @@ modulecall
 ;	Page in ROM 0 (if running on 128 hardware) in preparation
 ;	for ROM test.
 
+	xor a 
+	ld bc, 0x1ffd
+	out (c), a
+	ld bc, 0x7ffd
+	out (c), a
+	
+;	Prepare system variables
+
+	ld (v_fail_ic), a
+	ld (v_fail_ic_uncontend), a
+	ld (v_fail_ic_contend), a
+	ld (v_paging), a
+
 ;	Perform some ROM checksum testing to determine what
 ;	model we're running on
 
@@ -104,7 +117,7 @@ rom_check_loop
 
 rom_check_next
 
-	ld bc, 6
+	ld bc, 8
 	add hl, bc
 	jr rom_check_loop
 
@@ -122,10 +135,12 @@ rom_unknown
     ld (v_hexstr+4), a
     ld hl, v_hexstr
     call outputstring
+	call newline
 
 ;	Run 48K tests by default
-	ld hl, test_48k
-	jp call_test_routine
+	ld hl, test_return
+	push hl
+	jp test_48k
 	
 rom_check_found
 
@@ -149,14 +164,13 @@ rom_check_found
 	
 call_test_routine
 
-	ld de, hl
+	ld de, (hl)
 	
 	ld hl, test_return
 	push hl
 
-	jp test_48k
-;	ld hl, de
-;	jp hl
+	ld hl, de
+	jp hl
 
 test_return
 
@@ -373,7 +387,7 @@ str_romcrc
 
 str_romunknown
 
-	defb "Unknown or corrupt ROM\r\n", 0
+	defb "Unknown or corrupt ROM...", 0
 
 str_test4
 
@@ -414,7 +428,7 @@ str_ic
 	
 str_testingbank
 
-	defb	"\r\nTesting RAM bank  ", 0
+	defb	"\r\n\r\nTesting RAM bank  ", 0
 
 str_testingpaging
 

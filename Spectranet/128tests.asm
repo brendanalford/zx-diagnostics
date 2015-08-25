@@ -77,8 +77,12 @@ test_ram_page
 	cp 5
 	jp z, test_ram_page_skip
 
-;	Page the target page in and write its index to the screen
+;	Page the target page in and write its index to the screen.
+;	Save BC beforehand as we're using that
+;	to keep track of the current page being tested.
 
+	push bc
+	
 	call pagein
 	ld a, b
 	or 0x30
@@ -91,11 +95,8 @@ test_ram_page
 	ld ixh, a
 
 ;	Run the walk, inversion and random fill tests on the 
-;	target page. Save BC beforehand as we're using that
-;	to keep track of the current page being tested.
+;	target page. 
 	
-	push bc
-
 	ld hl, 49152
 	ld de, 16384
 	call walkloop
@@ -149,7 +150,6 @@ test_ram_page
 
 ; 	Skip to test next page if not
 
-	ld a, 60
 	jr z, test_ram_page_next
 	
 	ld c, ixh
@@ -182,8 +182,6 @@ test_ram_fail_uncontend
 	or ixh
 	ld a, ixh
 	ld (v_fail_ic_uncontend), a
-	out (LED_PORT), a
-	ld a, 58
 	jr test_ram_page_next
 
 ; 	Contended bank fail (1,3,5,7)
@@ -194,8 +192,6 @@ test_ram_fail_contend
 	or ixh
 	ld a, ixh
 	ld (v_fail_ic_contend), a
-	out (LED_PORT), a
-	ld a, 58
 
 ;	Check if we've any more pages to test
 
@@ -310,9 +306,6 @@ test_ram_bank_pass
 ;	Fill all RAM pages (except page 5) with a pattern
 ;	that uniquely identifies the page
 	
-	;ld a, 64
-	;FLASH
-
 	ld b, 0
 
 test_write_paging
@@ -322,8 +315,9 @@ test_write_paging
 	jr z, skip_write_page5
 
 ;	Page target page in and write the pattern
-
+	
 	call pagein
+
 	push bc
 	ld hl, 0xc000
 	ld de, 0xc001
@@ -331,7 +325,7 @@ test_write_paging
 
 ;	Ok, it's a really simple pattern (RAM page number) :)
 
-	ld (hl), a
+	ld (hl), b
 	ldir
 	pop bc
 
@@ -359,6 +353,7 @@ test_read_paging
 ;	Page in test page and write which one is being tested to the screen
 	
 	call pagein
+
 	ld a, b
 	or 0x30
 	ld (v_paging), a
@@ -448,8 +443,3 @@ plus3_ula_msg
 	ld hl, str_check_plus3_ula
 	call print
 	ret
-;
-;	Overpaints attribute of page number to indicate previous pass/fail
-;	Inputs: A=attribute to paint
-;
-	

@@ -504,11 +504,11 @@ str_commence_tests
 	
 str_16kpassed
 
-	defb "Lower/Page 5 RAM tests passed.", RETURN, 0
+	defb "Lower/Page 5 RAM tests passed.", RETURN, RETURN, 0
 	
 str_16kfailed
 
-	defb "Lower/Page 5 RAM tests failed!", RETURN, 0
+	defb "Lower/Page 5 RAM tests failed!", RETURN, RETURN, 0
 
 str_failedbits
 

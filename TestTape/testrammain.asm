@@ -374,7 +374,7 @@ test_routine_return
 
 rom_check_next
 
-	ld bc, 6
+	ld bc, 8
 	add hl, bc
 	jr rom_check_loop
 
