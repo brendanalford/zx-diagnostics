@@ -519,7 +519,7 @@ str_waiting
 	defb "Waiting for connection\nPress L for local output\n", 0
 
 str_connected
-	defb "Running Lower/Page 5 RAM tests\r\n",0
+	defb 0x1B,"[2J",0x1B,"[HRunning Lower/Page 5 RAM tests\r\n",0
 
 str_pressanykey
 
