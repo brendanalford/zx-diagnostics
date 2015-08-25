@@ -106,9 +106,6 @@ run_tests
 	BEEP 0x23, 0x0150
 
 start_testing
-
-	ld hl, str_commencing_tests
-	call outputstring
 	
 	ld iy, 0
 	add iy, sp
@@ -504,10 +501,6 @@ str_testfail
 str_commence_tests
 
 	defb "Press any key to commence RAM tests.", RETURN, RETURN, 0
-	
-str_commencing_tests
-
-	defb "Commencing Lower/Page 5 RAM tests...", RETURN, 0
 	
 str_16kpassed
 
