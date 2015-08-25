@@ -319,6 +319,10 @@ tests_done
 ;	return to here from modulecall
 	jr c, modulecallerror
 	
+	ld hl, str_pressanykey
+	call outputstring
+	call waitkey
+	
 	jp exitcleanly
 	
 modulecallerror
@@ -484,11 +488,11 @@ str_version
 	
 str_press_t
 
-	defb "\nZX-Diagnostics: Press T to initiate tests\n", 0
+	defb "ZX-Diagnostics: Press T to initiate tests\n", 0
 	
 str_not_testing
 
-	defb "Not running tests.\n\n", 0
+	defb "Not running tests.\n", 0
 	
 str_testpass
 
@@ -523,7 +527,7 @@ str_connected
 
 str_pressanykey
 
-	defb "Press enter key to continue.", RETURN, RETURN, 0
+	defb "Press enter key to continue.\r\n", RETURN, RETURN, 0
 	
 str_modulefail
 
