@@ -35,17 +35,6 @@
 	include "..\version.asm"
 	include "spectranet.asm"
 	
-CALLBAS equ 0x0010
-ZXNEWLINE equ 0x0D	; ZX print routine newline
-	
-; store variables within spectranet's buf_workspace area
-v_sockfd equ 0x3D00
-v_connfd equ 0x3D01
-netflag equ 0x3D02
-
-; use spectrant's buf_message for somewhere to put a string
-stringbuffer equ 0x3B00	; reserve 256 bytes for a buffer
-
 	LUA ALLPASS
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
 	ENDLUA
@@ -320,103 +309,9 @@ tests_done
 	ld hl, str_16kpassed
 	call outputstring
 
-;	Perform some ROM checksum testing to determine what
-;	model we're running on
-
-; 	Assume 128K toastrack (so far)
-
-	xor a 
-	ld (v_128type), a    
-	
-	ld hl, str_romcrc
-    call outputstring
-
-;	Copy the checksum code into RAM
-
-	ld hl, start_romcrc
-	ld de, do_romcrc
-	ld bc, end_romcrc-start_romcrc
-	ldir
-	
-;	Checksum the ROM
-
-	call do_romcrc
-
-;	Save it in DE temporarily
-	
-	ld de, hl
-	ld hl, rom_signature_table
-		
-; 	Check for a matching ROM
-
-rom_check_loop
-
-;	Check for 0000 end marker
-
-	ld bc, (hl)
-	ld a, b
-	or c
-	jr z, rom_unknown
-	
-;	Check saved ROM CRC in DE against value in table
-	
-	ld a, d
-	xor b
-	jr nz, rom_check_next
-	ld a, e
-	xor c
-	
-	jr z, rom_check_found
-
-rom_check_next
-
-	ld bc, 6
-	add hl, bc
-	jr rom_check_loop
-
-; Unknown ROM, say so and prompt the user for manual selection
-
-rom_unknown
-
-	push de
-	ld hl, str_romunknown
-	call outputstring
-	pop hl
-    ld de, v_hexstr
-    call Num2Hex
-    xor a
-    ld (v_hexstr+4), a
-    ld hl, v_hexstr
-    call outputstring
-
-;	Run 48K tests by default
-	ld hl, test_48k
-	jr call_test_routine
-	
-rom_check_found
-
-;	Print the appropriate ROM type to screen
-
-	push hl
-	inc hl
-	inc hl
-	ld de, (hl)
-	ld hl, de
-
-	call outputstring
-	ld hl, str_testpass
-	call outputstring
-	pop hl
-
-;	Call the appropriate testing routine
-
-	ld de, 4
-	add hl, de
-	
-call_test_routine
-
-	ld (v_test_rtn), hl
-	
+;
+;	Module 1 will ID the ROM and perform the appropriate tests.
+;	
 	ld hl, 0xBA00
 	rst MODULECALL_NOPAGE
 	
@@ -476,20 +371,6 @@ acceptloop
 	ld hl, str_connected
 	jp outputstringnet
 
-readnetstring
-	ld hl, stringbuffer
-	ld de, stringbuffer+1
-	ld bc, 255
-	ld (hl),0
-	ldir			;zero out buffer
-	
-	ld de, stringbuffer
-	ld bc, 256
-	ld a, (v_connfd)
-	call RECV
-	; todo: error checking
-	ret
-
 uselocal
 	xor a
 	ld (netflag), a		; use local ui
@@ -509,63 +390,7 @@ sockerror
 	scf
 	ret
 
-outputstring
-	ld a,(netflag)
-	cp 0
-	jr nz, outputstringnet
-	call PRINT42
-	ret
-outputstringnet
-	call strlen
-	ld b,0
-	ld c,a		; bc = length of string
-dosendstring
-	ex hl,de	; de = string address
-	ld a, (v_connfd)
-	call SEND
-	;todo: error checking
-	ret
-
-outputchar
-	ld b,a
-	ld a,(netflag)
-	cp 0
-	jr nz, outputcharnet
-	ld a,b
-	call PUTCHAR42
-	ret
-outputcharnet
-	ld hl, stringbuffer+1
-	ld (hl),0
-	dec hl
-	ld (hl),b
-	ld bc, 2
-	jr dosendstring
-
-waitkey
-	ld a,(netflag)
-	cp 0
-	jr nz, waitkeynet
-	call GETKEY
-	ret
-waitkeynet
-	call readnetstring
-	; todo: error checking
-	
-	; right now this is reading a string while the local one gets a keypress
-	ret
-
-; String length returned in A for the string at HL
-; don't call this on really long or unterminated strings...
-strlen
-	push hl
-	xor a
-	ld bc, 0x100
-	cpir
-	ld a, c
-	cpl
-	pop hl
-	ret
+	include "output.asm"
 
 ;
 ;	Implementation of the '%zxdiags' basic extension
@@ -610,103 +435,7 @@ zx_print
 	inc hl
 	jr zx_print
 
-	
-;
-;	Prints a 16-bit hex number to the buffer pointed to by DE.
-;	Inputs: HL=number to print.
-;
-
-Num2Hex
-
-	ld	a,h
-	call	Num1
-	ld	a,h
-	call	Num2
-
-;	Call here for a single byte conversion to hex
-
-Byte2Hex
-
-	ld	a,l
-	call	Num1
-	ld	a,l
-	jr	Num2
-
-Num1
-
-	rra
-	rra
-	rra
-	rra
-
-Num2
-
-	or	0xF0
-	daa
-	add	a,#A0
-	adc	a,#40
-
-	ld	(de),a
-	inc	de
-	ret
-
-;
-;	Routine to calculate the checksum of the 
-;	currently installed ROM.
-;
-start_romcrc
-
-;	Unpage the Spectranet
-	call 0x007c
-	
-	ld de, 0
-	ld hl,0xFFFF
-	
-Read
-	
-	ld a, (de)
-	inc	de
-	xor	h
-	ld	h,a
-	ld	b,8
-	
-CrcByte
-    
-	add	hl, hl
-	jr	nc, Next
-	ld	a,h
-	xor	10h
-	ld	h,a
-	ld	a,l
-	xor	21h
-	ld	l,a
-	
-Next	
-	
-	djnz	CrcByte
-	ld a, d
-	cp 0x40     ; 0x4000 = end of rom
-	jr	nz,Read
-	
-	push hl
-	pop bc
-	
-;	Restore Spectranet ROM/RAM
-
-	call 0x3ff9
-	ret	   
-	
-end_romcrc
-	
-	include "..\romtables.asm"
-
-test_48k
-test_128k
-test_plus2
-test_plus3
-test_48kgeneric
-test_js128
-	
+		
 test_cmd_string
 
 	defb "%zxdiags", 0
@@ -775,14 +504,6 @@ str_16kpassed
 str_16kfailed
 
 	defb "Lower/Page 5 RAM tests failed!\r\n", 0
-	
-str_romcrc	
-
-	defb	"\r\nChecking ROM version...", 0
-
-str_romunknown
-
-	defb "Unknown or corrupt ROM\r\n", 0
 
 str_failedbits
 
@@ -808,21 +529,5 @@ str_sockerror
 	defb "FATAL: Socket error",0
 	
 	BLOCK 0x2fff-$, 0xff
-	
-do_romcrc		equ #7e00;	Location in RAM to run ROM CRC test routine from
 
-;	Testing variables
-
-v_stacktmp		equ #7fb0; Temporary stack location when calling routines that assume no lower ram
-v_curpage		equ #7fb2; Currently paged location
-v_paging		equ #7fb3; Bank Paging status (output)
-v_fail_ic		equ #7fb6; Failed IC bitmap (48K)
-v_fail_ic_uncontend	equ #7fb7; Failed IC bitmap, uncontended memory banks 0,2,4,8 (128k)
-v_fail_ic_contend	equ #7fb8; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
-v_128type		equ #7fb9; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
-v_test_rtn		equ #7fba;	Address of test routine for extra memory (48/128)
-v_keybuffer		equ #7fbc; Keyboard bitmap (8 bytes)
-v_rand_addr		equ #7fbe;	Random fill test base addr
-v_rand_seed		equ #7fc0;	Random fill test rand seed
-v_rand_reps		equ #7fc2;	Random fill test repetitions
-v_hexstr		equ #7fc4; Workspace for Num2Hex routine
+	include "vars.asm"
