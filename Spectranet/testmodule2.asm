@@ -39,10 +39,12 @@ CALLBAS equ 0x0010
 ZXNEWLINE equ 0x0D	; ZX print routine newline
 	
 ; store variables within spectranet's buf_workspace area
-stringbuffer equ 0x3D00	; reserve 256 bytes for a buffer
-v_sockfd equ 0x3E00
-v_connfd equ 0x3E01
-netflag equ 0x3E02
+v_sockfd equ 0x3D00
+v_connfd equ 0x3D01
+netflag equ 0x3D02
+
+; use spectrant's buf_message for somewhere to put a string
+stringbuffer equ 0x3B00	; reserve 256 bytes for a buffer
 
 	LUA ALLPASS
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
@@ -180,7 +182,7 @@ lowerram_random
 
     ld a, ixh
     cp 0
-    ;jp z, tests_done
+    jp z, tests_done
 
 ;	Lower memory is no good, give up now.
 
@@ -189,8 +191,7 @@ lowerram_random
 	ld hl, str_failedbits
 	call outputstring
 	
-	;ld c, ixh
-	ld c,55
+	ld c, ixh
 	ld b, 0
 	
 fail_loop
