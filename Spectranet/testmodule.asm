@@ -401,7 +401,7 @@ newline
 
 str_identity
 
-	defb "ZX-Diagnostics ", VERSION, " [1/2]", 0 
+	defb "ZX Diagnostics Module 2 ", VERSION, 0 
 	
 str_testpass
 

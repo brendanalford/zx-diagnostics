@@ -56,12 +56,72 @@
 
 	ret                 ; this module doesn't need to service modulecalls
 
-initroutine
+ident_string_check
+	; compare start of ident string with ours
+	push bc
+	ld bc, 22			; bytes to compare
+	ld hl, str_identity	; the ident string in this rom
+	ld de, (0x100E)		; module's string address when in page B
+	ld a,d
+	sub 0x10
+	ld d,a				; subtract 0x1000 because it is in page A
+cp_loop
+	ld a, (de)
+	inc de
+	cpi
+	jr nz, break		; if z not set break out and return
+	jp po, check_number	; if bc overflowed we matched all the bytes
+	jr cp_loop
 
+check_number
+	ld a,(de)			; read next byte of ident string
+	cp '2'				; is this "ZX Diagnostics Module 2"
+break
+	pop bc
+	ret
+
+
+find_tests_module
+	ld b,1				; start with page 2
+findmoduleloop
+	inc b
+	ld a, 0x1F
+	cp b				; last ROM?
+	jr z, module_not_found
+	
+	ld a,b
+	call SETPAGEA		; page module into bank A
+	ld a, (0x1000)
+	cp 0xAA				; is a code module?
+	jr nz, findmoduleloop
+	
+	call ident_string_check
+
+	jr nz, findmoduleloop
+	
+	
+	;todo use this
+	or 1                ; clear z flag
+	ret
+	
+module_not_found
+	ld hl, str_zx_diagnostics
+	call PRINT42
+	ld hl, str_no_tests_module
+	call PRINT42
+	xor a
+	ret
+
+initroutine
 	call test_cmd		; install basic extension
+	
+	call find_tests_module
+	ret z				; missing
 
 ; 	see if the user's pressing 't' to initiate testing
 
+	ld hl, str_zx_diagnostics
+	call PRINT42
 	ld hl, str_press_t
 	call PRINT42
 	
@@ -426,6 +486,8 @@ print_version
 	rst CALLBAS
 	defw 0x1642	; Channel S
 
+	ld hl, str_zx_diagnostics
+	call zx_print
 	ld hl, str_version
 	call zx_print
 
@@ -469,17 +531,24 @@ fail_ram_bitmap
 ;	Text strings
 ;
 
+str_no_tests_module
+
+	defb " Module 2 not found.\n", 0
+
 str_cmd_fail
 
 	defb "Failed to add BASIC extension\n", 0
 	
+str_zx_diagnostics
+	defb "ZX Diagnostics", 0
+	
 str_identity
 
-	defb "ZX Diagnostics ", VERSION, " [2/2]", 0 
+	defb "ZX Diagnostics Module 1 ", VERSION, 0 
 	
 str_version
 
-	defb "ZX Diagnostics ", VERSION, ZXNEWLINE
+	defb " ", VERSION, ZXNEWLINE
 	defb "B. Alford, D. Smith", ZXNEWLINE
 	defb "http://git.io/vkf1o", ZXNEWLINE, ZXNEWLINE
 	defb "Installer and Spectranet code", ZXNEWLINE
@@ -488,7 +557,7 @@ str_version
 	
 str_press_t
 
-	defb "ZX-Diagnostics: Press T to initiate tests\n", 0
+	defb ": Press T to initiate tests\n", 0
 	
 str_not_testing
 
