@@ -3,5 +3,5 @@
   define ORG 0x2000
   define LENGTH 0x1000
   device zxspectrum48
-  include testmodule2.asm
-  savebin "testmodule2.module",ORG,LENGTH
+  include testmodule1.asm
+  savebin "testmodule1.module",ORG,LENGTH
