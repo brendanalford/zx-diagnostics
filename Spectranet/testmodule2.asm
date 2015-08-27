@@ -503,7 +503,7 @@ str_check_plus3_ula
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
-	BLOCK #2ee0-$, #FF
+	BLOCK #1ee0-$, #FF
 
 str_bit_ref
 	
