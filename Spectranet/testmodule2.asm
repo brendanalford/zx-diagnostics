@@ -440,16 +440,16 @@ str_test7
 
 str_48ktestspass
 
-	defb	"\r\n48K RAM Tests Passed\r\n", 0
+	defb	"\r\n48K RAM Tests Passed\r\n\n", 0
 
 str_48ktestsfail
 
-	defb	"\r\n48K tests FAILED\r\n", 0
+	defb	"\r\n48K tests FAILED\r\n\n", 0
 
 str_isthis16k
 
 	defb	"This appears to be a 16K Spectrum\r\n"
-	defb    "If 48K, check IC23-IC26 (74LS157, 32, 00)",0
+	defb    "If 48K, check IC23-IC26 (74LS157, 32, 00)\r\n\n",0
 
 str_check_ic
 
@@ -474,7 +474,7 @@ str_bankm
 	
 str_128ktestspass
 
-	defb	"\r\n128K RAM Tests Passed\r\n", 0
+	defb	"\r\n128K RAM Tests Passed\r\n\n", 0
 	
 str_128ktestsfail
 
@@ -482,23 +482,23 @@ str_128ktestsfail
 
 str_128kpagingfail
 
-	defb	"\r\n128K Paging tests FAILED\r\n\n", 0
+	defb	"\r\n128K Paging tests FAILED\r\n", 0
 
 str_check_128_hal
 
-	defb	"Check IC29 (PAL10H8CN) and IC31 (74LS174N)", 0
+	defb	"Check IC29 (PAL10H8CN) and IC31 (74LS174N)\r\n\n", 0
 
 str_check_plus2_hal
 
-	defb	"Check IC7 (HAL10H8ACN) and IC6 (74LS174N)", 0
+	defb	"Check IC7 (HAL10H8ACN) and IC6 (74LS174N)\r\n\n", 0
 
 str_check_js128_hal
 
-	defb	"Check HAL (GAL16V8) and U6 (74LS174N)", 0
+	defb	"Check HAL (GAL16V8) and U6 (74LS174N)\r\n\n", 0
 
 str_check_plus3_ula
 
-	defb	"Check IC1 (ULA 40077)", 0
+	defb	"Check IC1 (ULA 40077)\r\n\n", 0
 	
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
