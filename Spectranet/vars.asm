@@ -30,7 +30,9 @@ RETURN_STR
 	
 CALLBAS		equ 0x0010
 ZXNEWLINE 	equ 0x0D	; ZX print routine newline
-	
+
+SPECTRANET_UNPAGE	equ 0x007c
+SPECTRANET_PAGE		equ 0x3ff9	
 ; store variables within spectranet's buf_workspace area
 v_sockfd	equ 0x3D00
 v_connfd 	equ 0x3D01

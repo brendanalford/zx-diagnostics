@@ -186,8 +186,8 @@ test_return
 	include "output.asm"
 	include "..\paging.asm"
 	include "testroutines.asm"
-	include "48tests.asm"
-	include "128tests.asm"
+	include "spectranet48tests.asm"
+	include "spectranet128tests.asm"
 	include "..\romtables.asm"
 	
 ;
@@ -235,8 +235,8 @@ Num2
 ;
 start_romcrc
 
-;	Unpage the Spectranet
-	call 0x007c
+;	Page in the standard Spectrum ROM
+	call SPECTRANET_UNPAGE
 	
 	ld de, 0
 	ld hl,0xFFFF
@@ -272,7 +272,7 @@ Next
 	
 ;	Restore Spectranet ROM/RAM
 
-	call 0x3ff9
+	call SPECTRANET_PAGE
 	ret	   
 	
 end_romcrc
@@ -437,7 +437,7 @@ str_test7
 
 str_48ktestspass
 
-	defb	"\r\n48K RAM Tests Passed\n", 0
+	defb	"\r\n48K RAM Tests Passed\r\n", 0
 
 str_48ktestsfail
 
