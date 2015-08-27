@@ -189,8 +189,8 @@ test_return
 	include "output.asm"
 	include "..\paging.asm"
 	include "testroutines.asm"
-	include "48tests.asm"
-	include "128tests.asm"
+	include "spectranet48tests.asm"
+	include "spectranet128tests.asm"
 	include "..\romtables.asm"
 	
 ;
@@ -440,7 +440,7 @@ str_test7
 
 str_48ktestspass
 
-	defb	"\r\n48K RAM Tests Passed\n", 0
+	defb	"\r\n48K RAM Tests Passed\r\n", 0
 
 str_48ktestsfail
 

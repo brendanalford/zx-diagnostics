@@ -154,6 +154,11 @@ run_tests
 	call PRINT42
 	call waitforconnection
 	ret c				; fatal error
+	
+	ld hl, str_start_tests
+	call outputstring
+	
+start_beep
 
 	;	Blank the screen, (and all lower RAM)
 	BLANKMEM 16384, 16384, 0
@@ -418,8 +423,11 @@ acceptloop
 	ld (v_connfd),a		; save connection descriptor
 	ld a,1
 	ld (netflag), a		; use network ui
-	call readnetstring	; empty buffer of telnet protocol gubbins
-	ld hl, str_connected
+	ld hl, str_connected_1
+	call outputstringnet
+	ld hl, str_zx_diagnostics
+	call outputstringnet
+	ld hl, str_connected_2
 	jp outputstringnet
 
 uselocal
@@ -559,15 +567,15 @@ str_testfail
 	
 str_commence_tests
 
-	defb "Press any key to commence RAM tests.", RETURN, RETURN, 0
+	defb "Press any key to commence RAM tests.\r\n", 0
 	
 str_16kpassed
 
-	defb "Lower/Page 5 RAM tests passed.", RETURN, RETURN, 0
+	defb "Lower/Page 5 RAM tests passed.\r\n", 0
 	
 str_16kfailed
 
-	defb "Lower/Page 5 RAM tests failed!", RETURN, RETURN, 0
+	defb "Lower/Page 5 RAM tests failed!\r\n", 0
 
 str_failedbits
 
@@ -577,12 +585,23 @@ str_waiting
 
 	defb "Waiting for connection\nPress L for local output\n", 0
 
-str_connected
-	defb 0x1B,"[2J",0x1B,"[HRunning Lower/Page 5 RAM tests\r\n",0
+str_connected_1
+
+	defb 0x1B,"[2J",0x1B,"[H",0
+	
+str_connected_2
+
+	defb " ", VERSION, " "
+	defb 0x1B, "[101m ", 0x1B, "[103m ", 0x1B, "[102m ", 0x1B, "[106m ", 0x1B, "[40m "
+	defb "\r\nConnection established\r\n\r\n", 0
+	
+str_start_tests
+
+	defb "Running Lower/Page 5 RAM tests\r\n",0
 
 str_pressanykey
 
-	defb "Press enter key to continue.\r\n", RETURN, RETURN, 0
+	defb "Press enter key to continue.\r\n", 0
 
 str_sockerror
 

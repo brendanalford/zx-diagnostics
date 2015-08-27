@@ -89,9 +89,7 @@ print_upper_ic
 	ld ix, str_48_ic
 
 	call print_fail_ic
-
-	ld hl, RETURN
-	call outputstring
+	call newline
 	ret 
 
 ;	Upper RAM tests passed, give the user the good news

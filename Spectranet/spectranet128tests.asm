@@ -54,7 +54,7 @@ test_js128
 begin_128_tests
 
 	ld hl, str_testingbank
-	call print
+	call outputstring
 
 ;	Copy paging string to RAM where we can write to it
 
@@ -88,7 +88,7 @@ test_ram_page
 	or 0x30
 	ld (v_paging), a
 	ld hl, v_paging
-	call print
+	call outputstring
 
 	xor a
 	ld (v_fail_ic), a
@@ -210,7 +210,7 @@ test_ram_page_skip
 	ld b, a
 	ld a, (v_fail_ic_uncontend)
 	or b
-	jr z, test_ram_bank_pass
+	jp z, test_ram_bank_pass
 
 ; 	Test failed - say so and abort 128K tests.
 ; 	No point in testing paging if we don't have
@@ -218,12 +218,12 @@ test_ram_page_skip
 
 	call newline
 	ld hl, str_128ktestsfail
-	call print
+	call outputstring
 	
 ; 	If possible, output the failing IC's to the screen
 
 	ld hl, str_check_ic
-	call print
+	call outputstring
 
 ; 	Are we a +2 or +3?
 
@@ -302,7 +302,7 @@ test_ram_bank_pass
 
 	call newline
 	ld hl, str_testingpaging
-	call print
+	call outputstring
 	
 ;	Fill all RAM pages (except page 5) with a pattern
 ;	that uniquely identifies the page
@@ -360,7 +360,7 @@ test_read_paging
 	ld (v_paging), a
 	ld hl, v_paging
 	push bc
-	call print
+	call outputstring
 	pop bc
 	
 ; Test the full page to see if it matches what was written
@@ -398,7 +398,7 @@ skip_read_page5
 
 	call newline
 	ld hl, str_128ktestspass
-	call print
+	call outputstring
 	
 	ret
 
@@ -410,7 +410,7 @@ test_paging_fail
 	out (ULA_PORT), a
 	call newline
 	ld hl, str_128kpagingfail
-	call print
+	call outputstring
 	
 ;	A paging fault is most likely the PAL/HAL/ULA chip so identify
 ;	what type of machine we are running on, then use this info to
@@ -425,24 +425,24 @@ test_paging_fail
 	jr z, js128_pal_msg
 	
 	ld hl, str_check_128_hal
-	call print
+	call outputstring
 	call newline
 	ret
 
 js128_pal_msg
 
 	ld hl, str_check_js128_hal
-	call print
+	call outputstring
 	ret
 	
 plus2_pal_msg
 
 	ld hl, str_check_plus2_hal
-	call print
+	call outputstring
 	ret
 
 plus3_ula_msg
 
 	ld hl, str_check_plus3_ula
-	call print
+	call outputstring
 	ret

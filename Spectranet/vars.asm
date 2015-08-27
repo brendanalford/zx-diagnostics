@@ -20,13 +20,6 @@
 ;	Variables and defines.
 ;
 
-RETURN
-	
-	defb "\r\n"
-	
-RETURN_STR
-
-	defb "\r\n", 0
 	
 CALLBAS		equ 0x0010
 ZXNEWLINE 	equ 0x0D	; ZX print routine newline
