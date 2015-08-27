@@ -15,8 +15,6 @@
 ;	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;	Lesser General Public License for more details.
 ;
-;	testrom.asm
-;
 
 ;
 ;	Spectrum Diagnostics - Spectranet ROM Module Part 1 of 2
@@ -24,10 +22,10 @@
 ;	v0.1 by Dylan 'Winston' Smith
 ;	v0.2 modifications and 128K testing by Brendan Alford.
 ;
-;	This is actually the primary point of entry for the diagnostics
-;	This module installs a BASIC extension with version information
-;	and locates the second module (containing most of the tests) to
-;	be paged in at 0x1000.
+;	This is the main module for the diagnostics program. It is run at
+;	boot and installs a BASIC extension with version information then
+;	locates the second module (containing most of the tests) to be
+;	paged in at 0x1000.
 
 	include "vars.asm"
 	include "..\defines.asm"
