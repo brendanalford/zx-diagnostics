@@ -30,23 +30,26 @@
 	include "..\version.asm"
 	include "spectranet.asm"
 	
-	org 0x2000
+	org 0x1000
 
 ;	Spectranet ROM Module table
 
 	defb 0xAA			; Code module
-	defb 0xba			; ROM identity - needs to change
+	defb 0x00			; No ROM ID
 	defw 0xffff			; No init routine 
 	defw 0xffff			; Mount vector - unused
 	defw 0xffff			; Reserved
 	defw 0xffff			; Address of NMI Routine
 	defw 0xffff			; Address of NMI Menu string
 	defw 0xffff			; Reserved
-	defw str_identity	; Identity string
+	defw str_identity+0x1000	; Identity string
+	; we must add 0x1000 to this because spectranet expects code modules
+	; to be assembled to 0x2000. We want to run it from 0x1000 but this
+	; vector must point at the location of the string when paged at 0x2000
 
-modulecall
+module_2_entrypoint
 
-;	Module 2 will call us here.	
+;	Module 1 will call us here.
 ;	Lower tests passed.
 ;	Page in ROM 0 (if running on 128 hardware) in preparation
 ;	for ROM test.
@@ -542,4 +545,4 @@ str_js128_ic_uncontend
 
 	defb "29 ",0, "28 ",0, "10 ",0, "9  ",0, "30 ",0, "31 ",0, "32 ",0, "33 ", 0
 
-	BLOCK 0x2fff-$, 0xff
+	BLOCK 0x1fff-$, 0xff

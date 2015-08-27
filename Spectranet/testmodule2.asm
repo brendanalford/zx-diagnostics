@@ -19,17 +19,15 @@
 ;
 
 ;
-;	Spectrum Diagnostics - Spectranet ROM Module 2 of 2
+;	Spectrum Diagnostics - Spectranet ROM Module Part 1 of 2
 ;
 ;	v0.1 by Dylan 'Winston' Smith
 ;	v0.2 modifications and 128K testing by Brendan Alford.
 ;
-;	Despite being the second module, this is actually the primary point of 
-;	entry for the diagnostics - reason being that module 1 must have been 
-;	loaded successfully before module 2 can access anything in it.
-;	If we lead from the first module and start executing tests, we cannot
-;	call anything in the second module via MODULECALL as it hasn't been
-;	loaded yet!
+;	This is actually the primary point of entry for the diagnostics
+;	This module installs a BASIC extension with version information
+;	and locates the second module (containing most of the tests) to
+;	be paged in at 0x1000.
 
 	include "vars.asm"
 	include "..\defines.asm"
@@ -45,7 +43,7 @@
 ;	Spectranet ROM Module table
 
 	defb 0xAA			; Code module
-	defb 0xBB			; ROM identity - needs to change
+	defb 0x00			; No ROM ID
 	defw initroutine	; Address of reset vector
 	defw 0xffff			; Mount vector - unused
 	defw 0xffff			; Reserved
@@ -53,8 +51,6 @@
 	defw 0xffff			; Address of NMI Menu string
 	defw 0xffff			; Reserved
 	defw str_identity	; Identity string
-
-	ret                 ; this module doesn't need to service modulecalls
 
 ident_string_check
 	; compare start of ident string with ours
@@ -99,8 +95,6 @@ findmoduleloop
 
 	jr nz, findmoduleloop
 	
-	
-	;todo use this
 	or 1                ; clear z flag
 	ret
 	
@@ -117,8 +111,10 @@ initroutine
 	
 	call find_tests_module
 	ret z				; missing
+	
+;	tests module is now paged in page A
 
-; 	see if the user's pressing 't' to initiate testing
+;	see if the user's pressing 't' to initiate testing
 
 	ld hl, str_zx_diagnostics
 	call PRINT42
@@ -373,23 +369,13 @@ tests_done
 ;
 ;	Module 1 will ID the ROM and perform the appropriate tests.
 ;	
-	ld hl, 0xBA00
-	rst MODULECALL_NOPAGE
 	
-;	return to here from modulecall
-	jr c, modulecallerror
+	call 0x1010			; module_2_entrypoint
 	
 	ld hl, str_pressanykey
 	call outputstring
 	call waitkey
 	
-	jp exitcleanly
-	
-modulecallerror
-;	Module 2 was not called successfully.
-	ld hl, str_modulefail
-	call outputstring
-	call waitkey
 	jp exitcleanly
 
 exitcleanly
@@ -597,10 +583,6 @@ str_connected
 str_pressanykey
 
 	defb "Press enter key to continue.\r\n", RETURN, RETURN, 0
-	
-str_modulefail
-
-	defb "FATAL: Error calling ROM module", 0
 
 str_sockerror
 
