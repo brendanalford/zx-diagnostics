@@ -421,7 +421,7 @@ acceptloop
 	ld (v_connfd),a		; save connection descriptor
 	ld a,1
 	ld (netflag), a		; use network ui
-	ld a, (v_sockfd)
+	ld a, (v_connfd)
 	call POLLFD			; poll the connection
 	call nz, readnetstring	; empty buffer of telnet protocol gubbins
 	ld hl, str_connected_1
