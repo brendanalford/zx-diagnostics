@@ -19,535 +19,392 @@
 ;
 
 ;
-;	Spectrum Diagnostics - Spectranet ROM Module Part 1 of 2
+;	Spectrum Diagnostics - Spectranet ROM Module Part 2 - 48 and 128 tests
 ;
 ;	v0.1 by Dylan 'Winston' Smith
 ;	v0.2 modifications and 128K testing by Brendan Alford.
 ;
-;	This is actually the primary point of entry for the diagnostics
-;	This module installs a BASIC extension with version information
-;	and locates the second module (containing most of the tests) to
-;	be paged in at 0x1000.
-
+	
 	include "vars.asm"
 	include "..\defines.asm"
 	include "..\version.asm"
 	include "spectranet.asm"
 	
-	LUA ALLPASS
-	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
-	ENDLUA
-	
-	org 0x2000
+	org 0x1000
 
 ;	Spectranet ROM Module table
 
 	defb 0xAA			; Code module
 	defb 0x00			; No ROM ID
-	defw initroutine	; Address of reset vector
+	defw 0xffff			; No init routine 
 	defw 0xffff			; Mount vector - unused
 	defw 0xffff			; Reserved
 	defw 0xffff			; Address of NMI Routine
 	defw 0xffff			; Address of NMI Menu string
 	defw 0xffff			; Reserved
-	defw str_identity	; Identity string
+	defw str_identity+0x1000	; Identity string
+	; we must add 0x1000 to this because spectranet expects code modules
+	; to be assembled to 0x2000. We want to run it from 0x1000 but this
+	; vector must point at the location of the string when paged at 0x2000
 
-ident_string_check
-	; compare start of ident string with ours
-	push bc
-	ld bc, 22			; bytes to compare
-	ld hl, str_identity	; the ident string in this rom
-	ld de, (0x100E)		; module's string address when in page B
-	ld a,d
-	sub 0x10
-	ld d,a				; subtract 0x1000 because it is in page A
-cp_loop
-	ld a, (de)
-	inc de
-	cpi
-	jr nz, break		; if z not set break out and return
-	jp po, check_number	; if bc overflowed we matched all the bytes
-	jr cp_loop
+module_2_entrypoint
 
-check_number
-	ld a,(de)			; read next byte of ident string
-	cp '2'				; is this "ZX Diagnostics Module 2"
-break
-	pop bc
-	ret
+;	Module 1 will call us here.
+;	Lower tests passed.
+;	Page in ROM 0 (if running on 128 hardware) in preparation
+;	for ROM test.
 
-
-find_tests_module
-	ld b,1				; start with page 2
-findmoduleloop
-	inc b
-	ld a, 0x1F
-	cp b				; last ROM?
-	jr z, module_not_found
+	xor a 
+	ld bc, 0x1ffd
+	out (c), a
+	ld bc, 0x7ffd
+	out (c), a
 	
-	ld a,b
-	call SETPAGEA		; page module into bank A
-	ld a, (0x1000)
-	cp 0xAA				; is a code module?
-	jr nz, findmoduleloop
-	
-	call ident_string_check
+;	Prepare system variables
 
-	jr nz, findmoduleloop
-	
-	or 1                ; clear z flag
-	ret
-	
-module_not_found
-	ld hl, str_zx_diagnostics
-	call PRINT42
-	ld hl, str_no_tests_module
-	call PRINT42
-	xor a
-	ret
+	ld (v_fail_ic), a
+	ld (v_fail_ic_uncontend), a
+	ld (v_fail_ic_contend), a
+	ld (v_paging), a
 
-initroutine
-	call test_cmd		; install basic extension
-	
-	call find_tests_module
-	ret z				; missing
-	
-;	tests module is now paged in page A
+;	Perform some ROM checksum testing to determine what
+;	model we're running on
 
-;	see if the user's pressing 't' to initiate testing
+; 	Assume 128K toastrack (so far)
 
-	ld hl, str_zx_diagnostics
-	call PRINT42
-	ld hl, str_press_t
-	call PRINT42
+	xor a 
+	ld (v_128type), a    
 	
-	ld bc, 0xffff
-	
-press_t_loop
+	ld hl, str_romcrc
+    call outputstring
 
-	push bc
-	ld bc, 0xfbfe
-	in a, (c)
-	pop bc
-	bit 4, a
-	jr z, run_tests
-	dec bc
+;	Copy the checksum code into RAM
+
+	ld hl, start_romcrc
+	ld de, do_romcrc
+	ld bc, end_romcrc-start_romcrc
+	ldir
+	
+;	Checksum the ROM
+
+	ld(v_stacktmp), sp
+	ld sp, tempstack
+	call do_romcrc
+	ld sp, (v_stacktmp)
+		
+;	Save it in DE temporarily
+	
+	ld de, hl
+	ld hl, rom_signature_table
+		
+; 	Check for a matching ROM
+
+rom_check_loop
+
+;	Check for 0000 end marker
+
+	ld bc, (hl)
 	ld a, b
 	or c
-	jr nz, press_t_loop
+	jr z, rom_unknown
 	
-;	T not pressed, exit and allow other ROMs to init
+;	Check saved ROM CRC in DE against value in table
+	
+	ld a, d
+	xor b
+	jr nz, rom_check_next
+	ld a, e
+	xor c
+	
+	jr z, rom_check_found
 
-	ld hl, str_not_testing
-	call PRINT42
+rom_check_next
+
+	ld bc, 8
+	add hl, bc
+	jr rom_check_loop
+
+; Unknown ROM, say so and prompt the user for manual selection
+
+rom_unknown
+
+	push de
+	ld hl, str_romunknown
+	call outputstring
+	pop hl
+    ld de, v_hexstr
+    call Num2Hex
+    xor a
+    ld (v_hexstr+4), a
+    ld hl, v_hexstr
+    call outputstring
+	call newline
+
+;	Run 48K tests by default
+	ld hl, test_return
+	push hl
+	jp test_48k
+	
+rom_check_found
+
+;	Print the appropriate ROM type to screen
+
+	push hl
+	inc hl
+	inc hl
+	ld de, (hl)
+	ld hl, de
+
+	call outputstring
+	ld hl, str_testpass
+	call outputstring
+	pop hl
+
+;	Call the appropriate testing routine
+
+	ld de, 4
+	add hl, de
+	
+call_test_routine
+
+	ld de, (hl)
+	
+	ld hl, test_return
+	push hl
+
+	ld hl, de
+	jp hl
+
+test_return
+	; set paging back as spectranet needs it
+	ld bc, 0x1FFD		; set port 0x1ffd
+	ld a, 0x04
+	out (c), a
+	ld b, 0x7F		; set port 0x7ffd which must be done
+	ld a, 0x10		; second due to toastrack 128K machines
+	out (c), a		; responding also to 0x1ffd
+
+	ret
+	
+	include "output.asm"
+	include "..\paging.asm"
+	include "testroutines.asm"
+	include "48tests.asm"
+	include "128tests.asm"
+	include "..\romtables.asm"
+	
+;
+;	Prints a 16-bit hex number to the buffer pointed to by DE.
+;	Inputs: HL=number to print.
+;
+
+Num2Hex
+
+	ld	a,h
+	call	Num1
+	ld	a,h
+	call	Num2
+
+;	Call here for a single byte conversion to hex
+
+Byte2Hex
+
+	ld	a,l
+	call	Num1
+	ld	a,l
+	jr	Num2
+
+Num1
+
+	rra
+	rra
+	rra
+	rra
+
+Num2
+
+	or	0xF0
+	daa
+	add	a,#A0
+	adc	a,#40
+
+	ld	(de),a
+	inc	de
 	ret
 
-run_tests
+;
+;	Routine to calculate the checksum of the 
+;	currently installed ROM.
+;
+start_romcrc
 
-;	Sound a brief tone to indicate tests are starting.
-;	This also verifies that the CPU and ULA are working.
-
-	ld l, 1				; Border colour to preserve
-	BEEP 0x48, 0x0300
-
-	ld hl, str_waiting
-	call PRINT42
-	call waitforconnection
-	ret c				; fatal error
-
-	;	Blank the screen, (and all lower RAM)
-	BLANKMEM 16384, 16384, 0
-
-	ld l, 1				; Border colour to preserve
-	BEEP 0x23, 0x0150
-
-start_testing
+;	Unpage the Spectranet
+	call 0x007c
 	
-	ld iy, 0
-	add iy, sp
+	ld de, 0
+	ld hl,0xFFFF
 	
-	ld ix, 0
+Read
 	
-;	Blue border - signal no errors (yet)
-
-	ld a, BORDERGRN
-	out (ULA_PORT), a
-
-;	Same for LED's - all off signifies no errors
-
-	xor a
-	out (LED_PORT), a
-
-;	Set all RAM to zero.
-
-	BLANKMEM 16384, 49152, 0
-
-;	Start lower RAM 'walking bit' test
-
-lowerram_walk
-
-    WALKLOOP 16384,16384
-
-;	Then the inversion test
-
-lowerram_inversion
-
-    ALTPATA 16384, 16384, 0
-    ALTPATA 16384, 16384, 255
-    ALTPATB 16384, 16384, 0
-    ALTPATB 16384, 16384, 255
-
-lowerram_march
-
-	MARCHTEST 16384, 16384
-
-;	Lastly the Random fill test
-
-lowerram_random
-
-    RANDFILLUP 16384, 8192, 11
-    RANDFILLDOWN 32766, 8191, 17
-
-;	This gives the opportunity to visually see what's happening in
-;	lower memory in case there is a problem with it.
-;	Conveniently, if there's some lower RAM, then this'll give us
-;	a pattern to lock onto with the floating bus sync test.
-
-    BLANKMEM 16384, 6144, 0
-
-;	Attributes - white screen, blank ink.
-
-	BLANKMEM 22528, 768, 56
-
-; 	Restore machine stack, and clear screen
-
-	ld sp, iy
-	call CLEAR42
+	ld a, (de)
+	inc	de
+	xor	h
+	ld	h,a
+	ld	b,8
 	
-;	Check if lower ram tests passed
-
-    ld a, ixh
-    cp 0
-    jp z, tests_done
-
-;	Lower memory is no good, give up now.
-
-	ld hl, str_16kfailed
-	call outputstring
-	ld hl, str_failedbits
-	call outputstring
+CrcByte
+    
+	add	hl, hl
+	jr	nc, Next
+	ld	a,h
+	xor	10h
+	ld	h,a
+	ld	a,l
+	xor	21h
+	ld	l,a
 	
-	ld c, ixh
-	ld b, 0
+Next	
 	
-fail_loop
-	bit 0, c
-	jr z, fail_next
+	djnz	CrcByte
+	ld a, d
+	cp 0x40     ; 0x4000 = end of rom
+	jr	nz,Read
 	
-	ld a, b
-	add '0'
-	push bc
-	call outputchar
-	ld a, ' '
-	call outputchar
+	push hl
 	pop bc
 	
-fail_next
+;	Restore Spectranet ROM/RAM
 
-	rr c
+	call 0x3ff9
+	ret	   
+	
+end_romcrc
+	
+;
+;	Subroutine to print a list of failing IC's.
+;   	Inputs: D=bitmap of failed IC's, IX=start of IC number list
+;
+
+print_fail_ic
+
+	ld b, 0
+
+fail_print_ic_loop
+
+	bit 0, d
+	jr z, ic_ok
+
+;	Bad IC, print out the correspoding location for a 48K machine
+
+	ld hl, str_ic
+	push bc
+	push de
+	push ix
+	call print
+	pop ix
+	pop de
+	pop bc
+	ld hl, ix
+
+;	Strings are aligned to nearest 32 bytes, so we can just replace
+;	this much the LSB
+
+	ld a, b
+	rlca
+	rlca
+	or l
+	ld l, a
+	push bc
+	push de
+	push ix
+	call print
+	pop ix
+	pop de
+	pop bc
+	ld a, 5
+
+ic_ok
+
+;	Rotate D register right to line up the next IC result 
+;	for checking in bit 0
+
+	rr d
+
+;	Loop round if we've got more bits to check
+
 	inc b
 	ld a, b
 	cp 8
-	jr nz, fail_loop
+	jr nz, fail_print_ic_loop
+
+	ret
+
+;
+;	Subroutines to print a list of failing IC's for 4 bit wide
+;	memories (+2A/+3).
+;   	Inputs: D=bitmap of failed IC's, IX=start of IC number list
+;
+
+print_fail_ic_4bit
+
+
+	ld a, d
+	and 0x0f
+	jr z, next_4_bits
+
+;	Bad IC, print out the correspoding location 
+
+	ld hl, str_ic
+	push bc
+	push de
+	push ix
+	call print
+	pop ix
+	pop de
+	pop bc
+	ld hl, ix
+	call print
 	
+next_4_bits
+	
+	ld bc, 4
+	add ix, bc
+	
+	ld a, d
+	and 0xf0
+	jr z, bit4_check_done
+
+	ld hl, str_ic
+	push bc
+	push de
+	push ix
+	call print
+	pop ix
+	pop de
+	pop bc
+	ld hl, ix
+	call print
+	
+bit4_check_done
+
+	ret
+
+;	
+print
+
+	jp outputstring
+	
+newline
+
 	ld a, '\r'
 	call outputchar
 	ld a, '\n'
 	call outputchar
-	
-	
-;
-;	Paint RAM FAIL message. This routine is borrowed from the 
-;	main diagnostics ROM.
-;	
-
-	ld hl, 0x5880
-	ld de, 0x5881
-	ld bc, 0x1ff
-	ld (hl), 9
-	ldir
-
-	ld hl, fail_ram_bitmap
-	ld de, 0x5880
-	ld b, 0x40
-
-fail_msg_loop
-
-	ld c, 8
-	ld a, (hl)
-
-fail_msg_byte
-
-	bit 7, a
-	jr z, fail_msg_next
-
-	ex de, hl
-	ld (hl), 0x7f
-	ex de, hl
-
-fail_msg_next
-
-	inc de
-	rla
-	dec c
-	jr nz, fail_msg_byte
-
-	inc hl
-	dec b
-	jr nz, fail_msg_loop
-	
-	
-;	Blank out the working RAM digits
-
-	ld hl, 0x5980
-	ld c, ixh
-
-	ld d, 8
-	
-fail_bits_outer_loop
-
-	ld b, 8
-	
-fail_bits_loop
-
-	bit 0, c
-	jr nz, fail_bits_ok
-	ld a, 8
-	ld (hl), a
-	inc hl
-	ld (hl), a
-	inc hl
-	ld (hl), a
-	inc hl
-	ld (hl), a
-	inc hl
-	jr fail_bits_next
-	
-fail_bits_ok
-
-	inc hl
-	inc hl
-	inc hl
-	inc hl
-	
-fail_bits_next
-
-	rrc c
-	djnz fail_bits_loop
-	
-	dec d
-	ld a, d
-	cp 0
-	jr nz, fail_bits_outer_loop
-	
-;	Wait for a key, then exit.
-
-	ld hl, str_pressanykey
-	call outputstring
-	call waitkey
-	
-	jp exitcleanly
-
-;
-;	Lower RAM tests completed successfully.
-;
-tests_done
-	
-	ld hl, str_16kpassed
-	call outputstring
-
-;
-;	Module 1 will ID the ROM and perform the appropriate tests.
-;	
-	
-	call 0x1010			; module_2_entrypoint
-	
-	ld hl, str_pressanykey
-	call outputstring
-	call waitkey
-	
-	jp exitcleanly
-
-exitcleanly
-	ld a,(netflag)
-	cp 0
-	ret z				; no sockets to close, return
-	
-	ld a, (v_connfd)
-	call CLOSE			; close the connection
-	jp closesocket		; close our socket and return
-
-;
-;	wait for an incoming connection or the user to press L
-;
-waitforconnection
-
-;	Module 1 was not called successfully.
-	ld c, SOCK_STREAM	; open a TCP socket
-	call SOCKET
-	jp c, sockerror
-	ld (v_sockfd), a	; save the socket
-	ld de, 23			; bind it to the telnet port
-	call BIND
-	jp c, sockerror
-	ld a, (v_sockfd)
-	call LISTEN
-	jp c, sockerror
-	
-acceptloop
-	ld bc, 0xBFFE
-	in a,(c)
-	bit 1, a
-	jr z, uselocal		; user pressed L so forget network stuff
-	ld a, (v_sockfd)
-	call POLLFD			; poll our socket
-	jr z, acceptloop	; socket is not ready
-	ld a, (v_sockfd)
-	call ACCEPT
-	jp c, sockerrorclose
-	ld (v_connfd),a		; save connection descriptor
-	ld a,1
-	ld (netflag), a		; use network ui
-	call readnetstring	; empty buffer of telnet protocol gubbins
-	ld hl, str_connected
-	jp outputstringnet
-
-uselocal
-	xor a
-	ld (netflag), a		; use local ui
-closesocket
-	ld a, (v_sockfd)
-	call CLOSE
-	jp c, sockerror
-	ret
-	
-sockerrorclose
-	ld a, (v_sockfd)
-	call CLOSE
-sockerror
-	ld hl, str_sockerror
-	call PRINT42
-	call GETKEY
-	scf
 	ret
 
-	include "output.asm"
-
-;
-;	Implementation of the '%zxdiags' basic extension
-;	
-test_cmd
-
-	ld hl, parsetable
-	call ADDBASICEXT
-	ret nc
-	ld hl, str_cmd_fail
-	call PRINT42
-	ret
-	
-parsetable
-
-	defb 0x0b
-	defw test_cmd_string
-	defb 0xff
-	defw print_version
-	
-print_version
-
-	call STATEMENT_END
-	
-	rst CALLBAS
-	defw 0x0D6B	; CLS
-	
-	rst CALLBAS
-	defw 0x1642	; Channel S
-
-	ld hl, str_zx_diagnostics
-	call zx_print
-	ld hl, str_version
-	call zx_print
-
-	jp EXIT_SUCCESS
-
-zx_print
-	ld a, (hl)
-	and a
-	ret z
-	rst CALLBAS
-	defw 0x10	; print character using ROM routine
-	inc hl
-	jr zx_print
-
-		
-test_cmd_string
-
-	defb "%zxdiags", 0
-	
-fail_ram_bitmap
-
-	defb %00000000, %00000000, %00000000, %00000000
-	defb %01100010, %01010000, %11100100, %11101000
-	defb %01010101, %01110000, %10001010, %01001000
-	defb %01010101, %01110000, %11001010, %01001000
-	defb %01100111, %01010000, %10001110, %01001000
-	defb %01010101, %01010000, %10001010, %01001000
-	defb %01010101, %01010000, %10001010, %11101110
-	defb %00000000, %00000000, %00000000, %00000000
-	
-	defb %00000000, %00000000, %00000000, %00000000
-	defb %01000100, %01001110, %00101110, %01101110
-	defb %10101100, %10100010, %10101000, %10000010
-	defb %10100100, %00100100, %10100100, %11000100
-	defb %10100100, %01000010, %11100010, %10100100
-	defb %10100100, %10001010, %00101010, %10101000
-	defb %01001110, %11100100, %00100100, %01001000
-	defb %00000000, %00000000, %00000000, %00000000	
-
-;
-;	Text strings
-;
-
-str_no_tests_module
-
-	defb " Module 2 not found.\n", 0
-
-str_cmd_fail
-
-	defb "Failed to add BASIC extension\n", 0
-	
-str_zx_diagnostics
-	defb "ZX Diagnostics", 0
-	
 str_identity
 
-	defb "ZX Diagnostics Module 1 ", VERSION, 0 
-	
-str_version
-
-	defb " ", VERSION, ZXNEWLINE
-	defb "B. Alford, D. Smith", ZXNEWLINE
-	defb "http://git.io/vkf1o", ZXNEWLINE, ZXNEWLINE
-	defb "Installer and Spectranet code", ZXNEWLINE
-	defb "by ZXGuesser", ZXNEWLINE, ZXNEWLINE
-	defb "Build: ", BUILD_TIMESTAMP, ZXNEWLINE, 0
-	
-str_press_t
-
-	defb ": Press T to initiate tests\n", 0
-	
-str_not_testing
-
-	defb "Not running tests.\n", 0
+	defb "ZX Diagnostics Module 2 ", VERSION, 0 
 	
 str_testpass
 
@@ -556,37 +413,136 @@ str_testpass
 str_testfail
 
 	defb "FAIL", 0
+		
+str_romcrc	
+
+	defb	"\r\nChecking ROM version...\r\n", 0
+
+str_romunknown
+
+	defb	"Unknown or corrupt ROM: 0x", 0
+
+str_test4
+
+	defb	"\r\nUpper RAM Walk test...      ", 0 
+
+str_test5
+
+	defb	"Upper RAM Inversion test... ", 0 
+
+str_test6
+
+	defb	"Upper RAM March test...     ", 0
+
+str_test7
+
+	defb	"Upper RAM Random test...    ", 0 
+
+str_48ktestspass
+
+	defb	"\r\n48K RAM Tests Passed\n", 0
+
+str_48ktestsfail
+
+	defb	"\r\n48K tests FAILED\r\n", 0
+
+str_isthis16k
+
+	defb	"This appears to be a 16K Spectrum\r\n"
+	defb    "If 48K, check IC23-IC26 (74LS157, 32, 00)",0
+
+str_check_ic
+
+	defb	"Check the following IC's:\r\n", 0
+
+str_ic
+
+	defb "IC", 0
 	
-str_commence_tests
+str_testingbank
 
-	defb "Press any key to commence RAM tests.", RETURN, RETURN, 0
+	defb	"\r\n\r\nTesting RAM bank  ", 0
+
+str_testingpaging
+
+	defb	"Testing paging    ", 0 
+
+str_bankm
+
+	defb	"x ", 0
+
 	
-str_16kpassed
+str_128ktestspass
 
-	defb "Lower/Page 5 RAM tests passed.", RETURN, RETURN, 0
+	defb	"\r\n128K RAM Tests Passed\r\n", 0
 	
-str_16kfailed
+str_128ktestsfail
 
-	defb "Lower/Page 5 RAM tests failed!", RETURN, RETURN, 0
+	defb	"\r\n128K tests FAILED\r\n\n", 0
 
-str_failedbits
+str_128kpagingfail
 
-	defb "Failed bit locations: ", 0
+	defb	"\r\n128K Paging tests FAILED\r\n\n", 0
 
-str_waiting
+str_check_128_hal
 
-	defb "Waiting for connection\nPress L for local output\n", 0
+	defb	"Check IC29 (PAL10H8CN) and IC31 (74LS174N)", 0
 
-str_connected
-	defb 0x1B,"[2J",0x1B,"[HRunning Lower/Page 5 RAM tests\r\n",0
+str_check_plus2_hal
 
-str_pressanykey
+	defb	"Check IC7 (HAL10H8ACN) and IC6 (74LS174N)", 0
 
-	defb "Press enter key to continue.\r\n", RETURN, RETURN, 0
+str_check_js128_hal
 
-str_sockerror
+	defb	"Check HAL (GAL16V8) and U6 (74LS174N)", 0
 
-	defb "FATAL: Socket error",0
+str_check_plus3_ula
+
+	defb	"Check IC1 (ULA 40077)", 0
 	
-	BLOCK 0x2fff-$, 0xff
+;	Page align the IC strings to make calcs easier
+;	Each string block needs to be aligned to 32 bytes
 
+	BLOCK #2ee0-$, #FF
+
+str_bit_ref
+	
+	defb "0 ", 0, 0,  "1 ", 0, 0, "2 ", 0, 0, "3 ", 0, 0, "4 ", 0, 0, "5 ", 0, 0, "6 ", 0, 0, "7 ", 0, 0
+
+str_48_ic
+
+	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0	
+
+str_128k_ic_contend
+
+	defb "6  ",0, "7  ",0, "8  ",0, "9  ",0, "10 ",0, "11 ",0, "12 ",0, "13 ", 0
+
+str_128k_ic_uncontend
+
+	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0	
+
+str_plus2_ic_contend
+
+	defb "32 ",0, "31 ",0, "30 ",0, "29 ",0, "28 ",0, "27 ",0, "26 ",0, "25 ", 0
+
+str_plus2_ic_uncontend
+
+	defb "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ",0, "23 ",0, "24 ", 0
+
+str_plus3_ic_contend
+
+	defb "3  ", 0, "4  ", 0
+	
+str_plus3_ic_uncontend
+
+	defb "5  ", 0, "6  ", 0	
+
+str_js128_ic_contend
+
+	defb "20 ",0, "21 ",0, "22 ",0, "23 ",0, "24 ",0, "25 ",0, "26 ",0, "27 ", 0
+
+str_js128_ic_uncontend
+
+	defb "29 ",0, "28 ",0, "10 ",0, "9  ",0, "30 ",0, "31 ",0, "32 ",0, "33 ", 0
+
+	BLOCK 0x1fff-$, 0xff
