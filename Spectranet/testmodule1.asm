@@ -480,9 +480,43 @@ print_version
 	
 	rst CALLBAS
 	defw 0x1642	; Channel S
-
-	ld hl, str_zx_diagnostics
+	
+	ld hl, str_banner
 	call zx_print
+	
+	ld hl, 0x5800
+	ld de, 0x5801
+	ld bc, 0x1f
+	ld (hl), 0x47
+	ldir
+
+	ld a, 1
+	ld b, 8
+	ld hl, 0x401a
+	
+stripe_loop
+	
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	inc hl
+	ld l, 0x1a
+	inc h
+	scf
+	rla
+	djnz stripe_loop
+
+	ld hl, stripe_attrs
+	ld de, 0x581a
+	ld bc, 5
+	ldir
+	
 	ld hl, str_version
 	call zx_print
 
@@ -521,18 +555,10 @@ fail_ram_bitmap
 	defb %10100100, %10001010, %00101010, %10101000
 	defb %01001110, %11100100, %00100100, %01001000
 	defb %00000000, %00000000, %00000000, %00000000	
-
-stripe_bitmap
-
-	defb %00000001
-	defb %00000011
-	defb %00000111
-	defb %00001111
-	defb %00011111
-	defb %00111111
-	defb %01111111
-	defb %11111111
 	
+stripe_attrs
+
+	defb 0x02, 0x16, 0x34, 0x25, 0x28, 0x00
 ;
 ;	Text strings
 ;
@@ -553,9 +579,13 @@ str_identity
 
 	defb "ZX Diagnostics Module 1 ", VERSION, 0 
 	
+str_banner
+
+	defb " ZX Diagnostics ", VERSION, "      ", 0
+	
 str_version
 
-	defb " ", VERSION, ZXNEWLINE
+	defb ZXNEWLINE, ZXNEWLINE
 	defb "B. Alford, D. Smith", ZXNEWLINE
 	defb "http://git.io/vkf1o", ZXNEWLINE, ZXNEWLINE
 	defb "Installer and Spectranet code", ZXNEWLINE
