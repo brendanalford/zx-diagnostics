@@ -277,7 +277,7 @@ fail_next
 	ld hl, 0x5880
 	ld de, 0x5881
 	ld bc, 0x1ff
-	ld (hl), 9
+	ld (hl), 0
 	ldir
 
 	ld hl, fail_ram_bitmap
@@ -325,7 +325,7 @@ fail_bits_loop
 
 	bit 0, c
 	jr nz, fail_bits_ok
-	ld a, 8
+	ld a, 0
 	ld (hl), a
 	inc hl
 	ld (hl), a
@@ -522,6 +522,17 @@ fail_ram_bitmap
 	defb %01001110, %11100100, %00100100, %01001000
 	defb %00000000, %00000000, %00000000, %00000000	
 
+stripe_bitmap
+
+	defb %00000001
+	defb %00000011
+	defb %00000111
+	defb %00001111
+	defb %00011111
+	defb %00111111
+	defb %01111111
+	defb %11111111
+	
 ;
 ;	Text strings
 ;
@@ -535,6 +546,7 @@ str_cmd_fail
 	defb "Failed to add BASIC extension\n", 0
 	
 str_zx_diagnostics
+
 	defb "ZX Diagnostics", 0
 	
 str_identity
