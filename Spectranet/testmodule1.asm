@@ -496,16 +496,16 @@ print_version
 	
 stripe_loop
 	
+	push bc
+	ld b, 5
+
+stripe_inner_loop
+
 	ld (hl), a
 	inc hl
-	ld (hl), a
-	inc hl
-	ld (hl), a
-	inc hl
-	ld (hl), a
-	inc hl
-	ld (hl), a
-	inc hl
+	djnz stripe_inner_loop
+
+	pop bc
 	ld l, 0x1a
 	inc h
 	scf
