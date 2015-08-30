@@ -67,7 +67,7 @@ nmi
 
 str_build
 
-	defb	"DiagBoard Test ROM ", VERSION, " built ", BUILD_TIMESTAMP , 0
+	defb	"DiagBoard Test ROM ", VERSION, "\nBuilt: ", BUILD_TIMESTAMP , 0
 
 	BLOCK 0x0100-$, 0xff
 
@@ -106,6 +106,11 @@ start
 	bit 0, a
 	jp z, testcard
 
+;	Launch about screen if Symbol shift is pressed
+
+	bit 1, a
+	jp z, about
+	
 ;	Jump to memory browser if M is pressed
 
 	bit 2, a
@@ -143,12 +148,21 @@ start
 	bit 1, a
 	jr z, enable_soak_test
 	
-;	Andrew Bunker special :) Check if FIRE button of Kempston is being held,
-;	initiate soak tests if so
+;	Andrew Bunker special :) Check if FIRE button of a Kempston interface 
+;	is being held, initiate soak tests if so
+
+	ld bc, 0xff10
+
+kemp_fire_test
 
 	xor a
 	in a, (0x1f)
-	bit 4, a
+	and 0x1f
+	and c
+	ld c, a
+	djnz kemp_fire_test
+	
+	bit 4, c
 	jr nz, enable_soak_test
 
 	jr start_testing
@@ -469,22 +483,24 @@ fail_border_end
 
 use_uppermem
 
-; Initialize system variables
-
+;	Clear the rest of lower memory we just trashed
+	
+	BLANKMEM 0x5b00, 0x2500, 0
+	
 ;	Init stack
 
-    	ld sp, sys_stack
+    ld sp, sys_stack
 
+	; Initialize system variables without performing additional RAM checks
 	call initialize_no_ram_check
-
-    	ld a, BORDERWHT
-    	out (ULA_PORT), a
 
 ;	Clear the screen and print the top and bottom banners
 
+	ld a, BORDERWHT
+	out (ULA_PORT), a
 	call cls
-    	ld hl, str_banner
-    	call print_header
+    ld hl, str_banner
+    call print_header
 
 	ld hl, str_lowerrampass
 	call print
@@ -536,7 +552,7 @@ rom_test_1
 ; 	Call CRC generator in RAM, CRC ends up in HL
 
 	ld hl, str_romcrc
-    	call print
+    call print
 
    	call sys_romcrc
 
@@ -655,6 +671,8 @@ additional_rom_fail
 
 	ld a, 2
 	out (ULA_PORT), a
+	di 
+	halt
 
 	ld hl, str_testfail
 	call print
@@ -1235,7 +1253,7 @@ decstr_init
 	ld (hl), a
 	inc hl
 	djnz decstr_init
-
+	
 ;	Copy ROMCRC and ROM paging routines to RAM
 ;	We'll need them here as ROM code won't be accessible
 ;	during ROM checksums etc
@@ -1247,7 +1265,6 @@ decstr_init
 
 	ld hl, rompage_reloc
 	ld de, sys_rompaging
-	ld bc, end_rompage_reloc-rompage_reloc
 	ld bc, end_rompage_reloc-rompage_reloc
 	ldir
 
@@ -1261,9 +1278,10 @@ decstr_init
 	out (c), a
 
 ;	Signify that extended ISR can be called by setting
-;	I to non-zero value.
+;	I to non-zero value. Don't use 0x3F as this'll upset
+;	the ZXC4.
 
-	ld a, 0x3f
+	ld a, 0x1f
 	ld i, a
 
 ;	Check for whatever diagnostic hardware is present.
@@ -1275,7 +1293,6 @@ decstr_init
 ;	Reset the AY chip if present.
 
 	call ay_reset
-
 	ret
 
 ;
@@ -1307,6 +1324,7 @@ diagrom_exit
 	include "keyboardtest.asm"
 	include "membrowser.asm"
 	include "romtables.asm"
+	include "about.asm"
 
 str_romdiagboard
 

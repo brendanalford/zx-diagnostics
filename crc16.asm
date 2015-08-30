@@ -63,9 +63,19 @@ CrcByte
 Next	
 
 	djnz	CrcByte
+	
+;	Ordinarily we'd check for the end of ROM:
+;	0x4000. However the ZXC3/ZXC4 carts use
+;	memory mapped paging in the 3FC0-3FFF range
+;	which means we can't touch that. So let's just
+;	avoid it altogether.
+
 	ld a, d
-	cp 0x40     ; 0x4000 = end of rom
-	jr	nz,Read
+	cp 0x3f     
+	jr	nz, Read
+	ld a, e
+	cp 0xc0
+	jr nz, Read
 
 ;	Page our ROM back in
 	

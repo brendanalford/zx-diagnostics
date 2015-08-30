@@ -27,39 +27,39 @@
 
 rom_signature_table
 
-	defw 0xfd5e, str_rom48k, test_48k, 0x0000
-	defw 0xeffc, str_rom128k, test_128k, rom_table_rom128k
-	defw 0x2aa3, str_romplus2, test_plus2, rom_table_romplus2
-	defw 0x3998, str_romplus2a, test_plus3,	rom_table_romplus2a
-	defw 0x88f9, str_romplus3, test_plus3, rom_table_romplus3
+	defw 0x44e2, str_rom48k, test_48k, 0x0000
+	defw 0x62c7, str_rom128k, test_128k, rom_table_rom128k
+	defw 0xdbaa, str_romplus2, test_plus2, rom_table_romplus2
+	defw 0x26f5, str_romplus2a, test_plus3,	rom_table_romplus2a
+	defw 0x1f83, str_romplus3, test_plus3, rom_table_romplus3
 
 	IFNDEF SAVEMEM
 	
-	defw 0x3a1f, str_rom128esp, test_128k, rom_table_rom128esp
-	defw 0x3567, str_romplus2esp, test_plus2, rom_table_romplus2esp
-	defw 0xd3b4, str_romplus2fra, test_plus2, rom_table_romplus2fra
-	defw 0x5a18, str_romplus3esp, test_plus3, rom_table_romplus3esp
+	defw 0xe157, str_rom128esp, test_128k, rom_table_rom128esp
+	defw 0xc563, str_romplus2esp, test_plus2, rom_table_romplus2esp
+	defw 0xda64, str_romplus2fra, test_plus2, rom_table_romplus2fra
+	defw 0x29c0, str_romplus3esp, test_plus3, rom_table_romplus3esp
 
 ;	Some +3E ROM sets that might be out there
 
-	defw 0x8dfe, str_romplus3e_v1_38, test_plus3, rom_table_romplus3e_v1_38
-	defw 0xcaf2, str_romplus3e_v1_38esp, test_plus3, rom_table_romplus3e_v1_38esp
+	defw 0xdba9, str_romplus3e_v1_38, test_plus3, rom_table_romplus3e_v1_38
+	defw 0x3710, str_romplus3e_v1_38esp, test_plus3, rom_table_romplus3e_v1_38esp
 	
 ;	Soviet clones that some people are inexplicably fond of :)
 
-	defw 0xe2ec, str_orelbk08, test_48kgeneric, 0x0000
+	defw 0x26f0, str_orelbk08, test_48kgeneric, 0x0000
 
 ;	Just Speccy 128 clone
 
-	defw 0xb023, str_js128, test_js128, rom_table_js128
+	defw 0xee67, str_js128, test_js128, rom_table_js128
 
 ;	Harlequin Rev F
 
-	defw 0x669e, str_harlequin_f, test_48kgeneric, 0x0000
+	defw 0xe56c, str_harlequin_f, test_48kgeneric, 0x0000
 
 ;	Beckman 48K 
 
-	defw 0xafcf, str_rom48kbeckman, test_48k, 0x0000
+	defw 0x870c, str_rom48kbeckman, test_48k, 0x0000
 	
 	ENDIF
 	
@@ -75,49 +75,49 @@ rom_signature_table
 
 rom_table_rom128k
 
-	defw	0xdcec, str_rom128_fail, 0x0000
+	defw	0xbe09, str_rom128_fail, 0x0000
 
 rom_table_romplus2
 
-	defw	0xb0a2, str_romplus2_fail, 0x0000
+	defw	0x27f9, str_romplus2_fail, 0x0000
 
 rom_table_romplus2a
 
-	defw	0xe797, str_romplus3_a_fail, 0xf991, str_romplus3_b_fail, 0xbeeb, str_romplus3_b_fail, 0x0000
+	defw	0x4d5b, str_romplus3_a_fail, 0xb3e4, str_romplus3_b_fail, 0x5d75, str_romplus3_b_fail, 0x0000
 
 rom_table_romplus3
 
-	defw	0xa624, str_romplus3_a_fail, 0xea97, str_romplus3_b_fail, 0x8a9b, str_romplus3_b_fail, 0x0000
+	defw	0x4e7b, str_romplus3_a_fail, 0x3388, str_romplus3_b_fail, 0x4f34, str_romplus3_b_fail, 0x0000
 
 	IFNDEF SAVEMEM
 	
 rom_table_rom128esp
 
-	defw	0xc154, str_rom128_fail, 0x0000
+	defw	0x8413, str_rom128_fail, 0x0000
 
 rom_table_romplus2esp
 
-	defw	0x3dfd, str_romplus2_fail, 0x0000
+	defw	0xadbb, str_romplus2_fail, 0x0000
 
 rom_table_romplus2fra
 
-	defw	0x1b07, str_romplus2_fail, 0x0000
+	defw	0x9a23, str_romplus2_fail, 0x0000
 	
 rom_table_romplus3esp
 
-	defw	0xfe38, str_romplus3_a_fail, 0x6f7d, str_romplus3_b_fail, 0xfb2c, str_romplus3_b_fail, 0x0000
+	defw	0x89c8, str_romplus3_a_fail, 0xf579, str_romplus3_b_fail, 0x8a84, str_romplus3_b_fail, 0x0000
 
 rom_table_romplus3e_v1_38
 
-	defw	0x5004, str_romplus3_a_fail, 0x49e7, str_romplus3_b_fail, 0x8a9b, str_romplus3_b_fail, 0x0000
+	defw	0xa8e8, str_romplus3_a_fail, 0xe579, str_romplus3_b_fail, 0x4f34, str_romplus3_b_fail, 0x0000
 
 rom_table_romplus3e_v1_38esp
 
-	defw	0xf4be, str_romplus3_a_fail, 0xd440, str_romplus3_b_fail, 0xfb2c, str_romplus3_b_fail, 0x0000
+	defw	0xa6d0, str_romplus3_a_fail, 0xff63, str_romplus3_b_fail, 0x8a84, str_romplus3_b_fail, 0x0000
 
 rom_table_js128
 
-	defw	0xd8d8, str_romjs128_fail, 0x0000
+	defw	0x8616, str_romjs128_fail, 0x0000
 
 	ENDIF
 	

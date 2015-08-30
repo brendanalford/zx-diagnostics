@@ -27,12 +27,14 @@
 
 rompage_reloc
 
-	cp 0
-	jr z, romhw_test
+;	Funny ordering here as we're right on the edge of relative jump range
+
 	cp 1
 	jr z, romhw_pagein
 	cp 2
 	jr z, romhw_pageout
+	cp 0
+	jr z, romhw_test
 
 ;	Command not understood, return with error in A
 
@@ -68,12 +70,14 @@ romhw_pagein_smart
 
 romhw_pagein_zxc
 
+	push hl
 	ld hl, 0x3fc0
 	ld a, (v_hw_page)
 	and 0x7
-	and l
+	or l
 	ld l, a
 	ld a, (hl)
+	pop hl
 	ret
 
 ;	Command 2: Page out external ROM
@@ -86,9 +90,9 @@ romhw_pageout
 	jr z, romhw_pageout_diagboard
 	cp 2
 	jr z, romhw_pageout_smart
-	ld a, 0xff
 	cp 3
 	jr z, romhw_pageout_zxc
+	ld a, 0xff
 	ret
 
 romhw_pageout_diagboard
@@ -120,13 +124,18 @@ romhw_pageout_smart
 
 romhw_pageout_zxc
 
+	push hl
 	ld hl, 0x3fd0
-	ld a, (v_hw_page)
-	and 0x7
-	and l
-	ld l, a
 	ld a, (hl)
-	ret
+	pop hl
+	
+	ld a, b
+	cp 0x12
+	ret nz
+	ld a, c
+	cp 0x34
+	ret nz
+	jp 0
 
 ;	Command 3: Test for diagnostic devices
 ;	Stores result in system variable v_testhwtype
@@ -226,7 +235,9 @@ romhw_test_zxc
 	jr z, romhw_not_found
 
 ;	Paged out successfully. Now we need to page each bank
-; back in turn to find our diags rom again.
+; 	back in turn to find our diags rom again.
+
+romhw_found_zxc
 
 	ld de, 0x3fc0
 
@@ -252,7 +263,7 @@ test_zxc_loop
 	cp 'M'
 	jr nz, test_zxc_next
 
-	jr romhw_found_zxc
+	jr zxc_paged_in
 
 test_zxc_next
 
@@ -271,17 +282,14 @@ test_zxc_error
 	out (ULA_PORT), a
 	jr test_zxc_error
 
-romhw_found_zxc
+zxc_paged_in
 
-	ld a, 3
-	ld (v_testhwtype), a
 	ld a, e
 	and 0x7
 	ld (v_hw_page), a
-	ld hl, 0x3fc0
-	and l
-	ld l, a
-	ld a, (hl)
+	ld a, 3
+	ld (v_testhwtype), a
+
 	ret
 
 romhw_not_found
