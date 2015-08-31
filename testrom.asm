@@ -67,7 +67,7 @@ nmi
 
 str_build
 
-	defb	"DiagBoard Test ROM ", VERSION, "\nBuilt: ", BUILD_TIMESTAMP , 0
+	defb	"ZX Diagnostics ", VERSION, "\nBuilt: ", BUILD_TIMESTAMP , 0
 
 	BLOCK 0x0100-$, 0xff
 
@@ -1623,10 +1623,14 @@ fail_ram_bitmap
 	defb %01001110, %11100100, %00100100, %01001000
 	defb %00000000, %00000000, %00000000, %00000000	
 	
+free_space
+
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
 	BLOCK 0x3ae0-$, 0xff
+
+free_space_end
 
 str_bit_ref
 

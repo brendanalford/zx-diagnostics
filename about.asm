@@ -20,16 +20,27 @@
 
 about
 
+;	Initialise stack and system variables
+
 	ld sp, sys_stack
 	call initialize
+
+;	White screen and border
 	
 	ld a, BORDERWHT
 	out (0xfe), a
 	call cls
 	
+;	Print top and bottom banners/footers
+
 	ld hl, str_creditsbanner
 	call print_header
 	
+	call print_footer
+
+;	Print the diagnostic hardware type we're running
+;	on (if any)
+
 	ld hl, str_hardware
 	call print
 	
@@ -64,15 +75,45 @@ about
 print_hw
 
 	call print
+
+;	Print version and build information
 	
 	ld hl, str_version
 	call print
 	
 	ld hl, str_build
 	call print
+
+;	Output the amount of free space left in the ROM image
 	
-	di
-	halt
+	ld hl, str_free_sp
+	call print
+	
+	ld hl, free_space_end - free_space
+	ld de, v_decstr
+	call Num2Dec
+	ld hl, v_decstr
+	call print
+	
+	ld hl, str_free_sp_2
+	call print
+
+;	Prompt and wait for a key press
+	
+	ld hl, str_anykey
+	call print
+	
+	call get_key
+	
+;	Passing 0x1234 to the pageout routine forces a jump to
+;	the system ROM when done
+
+	ld a, 2
+	ld bc, 0x1234
+
+;	We won't ever return from this call
+
+	call sys_rompaging
 	
 str_creditsbanner
 
@@ -92,7 +133,7 @@ str_smart
 	
 str_zxc
 
-	defb "Fruitcake ZXC3/ZXC4\n\n", 0
+	defb "Paul Farrow ZXC3/ZXC4\n\n", 0
 	
 str_no_hardware
 
@@ -101,3 +142,15 @@ str_no_hardware
 str_version
 
 	defb "Build/version information:\n\n", 0
+	
+str_free_sp
+
+	defb "\n\nFree ROM space: ", 0
+	
+str_anykey
+
+	defb "Press any key to exit.", 0
+	
+str_free_sp_2
+
+	defb " bytes \n\n", 0
