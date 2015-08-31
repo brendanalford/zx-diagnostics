@@ -21,20 +21,23 @@
 ;
 
 	
-CALLBAS		equ 0x0010
-ZXNEWLINE 	equ 0x0D	; ZX print routine newline
+CALLBAS				equ 0x0010
+ZXNEWLINE 			equ 0x0D	; ZX print routine newline
 
 SPECTRANET_UNPAGE	equ 0x007c
 SPECTRANET_PAGE		equ 0x3ff9	
 ; store variables within spectranet's buf_workspace area
-v_sockfd	equ 0x3D00
-v_connfd 	equ 0x3D01
-netflag		equ 0x3D02
+v_sockfd			equ 0x3D00
+v_connfd 			equ 0x3D01
+netflag				equ 0x3D02
+tempstack_sram		equ 0x3D03
+v_soak_test			equ 0x3D05
 
 ; use spectrant's buf_message for somewhere to put a string
 stringbuffer equ 0x3B00	; reserve 256 bytes for a buffer
 
 tempstack		equ #7dfe;	Temporary stack location with running ROM CRC
+
 do_romcrc		equ #7e00;	Location in RAM to run ROM CRC test routine from
 
 ;	Testing variables

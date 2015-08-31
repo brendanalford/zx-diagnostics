@@ -67,14 +67,17 @@ outputcharnet
 	ld bc, 2
 	jr dosendstring
 
-waitkey
+getkey
 	ld a,(netflag)
 	cp 0
-	jr nz, waitkeynet
+	jr nz, getkeynet
 	call GETKEY
 	ret
-waitkeynet
+getkeynet
 	call readnetstring
+	ld a, (stringbuffer)
+	ret
+	
 	; todo: error checking
 	
 	; right now this is reading a string while the local one gets a keypress

@@ -142,6 +142,11 @@ press_t_loop
 
 run_tests
 
+;	Prepare our soak test counter
+
+	ld hl, 0
+	ld (v_soak_test), hl
+	
 ;	Sound a brief tone to indicate tests are starting.
 ;	This also verifies that the CPU and ULA are working.
 
@@ -152,22 +157,64 @@ run_tests
 	call PRINT42
 	call waitforconnection
 	ret c				; fatal error
+
+soak_test_prompt
+
+	ld hl, str_soak_test
+	call outputstring
 	
+soak_test_input
+
+	call getkey
+	cp 'n'
+	jr z, start_tests
+	cp 'y'
+	jr nz, soak_test_input
+	
+	ld hl, 1
+	ld (v_soak_test), hl
+	
+start_tests
+
+	ld hl, (v_soak_test)
+	ld a, h
+	or l
+	jr z, start_tests_1
+	
+	ld hl, v_decstr
+	ld de, v_decstr+1
+	ld bc, 6
+	ld (hl), 0
+	ldir
+	
+	ld hl, str_soak_test_iteration
+	call outputstring
+	ld de, v_decstr
+	ld hl, (v_soak_test)
+	call Num2Dec
+	ld hl, v_decstr
+	call outputstring
+	call newline
+		
+start_tests_1
+
 	ld hl, str_start_tests
 	call outputstring
 	
 start_beep
 
-	;	Blank the screen, (and all lower RAM)
+;	Blank the screen, (and all lower RAM)
+
 	BLANKMEM 16384, 16384, 0
 
 	ld l, 1				; Border colour to preserve
 	BEEP 0x23, 0x0150
+	
+;	Back up the pointer to the stack in SRAM
+
+	ld (tempstack_sram), sp
 
 start_testing
-	
-	ld iy, 0
-	add iy, sp
 	
 	ld ix, 0
 	
@@ -224,7 +271,7 @@ lowerram_random
 
 ; 	Restore machine stack, and clear screen
 
-	ld sp, iy
+	ld sp, (tempstack_sram)
 	call CLEAR42
 	
 ;	Check if lower ram tests passed
@@ -357,7 +404,7 @@ fail_bits_next
 
 	ld hl, str_pressanykey
 	call outputstring
-	call waitkey
+	call getkey
 	
 	jp exitcleanly
 
@@ -375,9 +422,41 @@ tests_done
 	
 	call 0x1010			; module_2_entrypoint
 	
+;	Did any tests fail?
+
+	xor a
+	ld hl, v_fail_ic
+	or (hl)
+	ld hl, v_fail_ic_uncontend
+	or (hl)
+	ld hl, v_fail_ic_contend
+	or (hl)
+	cp 0
+	
+; 	Exit testing if so
+	jr nz, tests_exit
+	
+;	Are we soak testing, exit if not
+
+	ld hl, (v_soak_test)
+	ld a, h
+	or l
+	jr z, tests_exit
+	
+;	Otherwise bump soak test iteration count, print a message and
+;	start next iteration
+		
+	inc hl
+	ld (v_soak_test), hl
+	ld hl, str_soak_test_iteration_complete
+	call outputstring
+	jp start_tests
+	
+tests_exit
+	
 	ld hl, str_pressanykey
 	call outputstring
-	call waitkey
+	call getkey
 	
 	jp exitcleanly
 
@@ -531,7 +610,46 @@ zx_print
 	inc hl
 	jr zx_print
 
-		
+	
+;
+;	Prints a 16-bit decimal number to the buffer pointed to by DE.
+;	Inputs: HL=number to print.
+;
+Num2Dec	
+	
+	ld	bc, -10000
+	call	Num1D
+	ld	bc, -1000
+	call	Num1D
+	ld	bc, -100
+	call	Num1D
+	ld	c, -10
+	call	Num1D
+	ld	c, b
+
+Num1D	
+
+	ld	a, '0'-1
+
+Num2D	
+
+	inc	a
+	add	hl,bc
+	jr	c, Num2D
+	sbc	hl,bc
+
+	ld	(de),a
+	inc	de
+	ret
+
+newline
+
+	ld a, '\r'
+	call outputchar
+	ld a, '\n'
+	call outputchar
+	ret
+
 test_cmd_string
 
 	defb "%zxdiags", 0
@@ -607,6 +725,18 @@ str_testpass
 str_testfail
 
 	defb "FAIL", 0
+	
+str_soak_test
+
+	defb "Run in soak test mode? (Y/N)\r\n", 0
+	
+str_soak_test_iteration
+
+	defb "Soak test iteration: ", 0
+	
+str_soak_test_iteration_complete
+
+	defb "Soak test iteration complete.\r\n\n", 0 
 	
 str_commence_tests
 

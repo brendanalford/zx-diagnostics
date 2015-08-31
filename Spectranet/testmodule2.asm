@@ -266,9 +266,18 @@ CrcByte
 Next	
 	
 	djnz	CrcByte
+	
+;	We only check the ROM from 0000-3FBF to maintain
+;	compatibility with the mainstream ROM tables, which
+;	need to avoid the top 64 bytes of ROM space to avoid
+;	conflicts with the ZXC3/4 cartridge memory mapped paging.
+
 	ld a, d
-	cp 0x40     ; 0x4000 = end of rom
+	cp 0x3f    
 	jr	nz,Read
+	ld a, e
+	cp 0xc0
+	jr nz, Read
 	
 	push hl
 	pop bc
