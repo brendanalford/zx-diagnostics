@@ -195,6 +195,7 @@ start_tests
 	ld hl, v_decstr
 	call outputstring
 	call newline
+	call newline
 		
 start_tests_1
 
@@ -736,7 +737,8 @@ str_soak_test_iteration
 	
 str_soak_test_iteration_complete
 
-	defb "Soak test iteration complete.\r\n\n", 0 
+	defb "Soak test iteration complete.\r\n\n"
+	defb "-----------------------------\r\n\n", 0
 	
 str_commence_tests
 
