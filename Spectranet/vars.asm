@@ -32,6 +32,8 @@ v_connfd 			equ 0x3D01
 netflag				equ 0x3D02
 tempstack_sram		equ 0x3D03
 v_soak_test			equ 0x3D05
+v_hexstr			equ 0x3D07
+v_decstr			equ 0x3D0C
 
 ; use spectrant's buf_message for somewhere to put a string
 stringbuffer equ 0x3B00	; reserve 256 bytes for a buffer
@@ -54,5 +56,3 @@ v_keybuffer		equ #7fbc; Keyboard bitmap (8 bytes)
 v_rand_addr		equ #7fbe;	Random fill test base addr
 v_rand_seed		equ #7fc0;	Random fill test rand seed
 v_rand_reps		equ #7fc2;	Random fill test repetitions
-v_hexstr		equ #7fc4; Workspace for Num2Hex routine
-v_decstr		equ #7fca; Workspace for Num2Dec routine

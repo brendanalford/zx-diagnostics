@@ -71,6 +71,7 @@ getkey
 	ld a,(netflag)
 	cp 0
 	jr nz, getkeynet
+	call KEYUP
 	call GETKEY
 	ret
 getkeynet

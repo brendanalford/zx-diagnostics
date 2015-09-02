@@ -202,8 +202,22 @@ start_tests_1
 	ld hl, str_start_tests
 	call outputstring
 	
-start_beep
+	ld bc, 0xffff
 
+start_delay
+
+;	Introduce a short delay before commencing tests 
+;	Mostly so we can see the screen output
+
+	nop
+	nop
+	nop
+	nop
+	dec bc
+	ld a, b
+	or c
+	jr nz, start_delay
+	
 ;	Blank the screen, (and all lower RAM)
 
 	BLANKMEM 16384, 16384, 0
@@ -214,7 +228,7 @@ start_beep
 ;	Back up the pointer to the stack in SRAM
 
 	ld (tempstack_sram), sp
-
+	
 start_testing
 	
 	ld ix, 0
