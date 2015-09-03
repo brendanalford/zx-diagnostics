@@ -13,5 +13,10 @@ echo *************************
 echo Building tape based tests
 echo *************************
 call build.bat
+cd ..\Spectranet
+echo ********************************
+echo Building Spectranet test modules
+echo ********************************
+call build.bat
 cd ..
 echo All builds complete.
