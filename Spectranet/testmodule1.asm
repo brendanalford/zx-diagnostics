@@ -113,39 +113,48 @@ initroutine
 ;	tests module is now paged in page A
 
 ;	see if the user's pressing 't' to initiate testing
+;	or 'S' for soak test mode
 
 	ld hl, str_zx_diagnostics
 	call PRINT42
-	ld hl, str_press_t
+	ld hl, str_select_tests
 	call PRINT42
 	
-	ld bc, 0xffff
-	
-press_t_loop
+;	Prepare our soak test counter
 
-	push bc
+	ld hl, 0
+	ld (v_soak_test), hl
+	ld de, 0xffff
+	
+select_test_type
+
 	ld bc, 0xfbfe
 	in a, (c)
-	pop bc
 	bit 4, a
 	jr z, run_tests
-	dec bc
-	ld a, b
-	or c
-	jr nz, press_t_loop
 	
-;	T not pressed, exit and allow other ROMs to init
+	ld bc, 0xfdfe
+	in a, (c)
+	bit 1, a
+	jr z, run_soak_tests
+	
+	dec de
+	ld a, d
+	or e
+	jr nz, select_test_type
+	
+;	T or S not pressed, exit and allow other ROMs to init
 
 	ld hl, str_not_testing
 	call PRINT42
 	ret
 
-run_tests
+run_soak_tests
 
-;	Prepare our soak test counter
-
-	ld hl, 0
+	ld hl, 1
 	ld (v_soak_test), hl
+	
+run_tests
 	
 ;	Sound a brief tone to indicate tests are starting.
 ;	This also verifies that the CPU and ULA are working.
@@ -157,22 +166,6 @@ run_tests
 	call PRINT42
 	call waitforconnection
 	ret c				; fatal error
-
-soak_test_prompt
-
-	ld hl, str_soak_test
-	call outputstring
-	
-soak_test_input
-
-	call getkey
-	cp 'n'
-	jr z, start_tests
-	cp 'y'
-	jr nz, soak_test_input
-	
-	ld hl, 1
-	ld (v_soak_test), hl
 	
 start_tests
 
@@ -725,9 +718,9 @@ str_version
 	defb "by ZXGuesser", ZXNEWLINE, ZXNEWLINE
 	defb "Build: ", BUILD_TIMESTAMP, ZXNEWLINE, 0
 	
-str_press_t
+str_select_tests
 
-	defb ": Press T to initiate tests\n", 0
+	defb ":\n\nPress T for normal tests\nPress S for soak test mode\n", 0
 	
 str_not_testing
 
@@ -740,10 +733,6 @@ str_testpass
 str_testfail
 
 	defb "FAIL", 0
-	
-str_soak_test
-
-	defb "Run in soak test mode? (Y/N)\r\n", 0
 	
 str_soak_test_iteration
 
