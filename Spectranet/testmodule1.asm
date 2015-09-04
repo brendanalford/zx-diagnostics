@@ -438,7 +438,18 @@ tests_done
 call_uppertests
 
 	call 0x1010			; module_2_entrypoint
+
+	ld a, (netflag)
+	cp 0
+	jr z, print_test_result
 	
+;	Clear away test card if running remotely so 
+;	remaining messages can be seen during boot
+
+	call CLEAR42
+	
+print_test_result
+
 ;	Did any tests fail?
 
 	xor a
