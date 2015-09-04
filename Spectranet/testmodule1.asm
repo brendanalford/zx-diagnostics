@@ -424,10 +424,19 @@ tests_done
 	ld hl, str_16kpassed
 	call outputstring
 
+	ld a, (netflag)
+	cp 0
+	jr z, call_uppertests
+	
+;	Display a test card if remote output is active
+
+	call testcard
+	
 ;
 ;	Module 1 will ID the ROM and perform the appropriate tests.
-;	
-	
+;		
+call_uppertests
+
 	call 0x1010			; module_2_entrypoint
 	
 ;	Did any tests fail?
@@ -658,6 +667,34 @@ newline
 	call outputchar
 	ret
 
+	
+testcard
+
+	ld hl, 0x5800
+	ld a, 0
+	
+testcard_first_line
+
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	inc hl
+	set 6, a
+	ld (hl), a
+	inc hl
+	ld (hl), a
+	inc hl
+	res 6, a
+	add a, 8
+	bit 6, a
+	jr z, testcard_first_line
+	
+	ld hl, 0x5800
+	ld de, 0x5820
+	ld bc, 0x2f0
+	ldir
+	ret
+	
 test_cmd_string
 
 	defb "%zxdiags", 0
