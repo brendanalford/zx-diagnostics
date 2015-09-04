@@ -748,27 +748,27 @@ str_romcrc
 
 str_romunknown
 
-	defb	AT, 5, 0, INK, 2, TEXTBOLD, "Unknown or corrupt ROM... ", TEXTNORM, INK, 0, "            ", ATTR, 56, 0
+	defb	AT, 7, 0, INK, 2, TEXTBOLD, "Unknown or corrupt ROM... ", TEXTNORM, INK, 0, "            ", ATTR, 56, 0
 
 str_testselect
 
-	defb	AT, 6, 0, "Press: 1..48K  2..128K  3..+2  4..+2A/+3", 0
+	defb	AT, 8, 0, "Press: 1..48K  2..128K  3..+2  4..+2A/+3", 0
 
 str_select48k
 
-	defb	AT, 6, 7 * 6, BRIGHT, 1, "1..48K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 8, 7 * 6, BRIGHT, 1, "1..48K\n", TEXTNORM, ATTR, 56, 0
 
 str_select128k
 
-	defb	AT, 6, 15 * 6, BRIGHT, 1, "2..128K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 8, 15 * 6, BRIGHT, 1, "2..128K\n", TEXTNORM, ATTR, 56, 0
 
 str_selectplus2
 
-	defb	AT, 6, 24 * 6, BRIGHT, 1, "3..+2\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 8, 24 * 6, BRIGHT, 1, "3..+2\n", TEXTNORM, ATTR, 56, 0
 
 str_selectplus3
 
-	defb	AT, 6, 31 * 6, BRIGHT, 1, "4..+2A/+3\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 8, 31 * 6, BRIGHT, 1, "4..+2A/+3\n", TEXTNORM, ATTR, 56, 0
 
 str_dblbackspace
 
