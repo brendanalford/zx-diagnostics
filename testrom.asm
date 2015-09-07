@@ -110,7 +110,7 @@ start
 
 	bit 1, a
 	jp z, about
-	
+
 ;	Jump to memory browser if M is pressed
 
 	bit 2, a
@@ -147,8 +147,8 @@ start
 	in a, (c)
 	bit 1, a
 	jr z, enable_soak_test
-	
-;	Andrew Bunker special :) Check if FIRE button of a Kempston interface 
+
+;	Andrew Bunker special :) Check if FIRE button of a Kempston interface
 ;	is being held, initiate soak tests if so
 
 	ld bc, 0xff10
@@ -161,12 +161,12 @@ kemp_fire_test
 	and c
 	ld c, a
 	djnz kemp_fire_test
-	
+
 	bit 4, c
 	jr nz, enable_soak_test
 
 	jr start_testing
-	
+
 enable_soak_test
 
 	ld iy, 1	; Soak testing - start at iteration 1
@@ -288,19 +288,19 @@ fail_msg_next
 	inc hl
 	dec b
 	jr nz, fail_msg_loop
-	
-	
+
+
 ;	Blank out the working RAM digits
 
 	ld hl, 0x5980
 	ld c, ixh
 
 	ld d, 8
-	
+
 fail_bits_outer_loop
 
 	ld b, 8
-	
+
 fail_bits_loop
 
 	bit 0, c
@@ -315,24 +315,24 @@ fail_bits_loop
 	ld (hl), a
 	inc hl
 	jr fail_bits_next
-	
+
 fail_bits_ok
 
 	inc hl
 	inc hl
 	inc hl
 	inc hl
-	
+
 fail_bits_next
 
 	rrc c
 	djnz fail_bits_loop
-	
+
 	dec d
 	ld a, d
 	cp 0
 	jr nz, fail_bits_outer_loop
-	
+
 
 ;
 ;	Lower RAM failure detected, default ISR with I=0
@@ -484,9 +484,9 @@ fail_border_end
 use_uppermem
 
 ;	Clear the rest of lower memory we just trashed
-	
+
 	BLANKMEM 0x5b00, 0x2500, 0
-	
+
 ;	Init stack
 
     ld sp, sys_stack
@@ -668,11 +668,6 @@ additional_rom_check_loop
 	jr rom_test_pass
 
 additional_rom_fail
-
-	ld a, 2
-	out (ULA_PORT), a
-	di 
-	halt
 
 	ld hl, str_testfail
 	call print
@@ -1253,7 +1248,7 @@ decstr_init
 	ld (hl), a
 	inc hl
 	djnz decstr_init
-	
+
 ;	Copy ROMCRC and ROM paging routines to RAM
 ;	We'll need them here as ROM code won't be accessible
 ;	during ROM checksums etc
@@ -1613,7 +1608,7 @@ fail_ram_bitmap
 	defb %01010101, %01010000, %10001010, %01001000
 	defb %01010101, %01010000, %10001010, %11101110
 	defb %00000000, %00000000, %00000000, %00000000
-	
+
 	defb %00000000, %00000000, %00000000, %00000000
 	defb %01000100, %01001110, %00101110, %01101110
 	defb %10101100, %10100010, %10101000, %10000010
@@ -1621,8 +1616,8 @@ fail_ram_bitmap
 	defb %10100100, %01000010, %11100010, %10100100
 	defb %10100100, %10001010, %00101010, %10101000
 	defb %01001110, %11100100, %00100100, %01001000
-	defb %00000000, %00000000, %00000000, %00000000	
-	
+	defb %00000000, %00000000, %00000000, %00000000
+
 free_space
 
 ;	Page align the IC strings to make calcs easier
