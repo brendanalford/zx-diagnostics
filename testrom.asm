@@ -32,7 +32,16 @@
 ;	Define a build timestamp
 ;
 	LUA ALLPASS
+
+	file = io.open("branch.txt", "r")
+	io.input(file)
+	branch = io.read()
+	io.close(file)
+	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
+
+
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
+
 	ENDLUA
 
 	org 0
@@ -68,6 +77,10 @@ nmi
 str_build
 
 	defb	"ZX Diagnostics ", VERSION, "\nBuilt: ", BUILD_TIMESTAMP , 0
+
+str_gitbranch
+
+	defb  "Branch: ", GIT_BRANCH, 0
 
 	BLOCK 0x0100-$, 0xff
 
