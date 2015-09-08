@@ -3,6 +3,7 @@ echo *****************
 echo Building Main ROM
 echo *****************
 git rev-parse --abbrev-ref HEAD > branch.txt
+git rev-parse --short HEAD > commit.txt
 call build.bat
 cd FlashUtils
 echo **********************
