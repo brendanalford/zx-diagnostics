@@ -83,7 +83,7 @@ nmi
 
 str_build
 
-	defb	"ZX Diagnostics ", VERSION, "\nBuilt: ", BUILD_TIMESTAMP , 0
+	defb	"ZX Diagnostics ", VERSION, "\nBuilt:  ", BUILD_TIMESTAMP , 0
 
 str_gitbranch
 
