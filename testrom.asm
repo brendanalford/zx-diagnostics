@@ -30,6 +30,7 @@
 
 ;
 ;	Define a build timestamp
+;	Also insert defines for Git branch and commit hash
 ;
 	LUA ALLPASS
 
@@ -37,8 +38,14 @@
 	io.input(file)
 	branch = io.read()
 	io.close(file)
+	
+	file = io.open("commit.txt", "r")
+	io.input(file)
+	commit = io.read()
+	io.close(file)
+	
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
-
+	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
 
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
 
@@ -82,6 +89,10 @@ str_gitbranch
 
 	defb  "Branch: ", GIT_BRANCH, 0
 
+str_gitcommit
+
+	defb  "Commit: ", GIT_COMMIT, 0
+	
 	BLOCK 0x0100-$, 0xff
 
 start
