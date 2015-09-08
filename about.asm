@@ -86,6 +86,9 @@ print_hw
 	call newline
 	ld hl, str_gitbranch
 	call print
+	call newline
+	ld hl, str_gitcommit
+	call print
 
 ;	Output the amount of free space left in the ROM image
 
