@@ -1,7 +1,7 @@
 ; SjASMPlus source file for standalone test program
 
   define ORG 24500
-  define LENGTH 8167
+  define LENGTH 8268
   device zxspectrum48
   include testram.asm
   savebin "testram.bin",ORG,LENGTH
