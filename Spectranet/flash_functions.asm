@@ -217,7 +217,7 @@ F_FlashWriteByte:
 		and 0x7
 		out (0xfe), a
 
-		.wait3: 
+.wait3: 
         ld a, (de)      ; read programmed address
         ld b, a         ; save status
         xor c           
