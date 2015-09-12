@@ -25,8 +25,6 @@
 	define MIN_PAGE 0x04
 	define MAX_PAGE 0x1F
 	
-	define PAYLOAD_OFFSET 0x500
-	
 	include "spectranet.asm"
 	include "..\version.asm"
 	
@@ -43,15 +41,6 @@
 	cp 0
 	jp nz, exit
 
-
-;	Give the user one last chance to bail out
-
-	ld hl, str_confirm
-	call PRINT42
-	call GETKEY
-	cp 'p'
-	jp nz, exit
-	
 	ld hl, v_freepages
 
 checkmodule1
@@ -101,7 +90,7 @@ checkmodule2
 	
 	ld a, (hl)
 	cp 0xff
-	jr z, no_free_pages
+	jp z, no_free_pages
 	inc hl
 	push hl
 	push af
@@ -136,32 +125,44 @@ module2found
 ;	v_module1page and v_module2page.
 
 continue
+	
+	;	Give the user one last chance to bail out
 
+	ld hl, str_confirm
+	call PRINT42
+	call GETKEY
+	cp 'p'
+	jp nz, exit
+	
+	di
 	ld hl, str_writing1
 	call PRINT42
 	ld a, (v_module1page)
 	ld (v_modindex), a
-	ld hl, 0x8000 + PAYLOAD_OFFSET
+	ld hl, bin_module1
 	ld (v_modaddr), hl
-	di
 	call write_rom_page
-	ei
-	jr c, exit
-
+	jr c, program_error
+	
+	di
 	ld hl, str_writing2
 	call PRINT42
 	ld a, (v_module2page)
 	ld (v_modindex), a
-	ld hl, 0x9000 + PAYLOAD_OFFSET
+	ld hl, bin_module2
 	ld (v_modaddr), hl
-	di
 	call write_rom_page
-	ei
-	jr c, exit
+	jr c, program_error
 	
 complete
 
 	ld hl, str_done
+	call PRINT42
+	jr exit
+	
+program_error
+
+	ld hl, str_progerror
 	call PRINT42
 	jr exit
 	
@@ -172,6 +173,7 @@ no_free_pages
 	
 exit
 
+	ei
 	call PAGEOUT
 	ret
 	
@@ -296,7 +298,7 @@ str_title
 	
 str_confirm
 
-	defb "Press P to install, any other key aborts\n\n", 0
+	defb "\nPress P to install, any other key aborts\n\n", 0
 	
 str_identity1
 
@@ -308,11 +310,11 @@ str_identity2
 	
 str_found_module1
 
-	defb "Found module 1 in slot: [", 0
+	defb "Module 1: present, slot:    [", 0
 	
 str_found_module2
 
-	defb "Found module 2 in slot: [", 0
+	defb "Module 2: present, slot:    [", 0
 	
 str_new_module1
 	
@@ -342,15 +344,22 @@ str_duplicate
 
 	defb "ERROR: Duplicate modules found. Delete\nthese duplicates via the ROM manager\nbefore retrying. Exiting.\n", 0
 
+str_progerror
+
+	defb "ERROR: Flash write failed. Exiting.\n", 0 
+	
 str_done
 
 	defb "\nComplete.", 0
 	
 	include "flash_functions.asm"
 	
-	BLOCK (0x8000 + PAYLOAD_OFFSET)-$, 0x00
+bin_module1
 
 	incbin "testmodule1.module"
+
+bin_module2
+
 	incbin "testmodule2.module"
 	
 v_module1page	equ 0xff00		; Address of module 1 in flash or 0xFF if not found

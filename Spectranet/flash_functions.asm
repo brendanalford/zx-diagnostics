@@ -33,22 +33,12 @@
 ;
 write_rom_page
 
-;	Page index is held in B
-	ld b, MIN_PAGE
-
-write_page_loop
-
-	ld a, (v_modindex)
-	cp b
-	jr nz, write_page_next
-	
 ;	We need to write to this page within this sector.
-;	Step B back to B mod 4 for a full sector,
+;	Step back to v_modindex mod 4 for a full sector,
 ;	then back it up page by page to SRAM, except if 
 ; 	the current page matches our target, then take it instead.
 
-	push bc
-	ld a, b
+	ld a, (v_modindex)
 	and 0xfc
 	ld b, a
 	
@@ -116,31 +106,26 @@ copy_to_sram_next
 	ld a, 2
 	out (0xfe), a
 	
-	pop bc
-	ld a, b
+	ld a, (v_modindex)
 	and 0xfc
-
+	
 	push bc
+	di
 	call F_FlashEraseSector
 	pop bc
 	jr c, write_page_erase_error
 
-	ld a, b
+	ld a, (v_modindex)
+	and 0xfc
+
+	di
 	call F_writesector
 	jr c, write_page_write_error
 	
 	ld a, 1
 	out (0xfe), a
 	
-;	If we've written a sector, our work here is done.
-	ret
-	
-write_page_next
-
-	inc b
-	ld a, b
-	cp MAX_PAGE
-	jr nz, write_page_loop
+;	Our work here is done.
 	ret
 	
 write_page_erase_error
@@ -160,6 +145,7 @@ write_page_giveup
 	scf
 	ret
 	
+	
 ;---------------------------------------------------------------------------
 ; F_FlashEraseSector
 ; Simple flash writer for the Am29F010 (and probably any 1 megabit flash
@@ -172,7 +158,7 @@ F_FlashEraseSector:
 
         ; Page in the appropriate sector first 4k into page area B.
         ; Page to start the erase from is in A.
-        call SETPAGEB 	; page into page area B
+        call SETPAGEA 	; page into page area B
 
         ld a, 0xAA      ; unlock code 1
         ld (0x555), a   ; unlock addr 1
@@ -185,9 +171,9 @@ F_FlashEraseSector:
         ld a, 0x55      ; erase cmd 3
         ld (0x2AA), a   ; erase cmd addr 3
         ld a, 0x30      ; erase cmd 4
-        ld (0x2000), a  ; erase sector address
+        ld (0x1000), a  ; erase sector address
 
-        ld hl, 0x2000
+        ld hl, 0x1000
 .wait1: 
         bit 7, (hl)     ; test DQ7 - should be 1 when complete
         jr nz,  .complete1
@@ -283,14 +269,14 @@ F_writesector:
         ld b, 4         ; number of pages
 .loop4: 
         push bc
-        call SETPAGEA ; Page into area A
+        call SETPAGEB ; Page RAM into area B
         inc a           ; next page
         ex af, af'      ; get flash page to program
-        call SETPAGEB
+        call SETPAGEA	; into page A
         inc a           ; next page
         ex af, af'      ; back to ram page for next iteration
-        ld hl, 0x1000
-        ld de, 0x2000
+        ld hl, 0x2000
+        ld de, 0x1000
         ld bc, 0x1000
         push af
         call F_FlashWriteBlock
@@ -298,6 +284,7 @@ F_writesector:
         pop af
         pop bc
         djnz  .loop4    ; next page
+		or 0
         ret
 .failed4:               ; restore stack, set carry flag
         pop af
