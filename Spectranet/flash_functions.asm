@@ -211,9 +211,13 @@ F_FlashWriteByte:
         ld a, c         ; retrieve A
         ld (de), a      ; program it
 
+;		Do border stripes depending on the content being written
+
+		cpl
 		and 0x7
 		out (0xfe), a
-.wait3: 
+
+		.wait3: 
         ld a, (de)      ; read programmed address
         ld b, a         ; save status
         xor c           
