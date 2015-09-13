@@ -144,6 +144,29 @@ continue
 	ld a, 0x30
 	out (c), a
 
+;	Are both modules in the same setor?
+
+	ld a, (v_module1page)
+	and 0xfc
+	ld b, a
+	ld a, (v_module2page)
+	and 0xfc
+	cp b
+	jr nz, write_separate_pages
+
+;	Both modules will reside in pages that occupy the same sector, we
+;	can do this in one shot
+
+	ld hl, str_writing
+	call PRINT42
+	call write_rom_pages
+	jr c, exit
+	jr complete
+
+;	Separate sectors, need to erase and rewrite two distinct sectors
+		
+write_separate_pages
+
 	ld hl, str_writing1
 	call PRINT42
 	ld a, (v_module1page)
@@ -153,7 +176,6 @@ continue
 	call write_rom_page
 	jr c, exit
 	
-	di
 	ld hl, str_writing2
 	call PRINT42
 	ld a, (v_module2page)
@@ -332,6 +354,10 @@ str_found_module_end
 
 	defb "]\n", 0
 
+str_writing
+
+	defb "Writing modules...\n", 0
+	
 str_writing1
 
 	defb "Writing module 1...\n", 0

@@ -22,14 +22,113 @@
 ;
 
 ;
+;	Writes ROM pages. This is entered as follows:
+;	v_module1page contains the desired index of page 1
+;	v_module2page contains the index of page 2.
+;	This routine backs up the sectors to Spectranet SRAM (replacing the target)
+;	page as it goes, then jumps to write_sram_to_flash within the write_rom_page
+;	routine to finish the job.
+;
+write_rom_pages
+
+;	Get the start page of the sector containing both pages
+
+	ld a, (v_module1page)
+	and 0xfc
+	ld b, a
+
+;	Start at the first of 4 pages at the top of SRAM designated as workspace
+
+	ld c, 0xdc
+	
+copy_mult_to_sram_loop
+
+	ld a, c
+	push bc
+	call SETPAGEB
+	pop bc
+	ld a, b
+	push bc
+	call SETPAGEA
+	pop bc
+	
+	ld a, (v_module1page)
+	cp b
+	jr nz, copy_mult_1
+	
+;	Module 1 location found, copy it
+
+	push hl
+	push de
+	push bc
+	ld hl, bin_module1
+	ld de, 0x2000
+	ld bc, 0x1000
+	ldir
+	pop bc
+	pop de
+	pop hl
+	jr copy_mult_to_sram_next
+
+copy_mult_1
+
+	ld a, (v_module2page)
+	cp b
+	jr nz, copy_mult_2
+	
+;	Module 2 location found, copy it
+
+	push hl
+	push de
+	push bc
+	ld hl, bin_module2
+	ld de, 0x2000
+	ld bc, 0x1000
+	ldir
+	pop bc
+	pop de
+	pop hl
+	jr copy_mult_to_sram_next
+	
+copy_mult_2
+
+;	Neither module current, just copy this page from Flash to SRAM
+	
+	push hl
+	push de
+	push bc
+	ld hl, 0x1000
+	ld de, 0x2000
+	ld bc, 0x1000
+	ldir
+	pop bc
+	pop de
+	pop hl
+	
+copy_mult_to_sram_next
+
+	inc b
+	inc c
+	ld a, c
+	cp 0xe0
+	jr nz, copy_mult_to_sram_loop
+	
+;	All done, jump into our next routine to finish the write.
+;	Beforehand, set the target page so that routine knows which 
+;	sector to wipe.
+
+	ld a, (v_module1page)
+	ld (v_modindex), a
+	
+	jr write_sram_to_flash
+	
+	
+;
 ;	Writes a given ROM page. This is entered as follows:
 ;	v_modaddr contains the start address in main RAM of the module to write
 ;	v_modindex contains its desired index
-;	This routine loops through all sectors (32 / 4 = 8) and
-;	detects if it needs to write a module to this specific sector.
-;	If so, it backs up the sectors to Spectranet SRAM (replacing the target)
+;	This routine backs up the sectors to Spectranet SRAM (replacing the target)
 ;	page as it goes, then erases the sector, and rewrites the lot.
-;	I imagine I'll be using the restore functionality a lot :)
 ;
 write_rom_page
 
@@ -100,6 +199,8 @@ copy_to_sram_next
 	cp 0xe0
 	jr nz, copy_to_sram_loop
 	
+write_sram_to_flash
+
 ;	At this point, we have a full sector backed up to SRAM.
 ;	Now erase its target sector.
 
