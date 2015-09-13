@@ -342,7 +342,7 @@ str_byteverifyfail
 	
 str_sectorfail
 
-	defb "\nFailed writing sector: ", 0
+	defb "\nFailed writing ROM page: ", 0
 
 str_sectorramfail
 
