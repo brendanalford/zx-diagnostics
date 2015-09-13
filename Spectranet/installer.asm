@@ -126,7 +126,7 @@ module2found
 
 continue
 	
-	;	Give the user one last chance to bail out
+;	Give the user one last chance to bail out
 
 	ld hl, str_confirm
 	call PRINT42
@@ -135,6 +135,15 @@ continue
 	jp nz, exit
 	
 	di
+	
+;	Lock off 128 paging. TODO: Revisit this
+;	in a future release to allow the user
+;	carry on as normal after an upgrade.
+
+	ld bc, 0x7ffd
+	ld a, 0x30
+	out (c), a
+
 	ld hl, str_writing1
 	call PRINT42
 	ld a, (v_module1page)
@@ -142,7 +151,7 @@ continue
 	ld hl, bin_module1
 	ld (v_modaddr), hl
 	call write_rom_page
-	jr c, program_error
+	jr c, exit
 	
 	di
 	ld hl, str_writing2
@@ -152,19 +161,14 @@ continue
 	ld hl, bin_module2
 	ld (v_modaddr), hl
 	call write_rom_page
-	jr c, program_error
+	jr c, exit
 	
 complete
 
 	ld hl, str_done
 	call PRINT42
-	jr exit
-	
-program_error
-
-	ld hl, str_progerror
-	call PRINT42
-	jr exit
+	di
+	halt
 	
 no_free_pages
 
@@ -344,13 +348,9 @@ str_duplicate
 
 	defb "ERROR: Duplicate modules found. Delete\nthese duplicates via the ROM manager\nbefore retrying. Exiting.\n", 0
 
-str_progerror
-
-	defb "ERROR: Flash write failed. Exiting.\n", 0 
-	
 str_done
 
-	defb "\nComplete.", 0
+	defb "\nComplete. Please reset your machine.", 0
 	
 	include "flash_functions.asm"
 	
