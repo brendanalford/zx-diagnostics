@@ -187,10 +187,13 @@ write_separate_pages
 	
 complete
 
+;	Print that we're done, and halt. TODO: Revisit this.
+
 	ld hl, str_done
 	call PRINT42
 	di
 	halt
+
 	
 no_free_pages
 

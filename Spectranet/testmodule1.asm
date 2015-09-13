@@ -747,7 +747,7 @@ str_cmd_fail
 	
 str_zx_diagnostics
 
-	defb "ZX Diagnostics", 0
+	defb "ZX Diagnostics ", VERSION, 0
 	
 str_identity
 
