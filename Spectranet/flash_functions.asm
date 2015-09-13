@@ -281,7 +281,7 @@ F_FlashEraseSector:
         bit 5, (hl)     ; test DQ5 - should be 1 to continue
         jr z,  .wait1
         bit 7, (hl)     ; test DQ7 again
-        jr z,  .borked1
+		jr z,  .borked1
 
 .complete1: 
         or 0            ; clear carry flag
@@ -317,9 +317,10 @@ F_FlashWriteByte:
 		cpl
 		and 0x7
 		out (0xfe), a
-
+		
 .wait3: 
-        ld a, (de)      ; read programmed address
+		
+		ld a, (de)      ; read programmed address
         ld b, a         ; save status
         xor c           
         bit 7, a        ; If bit 7 = 0 then bit 7 = data        
@@ -334,6 +335,7 @@ F_FlashWriteByte:
         jr nz,  .borked3
 
 .byteComplete3: 
+		
         pop bc
         or 0            ; clear carry flag
         ret
@@ -395,14 +397,14 @@ F_writesector:
         ld b, 4         ; number of pages
 .loop4: 
         push bc
-        call SETPAGEB ; Page RAM into area B
+        call SETPAGEA ; Page RAM into area B
         inc a           ; next page
         ex af, af'      ; get flash page to program
-        call SETPAGEA	; into page A
+        call SETPAGEB	; into page A
         inc a           ; next page
         ex af, af'      ; back to ram page for next iteration
-        ld hl, 0x2000
-        ld de, 0x1000
+        ld hl, 0x1000
+        ld de, 0x2000
         ld bc, 0x1000
         push af
         call F_FlashWriteBlock
