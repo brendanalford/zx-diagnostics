@@ -238,9 +238,30 @@ F_FlashWriteByte:
         ret
 
 .borked3: 
-        pop bc
-        scf             ; error = set carry flag
-        ret
+	
+	push de
+	ld hl, str_byteverifyfail
+	call PRINT42
+	pop de
+	push de
+	ld a, d
+	ld hl, v_workspace
+	call ITOH8
+	ld hl, v_workspace
+	call PRINT42
+	pop de
+	push de
+	ld a, e
+	ld hl, v_workspace
+	call ITOH8
+	ld hl, v_workspace
+	call PRINT42
+	ld a, '\n'
+	call PUTCHAR42
+	pop de
+    pop bc
+    scf             ; error = set carry flag
+    ret
 
 ;---------------------------------------------------------------------------
 ; F_FlashWriteBlock
@@ -291,17 +312,48 @@ F_writesector:
 		or 0
         ret
 .failed4:               ; restore stack, set carry flag
+		ex af, af'
+		ld hl, v_workspace
+		call ITOH8
+		ex af, af'
+		ld hl, str_sectorfail
+		call PRINT42
+		ld hl, v_workspace
+		call PRINT42
+		ld a, '\n'
+		CALL PUTCHAR42
+		
         pop af
+		ld hl, v_workspace
+		call ITOH8
+		ld hl, str_sectorramfail
+		call PRINT42
+		ld hl, v_workspace
+		call PRINT42
+		ld a, '\n'
+		call PUTCHAR42
         pop bc
         scf
         ret
 		
+str_byteverifyfail
+
+	defb "\nProgrammed byte failed verification\nat address: ", 0
+	
+str_sectorfail
+
+	defb "\nFailed writing sector: ", 0
+
+str_sectorramfail
+
+	defb "\nSource SRAM page: ", 0
+		
 str_eraseerror
 
-	defb "Error erasing Flash sector, aborting.\n",0
+	defb "\nError erasing Flash sector, aborting.\n",0
 	
 str_writeerror
 
-	defb "Error writing Flash sector, aborting.\n",0
+	defb "\nError writing Flash sector, aborting.\n",0
 	
 
