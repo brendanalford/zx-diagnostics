@@ -397,10 +397,10 @@ F_writesector:
         ld b, 4         ; number of pages
 .loop4: 
         push bc
-        call SETPAGEA ; Page RAM into area B
+        call SETPAGEA ; Page RAM into area A
         inc a           ; next page
         ex af, af'      ; get flash page to program
-        call SETPAGEB	; into page A
+        call SETPAGEB	; into page B
         inc a           ; next page
         ex af, af'      ; back to ram page for next iteration
         ld hl, 0x1000

@@ -32,8 +32,27 @@
 	include "..\version.asm"
 	include "spectranet.asm"
 	
+;
+;	Define a build timestamp
+;	Also insert defines for Git branch and commit hash
+;
 	LUA ALLPASS
+
+	file = io.open("..\\branch.txt", "r")
+	io.input(file)
+	branch = io.read()
+	io.close(file)
+	
+	file = io.open("..\\commit.txt", "r")
+	io.input(file)
+	commit = io.read()
+	io.close(file)
+	
+	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
+	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
+
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
+
 	ENDLUA
 	
 	org 0x2000
@@ -764,7 +783,9 @@ str_version
 	defb "http://git.io/vkf1o", ZXNEWLINE, ZXNEWLINE
 	defb "Installer and Spectranet code", ZXNEWLINE
 	defb "by ZXGuesser", ZXNEWLINE, ZXNEWLINE
-	defb "Build: ", BUILD_TIMESTAMP, ZXNEWLINE, 0
+	defb "Built:  ", BUILD_TIMESTAMP, ZXNEWLINE
+	defb "Branch: ", GIT_BRANCH, ZXNEWLINE
+	defb "Commit: ", GIT_COMMIT, 0
 	
 str_select_tests
 
