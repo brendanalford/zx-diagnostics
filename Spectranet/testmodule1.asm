@@ -572,8 +572,10 @@ sockerrorclose
 sockerror
 	ld hl, str_sockerror
 	call PRINT42
+	call KEYUP
 	call GETKEY
-	scf
+	xor a
+	ld (netflag), a
 	ret
 
 	include "output.asm"
@@ -852,7 +854,7 @@ str_pressanykey
 
 str_sockerror
 
-	defb "FATAL: Socket error",0
+	defb "ERROR: Socket error. Running tests\nlocally - press any key to begin.\n\n",0
 	
 	BLOCK 0x2fff-$, 0xff
 
