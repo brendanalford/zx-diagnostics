@@ -175,16 +175,26 @@ start
 ;	Andrew Bunker special :) Check if FIRE button of a Kempston interface
 ;	is being held, initiate soak tests if so
 
-	ld bc, 0xff10
+	ld bc, 0xff00
+	
+kemp_interface_test
 
-kemp_fire_test
+;	Check to see if the user is holding the stick up, down,
+;	left or right. If so, skip the fire check.
+;	This also acts as an interface test.
 
-	xor a
 	in a, (0x1f)
 	and 0x1f
-	and c
+	or c
 	ld c, a
-	djnz kemp_fire_test
+	djnz kemp_interface_test
+	
+	ld a, c
+	and 0xf
+	cp 0
+	jr nz, start_testing
+
+;	Interface is present. Is the user holding fire?
 
 	bit 4, c
 	jr nz, enable_soak_test
@@ -192,6 +202,8 @@ kemp_fire_test
 	jr start_testing
 
 enable_soak_test
+
+;	User is holding Fire on a Kempston stick, enable soak tests.
 
 	ld iy, 1	; Soak testing - start at iteration 1
 	BEEP 0x10, 0x300
