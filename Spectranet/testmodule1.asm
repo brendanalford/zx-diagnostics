@@ -840,8 +840,7 @@ str_connected_1
 	
 str_connected_2
 
-	defb " ", VERSION, " "
-	defb 0x1B, "[101m ", 0x1B, "[103m ", 0x1B, "[102m ", 0x1B, "[106m ", 0x1B, "[40m "
+	defb  " ", 0x1B, "[101m ", 0x1B, "[103m ", 0x1B, "[102m ", 0x1B, "[106m ", 0x1B, "[40m "
 	defb "\r\nConnection established\r\n\r\n", 0
 	
 str_start_tests
