@@ -16,13 +16,13 @@
 ;	Lesser General Public License for more details.
 ;
 ;	defines.asm
-;	
+;
 
 
 ;
 ;	Definitions and macros used by the testing ROM.
 ;
-	
+
 	define   LED_PORT	63
 	define   ULA_PORT	254
 	define   ROMPAGE_PORT   31
@@ -34,10 +34,10 @@
 	define   ERR_FLASH	0xaa   ; alternate lights
 
 ;	AY register defines
-	
+
 	define	 AY_REG		0xfffd
 	define	 AY_DATA	0xbffd
-	
+
 	define	 AYREG_A_LO	0x00
 	define	 AYREG_A_HI	0x01
 	define	 AYREG_B_LO	0x02
@@ -179,7 +179,7 @@
 	dec bc
 	ld a, b
 	or c
-	jr nz, .altpat1.rdloop1 
+	jr nz, .altpat1.rdloop1
 	jr .altpat1.done
 
 .altpat1.borked
@@ -253,7 +253,7 @@
 	dec bc
 	ld a, b
 	or c
-	jr nz, .altpat2.rdloop1 
+	jr nz, .altpat2.rdloop1
 	jr .altpat2.done
 
 .altpat2.borked
@@ -278,7 +278,7 @@
 	jr .altpat2.exit
 
 .altpat2.done
-.altpat2.exit	
+.altpat2.exit
 
 	ENDM
 
@@ -287,30 +287,30 @@
 ;	Step1: write 0 with up addressing order;
 ;	Step2: read 0 and write 1 with up addressing order;
 ;	Step3: read 1 and write 0 with down addressing order;
-;	Step4: read 0 with down addressing order. 
-;	
+;	Step4: read 0 with down addressing order.
+;
 ; 	Credit - Karl (PokeMon) on WoS for the algorithm description
 ;
 
 	MACRO MARCHTEST start, len
-	
+
 	; Step 1 - write 0 with up addressing order
 	; No errors expected with this part :)
-	
+
 	ld hl, start
 	ld bc, len
 
 .marchtest1.loop
-	
+
 	ld (hl), 0
 	inc hl
 	dec bc
 	ld a, b
 	or c
 	jr nz, .marchtest1.loop
-	
+
 	; Step 2 - read 0 and write 1 with up addressing order
-	
+
 	ld hl, start
 	ld bc, len
 
@@ -318,9 +318,9 @@
 	ld a, (hl)
 	cp 0
 	jr z, .marchtest2.next
-	
+
 	MARCHBORKED
-	
+
 .marchtest2.next
 	ld a, 0xff
 	ld (hl), a
@@ -332,7 +332,7 @@
 
 .marchtest3.start
 
-	; Step 3 - read 1 and write 0 with down addressing order 
+	; Step 3 - read 1 and write 0 with down addressing order
 	ld hl, start
 	ld bc, len - 1
 	add hl, bc
@@ -343,11 +343,11 @@
 	cp 0xff
 	jr z, .marchtest3.next
 
-	xor a 
+	xor a
 	MARCHBORKED
-	
+
 .marchtest3.next
-	
+
 	xor a
 	ld (hl), a
 	dec hl
@@ -355,13 +355,13 @@
 	ld a, b
 	or c
 	jr nz, .marchtest3.loop
-	
+
 .marchtest4.start
 	; Step 4 - read 0 with down addressing order
 	ld hl, start
 	ld bc, len - 1
 	add hl, bc
-	
+
 .marchtest4.loop
 
 	ld a, (hl)
@@ -369,7 +369,7 @@
 	jr z, .marchtest4.next
 
 	MARCHBORKED
-	
+
 .marchtest4.next
 
 	dec hl
@@ -383,16 +383,16 @@
 	ENDM
 
 	MACRO MARCHBORKED
-	
+
 	exx
 	ld b, a
 	ld a, ixh
 	or b
 	ld ixh, a
 	ld a, BORDERRED
-	out (ULA_PORT), a	
+	out (ULA_PORT), a
 	exx
-	
+
 	ENDM
 
 ;
@@ -433,16 +433,20 @@
 ;	Args: addr - base address, reps - half memory size being tested,
 ;	      seed - PRNG seed to use
 ;
+;	Register usage:
+;	SP  = start address
+; BC' = number of 16-bit words to test with
 
 	MACRO RANDFILLUP addr, reps, seed
 
 	ld sp, addr
 	exx
-	ld bc, seed  
+	ld bc, seed
+	ld hl, 0
 	exx
 	ld bc, reps
 
-.randfill.up.loop      
+.randfill.up.loop
 
 	exx
 	RAND16
@@ -458,13 +462,14 @@
 	or c
 	jp nz, .randfill.up.loop
 
-.randfill.up.test      
+.randfill.up.test
 
 	ld sp, addr
 	exx
-	ld bc, seed      
+	ld bc, seed
 	exx
 	ld bc, reps
+	ld l, 0
 
 .randfill.up.testloop
 
@@ -472,28 +477,34 @@
 	RAND16	; byte pair to test now in HL
 	pop de	; Pop memory off the stack to test into DE
 	ld a, h
-	cp d
-	jp nz, .randfill.up.borked1
+	xor d
+	jp nz, .randfill.up.borked
 	ld a, l
-	cp e
-	jp nz, .randfill.up.borked2
+	xor e
+	jp nz, .randfill.up.borked
+	jr .randfill.up.next
+
+.randfill.up.borked
+
+	exx
+	or l
+	ld l, a
+	exx
+
+.randfill.up.next
+
 	exx
 	dec bc
 	ld a, b
 	or c
 	jp nz, .randfill.up.testloop
-	jp .randfill.up.done
 
-.randfill.up.borked1
+	ld a, l
+	cp 0
+	jp z, .randfill.up.done
 
-	ld e, d	; bad byte should be in E
-	ld l, h   ; expected byte in L 
+.randfill.up.borkedreport
 
-.randfill.up.borked2
-
-	ld a, e
-	xor l
-	
 ; 	Store dodgy bit in ixh
 
 	ld bc, ix
@@ -513,7 +524,7 @@
 
 .randfill.up.done
 .randfill.up.exit
-	
+
 	ENDM
 
 ;
@@ -526,17 +537,17 @@
 
 	ld sp, addr
 	exx
-	ld bc, seed  
+	ld bc, seed
 	exx
 	ld bc, reps
-	
-	; Adjust stack pointer as we won't be popping values off in 
+
+	; Adjust stack pointer as we won't be popping values off in
 	; the normal sense when testing
-	
+
 	inc sp
 	inc sp
-	
-.randfill.down.loop      
+
+.randfill.down.loop
 
 	exx
 	RAND16
@@ -547,14 +558,15 @@
 	or c
 	jp nz, .randfill.down.loop
 
-.randfill.down.test      
+.randfill.down.test
 
 	ld sp, addr
 	exx
-	ld bc, seed      
+	ld bc, seed
 	exx
 	ld bc, reps
-	
+	ld l, 0
+
 .randfill.down.testloop
 
 	exx
@@ -562,36 +574,45 @@
 	pop de		; corresponding memory in DE
 	dec sp
 	dec sp		; Adjust stack pointer back downwards
-	dec sp		
 	dec sp
-	
+	dec sp
+
 	ld a, h
 	cp d
-	jp nz, .randfill.down.borked1
+	jp nz, .randfill.down.borked
 	ld a, l
 	cp e
-	jp nz, .randfill.down.borked2
+	jp nz, .randfill.down.borked
+	jr .randfill.down.next
+
+.randfill.down.borked
+
+	exx
+	or l
+	ld l, a
+	exx
+
+.randfill.down.next
+
 	exx
 	dec bc
 	ld a, b
 	or c
 	jp nz, .randfill.down.testloop
+
+	ld a, l
+	cp 0
+
 	jp .randfill.down.done
 
-.randfill.down.borked1
+.randfill.down.borkedreport
 
-	ld e, d	; bad byte should be in E
-	ld l, h   ; expected byte in L 
-
-.randfill.down.borked2
-
-	ld a, e
-	xor l
-	
 ; 	Store dodgy bit in ixh
 
 	ld bc, ix
-	; And in D for borkedloop
+
+; And in D for borkedloop
+
 	ld d, a
 	or b
 	out (LED_PORT), a
@@ -607,11 +628,11 @@
 
 .randfill.down.done
 .randfill.down.exit
-	
+
 	ENDM
 
 ;
-;	Saves the location of the stack pointer to 
+;	Saves the location of the stack pointer to
 ;	memory
 ;
 
@@ -620,15 +641,15 @@
 	ENDM
 
 ;
-;	Restores the location of the stack pointer from 
+;	Restores the location of the stack pointer from
 ;	memory
 ;
 
 	MACRO RESTORESTACK
 	ld sp, (v_stacktmp)
 	ENDM
-	
-;	
+
+;
 ;	Macro to interpret the results of a 48k memory test
 ;	and store the result, write result to screen etc
 ;
@@ -661,7 +682,7 @@
 	ENDM
 
 
-;	
+;
 ;	Macro to interpret the results of a 128k memory test
 ;	and store the result
 ;
@@ -676,7 +697,7 @@
 	ENDM
 
 ;
-;	Blanks the H register. 
+;	Blanks the H register.
 ;
 
 	MACRO PREPAREHREG
@@ -694,7 +715,7 @@
 ;
 	MACRO BEEP freq, length
 
-	ld de, length				
+	ld de, length
 
 .tone.duration
 
@@ -710,24 +731,24 @@
 ;	Toggle speaker output, preserve border
 
 	ld a, l
-	xor 0x10				
-	ld l, a 
+	xor 0x10
+	ld l, a
 	out (0xfe), a
 
 ;	Generate tone for desired duration
 
-	dec de					
+	dec de
 	ld a, d
 	or e
 	jr nz, .tone.duration
 
 	ENDM
-	
+
 ;	A quick macro to write a value in a to four consecutive
 ;	memory locations starting at HL.
 
 	MACRO LDHL4TIMES
-	
+
 	ld (hl), a
 	inc hl
 	ld (hl), a
@@ -735,6 +756,5 @@
 	ld (hl), a
 	inc hl
 	ld (hl), a
-	
+
 	ENDM
-	

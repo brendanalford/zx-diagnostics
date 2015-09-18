@@ -38,12 +38,12 @@
 	io.input(file)
 	branch = io.read()
 	io.close(file)
-	
+
 	file = io.open("commit.txt", "r")
 	io.input(file)
 	commit = io.read()
 	io.close(file)
-	
+
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
 	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
 
@@ -92,7 +92,7 @@ str_gitbranch
 str_gitcommit
 
 	defb  "Commit: ", GIT_COMMIT, 0
-	
+
 	BLOCK 0x0100-$, 0xff
 
 start
@@ -176,7 +176,7 @@ start
 ;	is being held, initiate soak tests if so
 
 	ld bc, 0xff00
-	
+
 kemp_interface_test
 
 ;	Check to see if the user is holding the stick up, down,
@@ -188,7 +188,7 @@ kemp_interface_test
 	or c
 	ld c, a
 	djnz kemp_interface_test
-	
+
 	ld a, c
 	and 0xf
 	cp 0
@@ -251,8 +251,8 @@ lowerram_march
 
 lowerram_random
 
-    	RANDFILLUP 16384, 8192, 11
-    	RANDFILLDOWN 32766, 8191, 17
+    	RANDFILLUP 16384, 8192, 0
+    	RANDFILLDOWN 32766, 8191, 255
 
 ;	This gives the opportunity to visually see what's happening in
 ;	lower memory in case there is a problem with it.
