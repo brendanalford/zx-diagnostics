@@ -2,7 +2,7 @@
 echo Building release directory...
 set /p Build=<branch.txt
 set RelDir=Release-%Build%
-rmdir /s /q %RelDir% > nul
+rmdir /s /q %RelDir% >nul 2>&1
 echo Creating %RelDir% folder...
 md %RelDir%
 md %RelDir%\TestTape
@@ -23,11 +23,13 @@ copy Spectranet\installer.tap %RelDir%\Spectranet > nul
 copy Spectranet\testmodule1.module %RelDir%\Spectranet > nul
 copy Spectranet\testmodule2.module %RelDir%\Spectranet > nul
 
-echo File Copy Complete
+echo File copy complete.
+echo.
 echo Creating ZIP file %RelDir%.zip...
+echo.
 cd %RelDir%
 zip -r -q ../%RelDir%.zip *
 cd ..
 echo Cleaning up...
-rmdir /s /q %RelDir%
+rmdir /s /q %RelDir% >nul 2>&1
 echo Done.
