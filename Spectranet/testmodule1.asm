@@ -50,7 +50,7 @@
 	
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
 	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
-
+	sj.insert_define("HOSTNAME", '"' .. os.getenv("USERDOMAIN") .. '"');
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
 
 	ENDLUA
