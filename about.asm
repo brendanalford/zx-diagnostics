@@ -104,6 +104,17 @@ print_hw
 	ld hl, str_free_sp_2
 	call print
 
+	ld a, (v_testhwtype)
+	cp 0
+	jr nz, wait_for_key
+	
+;	No diagnostic hardware means no means of exit - just halt
+
+	di
+	halt
+	
+wait_for_key
+
 ;	Prompt and wait for a key press
 
 	ld hl, str_anykey
