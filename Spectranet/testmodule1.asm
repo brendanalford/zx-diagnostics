@@ -32,8 +32,27 @@
 	include "..\version.asm"
 	include "spectranet.asm"
 	
+;
+;	Define a build timestamp
+;	Also insert defines for Git branch and commit hash
+;
 	LUA ALLPASS
+
+	file = io.open("..\\branch.txt", "r")
+	io.input(file)
+	branch = io.read()
+	io.close(file)
+	
+	file = io.open("..\\commit.txt", "r")
+	io.input(file)
+	commit = io.read()
+	io.close(file)
+	
+	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
+	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
+	sj.insert_define("HOSTNAME", '"' .. os.getenv("USERDOMAIN") .. '"');
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
+
 	ENDLUA
 	
 	org 0x2000
@@ -553,8 +572,10 @@ sockerrorclose
 sockerror
 	ld hl, str_sockerror
 	call PRINT42
+	call KEYUP
 	call GETKEY
-	scf
+	xor a
+	ld (netflag), a
 	ret
 
 	include "output.asm"
@@ -747,7 +768,7 @@ str_cmd_fail
 	
 str_zx_diagnostics
 
-	defb "ZX Diagnostics", 0
+	defb "ZX Diagnostics ", VERSION, 0
 	
 str_identity
 
@@ -764,7 +785,9 @@ str_version
 	defb "http://git.io/vkf1o", ZXNEWLINE, ZXNEWLINE
 	defb "Installer and Spectranet code", ZXNEWLINE
 	defb "by ZXGuesser", ZXNEWLINE, ZXNEWLINE
-	defb "Build: ", BUILD_TIMESTAMP, ZXNEWLINE, 0
+	defb "Built:  ", BUILD_TIMESTAMP, ZXNEWLINE
+	defb "Branch: ", GIT_BRANCH, ZXNEWLINE
+	defb "Commit: ", GIT_COMMIT, 0
 	
 str_select_tests
 
@@ -817,8 +840,7 @@ str_connected_1
 	
 str_connected_2
 
-	defb " ", VERSION, " "
-	defb 0x1B, "[101m ", 0x1B, "[103m ", 0x1B, "[102m ", 0x1B, "[106m ", 0x1B, "[40m "
+	defb  " ", 0x1B, "[101m ", 0x1B, "[103m ", 0x1B, "[102m ", 0x1B, "[106m ", 0x1B, "[40m "
 	defb "\r\nConnection established\r\n\r\n", 0
 	
 str_start_tests
@@ -831,7 +853,7 @@ str_pressanykey
 
 str_sockerror
 
-	defb "FATAL: Socket error",0
+	defb "ERROR: Socket error. Running tests\nlocally - press any key to begin.\n\n",0
 	
 	BLOCK 0x2fff-$, 0xff
 

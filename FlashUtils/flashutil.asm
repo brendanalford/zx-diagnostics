@@ -16,8 +16,8 @@
 ;	Lesser General Public License for more details.
 ;
 ;	flashutil.asm
-;	
-	
+;
+
 	org 0xE000
 
 	include "vars.asm"
@@ -31,29 +31,29 @@ start
 
 	di
 
-; 	Quick check to see if user has lowered SP below 32768 as requested 
+; 	Quick check to see if user has lowered SP below 32768 as requested
 
 	ld hl, 0
 	add hl, sp
 	ld a, h
 	cp 0x80
-	
+
 	jr c, start_2
-	
-;	Nope, Print a message and generate 
+
+;	Nope, Print a message and generate
 ;	M RAMTOP no good error
 
 	xor a
 	out (ROMPAGE_PORT), a   ; page in Speccy ROM
-	
+
 	ld hl, str_bad_ramtop
 	call print_rom
-	
+
 	ei
-	
+
 	rst 0x08
 	defb 0x15
-	
+
 start_2
 
 ;	Set up the system variables
@@ -66,37 +66,37 @@ start_2
       	xor a
       	ld (v_column), a
       	ld (v_row), a
-      	
+
       	ld (v_pr_ops), a
       	ld (v_printbuf), a
 	ld hl, v_printbuf
 	ld de, v_printbuf + 1
 	ld bc, 6
 	ldir
-	
+
 	ld a, 0x2
 	ld (v_scroll), a
 	ld a, 0x15
 	ld (v_scroll_lines), a
-	
-	
+
+
 	ld a, 2
 	ld (v_scroll), a
 	ld a, 21
 	ld (v_scroll_lines), a
-      
+
 ;	Main Menu screen
 
 main_menu
 
  	ld a, 7           ; White border
  	out (ULA_PORT), a
-	
+
 	call cls
-	
+
 	    ld hl, str_banner
       	call print_header
-      	
+
       	ld hl, str_run
       	call print
 
@@ -107,19 +107,19 @@ main_menu
 
       	ld hl, str_mfrdevice
       	call print
-      	
+
       	call F_FlashReadId
       	call map_device_id
       	jr nc, flash_not_identified
-      	
+
       	ld l, (ix+2)
       	ld h, (ix+3)
       	call print
-      	
+
       	jr get_option
-      	
+
 flash_not_identified
-      	
+
       	push hl
       	ld hl, chip_unknown
       	call print
@@ -133,12 +133,12 @@ flash_not_identified
 
 ;	Wait for a user selection
 
-get_option	
+get_option
 	call beep
     call get_key
-     
+
 	cp " "
-	jr z, return_to_basic	
+	jr z, return_to_basic
 	cp 0x13
 	jr z, options_menu
 	cp "W"
@@ -146,15 +146,15 @@ get_option
 
 	call is_alphanumeric
 	jr nc, get_option
-      	
+
 ; 	If we get here we've selected a ROM to boot
-	
+
 	call map_key_to_page
-	
-    or 32          	; bit 5 = /ROMCS line - bit 5 should be high
-                   	; to assert it with the jumper in 'SPECTRUM' pos
-    out (ROMPAGE_PORT), a
-    jp 0
+
+  or 32          	; bit 5 = /ROMCS line - bit 5 should be high
+                 	; to assert it with the jumper in 'SPECTRUM' pos
+  out (ROMPAGE_PORT), a
+  jp 0
 
 ;
 ;	The options menu.
@@ -170,7 +170,7 @@ options_menu
 options_1
 	call beep
 	call get_key
-	
+
 		cp "P"
       	jp z, program_page
       	cp "X"
@@ -182,7 +182,7 @@ options_1
 		cp " "
 		jp z, main_menu
 		jp options_1
-	
+
 ;
 ;	Pages out diagnostic ROM and returns control to BASIC ROM
 ;
@@ -194,11 +194,11 @@ return_to_basic
 	rrca
 	rrca
 	rrca
-	out (0xfe), a 
+	out (0xfe), a
 
 	ld a, (0x5c8d)
 	ld (v_attr), a
-		
+
       	call cls
      	xor a
      	out (ROMPAGE_PORT), a   ; page in Speccy ROM
@@ -215,19 +215,19 @@ tape_load
 	call print_header
 	ld hl, str_loadmsg
 	call print
-	
+
 	xor a
 	out (ROMPAGE_PORT), a   ; page in Speccy ROM
 
 	ld hl, .tapeerror
-	
+
 .tapeloop
 
 	xor a
 	scf
 	ld ix, v_tapehdr
 	ld de, 17
-	call load_bytes	
+	call load_bytes
 	call check_break
 	ld a, d
 	or e
@@ -238,7 +238,7 @@ tape_load
 	ld a, (v_tapehdr)
 	cp 3
 	jr z, .tapeloop1
-	
+
 	ld hl, str_headertype
 	call print
 	call .fixtapename
@@ -268,7 +268,7 @@ tape_load
 	ld (v_attr), a
 	call newline
 	jr .tapeloop
-	
+
 .tapeloop2
 
 	ld hl, str_headerok
@@ -278,7 +278,7 @@ tape_load
 	ld a, 56
 	ld (v_attr), a
 	call newline
-	
+
 	scf
 	ld a, 255
 	ld ix, 0x8000
@@ -296,9 +296,9 @@ tape_load
 	ld hl, str_anykey
 	call print
 	call get_key
-	
+
 	jp main_menu
-	
+
 .tapeerror
 
 	ld a, 7
@@ -309,7 +309,7 @@ tape_load
 	call print
 	call get_key
 	jp main_menu
-	
+
 .fixtapename
 
 	ld hl, v_tapehdr+1
@@ -318,13 +318,13 @@ tape_load
 	jr nz, .tapenamepresent
 	xor a
 	ret
-	
+
 .tapenamepresent
-	
+
 	xor a
 	ld (v_tapehdr+0x0b), a
 	ret
-	
+
 check_break
 
 	ld a, 0x7f
@@ -333,11 +333,11 @@ check_break
 	ret c
 	pop hl
 	jp main_menu
-	
+
 ;
 ;	Does some initial setup and then calls the ROM routine LD-BYTES past the point
 ;	where it sets SA/LD-RET as the return, allowing us to trap BREAK pressed properly.
-;	
+;
 load_bytes
 
 	inc d
@@ -349,7 +349,7 @@ load_bytes
 
 	; Jump to point in ROM past the change of return address
 	jp 0x0562
-	
+
 ;
 ;	Programs a flash page.
 ;
@@ -360,14 +360,14 @@ program_page
       	call cls
       	ld hl, str_proghdr
       	call print_header
-	
-	ld hl, str_progopt 
+
+	ld hl, str_progopt
 	call print
       	ld hl, str_p1
       	call print
       	ld hl, str_back
       	call print
-      	
+
 ;	Wait for the user to pick a page or option.
 
 .progpage_getpage
@@ -376,11 +376,11 @@ program_page
 
 ;	Did the user want to exit?
 	cp "Z"
-	jp z, main_menu	
+	jp z, main_menu
 
 	call is_alphanumeric
 	jr nc, .progpage_getpage
-	
+
 	call map_key_to_page
 
 ; 	Now try to program the page - first do some checks
@@ -403,7 +403,7 @@ program_page
 program_page_program
 
 ;	Writing 16384 bytes from 32768 to the flash
-	
+
 	ld hl, 0x8000
       	ld de, 0
       	ld bc, 16384
@@ -436,7 +436,7 @@ program_page_loop
 
 .progpage.borked
 
-;	A failure occurred during writing. Say so, wait for a 
+;	A failure occurred during writing. Say so, wait for a
 ;	keypress, and go back to main menu.
 
      	ld hl, str_borked
@@ -454,7 +454,7 @@ program_page_in_use
      	ld hl, str_inuse
       	call print
       	call get_key
-      	cp "Y"    
+      	cp "Y"
       	jp nz, program_page
 
 ;	User doesn't seem to care. Try programming anyway.
@@ -469,24 +469,24 @@ program_page_in_use
 erase_sector
 
 ;	Display erase menu and options.
-      
+
       	call cls
       	ld hl, str_erasehdr
       	call print_header
       	ld hl, str_chooseerase
       	call print
-      	
+
 .repoll
       	call beep
       	call get_key
 
 ;	User can hit X to return to the main menu.
 
-      	cp "X"    
+      	cp "X"
       	jp z, main_menu
-      
+
      	call map_key_to_page
-     
+
 ;	Return for more input if 0-7 wasn't pressed.
 
       	cp 8
@@ -497,10 +497,10 @@ erase_sector
 
       	cp 1
       	jr z, .yourekillingme
-      	
+
 .doerase
 
-;	Go ahead and erase the chosen sector     	
+;	Go ahead and erase the chosen sector
 
      	ld hl, str_erasing
       	call print
@@ -525,7 +525,7 @@ erase_sector
 .eraseborked
 
 ;	An error occurred, say so, wait for a key then main menu.
-      
+
       	ld hl, str_borked
       	call print
       	ld hl, str_anykey
@@ -535,16 +535,16 @@ erase_sector
 
 .yourekillingme
 
-;	User's trying to kill the sector containing 
+;	User's trying to kill the sector containing
 ;	the flash utility. Warn them first and give
 ;	them options
 
       	push af     ; save intended sector
       	call cls
-      
+
       	ld hl, str_delp4_hdr
       	call print_header
-      	
+
       	ld hl, str_delp4
       	call print
 
@@ -553,21 +553,21 @@ erase_sector
 .killbeep
 	call beep
 	djnz .killbeep
-	
+
       	call get_key
-      	
+
 ;	Y = keep me
-      	
-      	cp "Y"      
+
+      	cp "Y"
       	jr z, .keep
 
 ;	N = kill off this sector
-      	
-      	cp "N"       
+
+      	cp "N"
       	jr z, .killme
-      
+
 ; 	any other key = abort
-      	
+
       	pop af
       	jp erase_sector
 
@@ -587,7 +587,7 @@ erase_sector
 
      	ld a, #24   ; bit 5 set + page 4
       	out (ROMPAGE_PORT), a
-      	
+
 ;	Copy it to RAM at 32768
 
       	ld hl, 0
@@ -632,23 +632,23 @@ copy_page
      	call print_header
      	ld hl, str_copyhdr
      	call print
-     	
+
 	ld hl, str_p1
 	call print
       	ld hl, str_back
       	call print
-      
+
 .copypage_getpage
       	call beep
       	call get_key
 
-      	cp "Z"      
+      	cp "Z"
       	jp z, main_menu
       	call is_alphanumeric
       	jr nc, .copypage_getpage
-      	
+
 	call map_key_to_page
-	
+
 ; 	Page number now in A
 
 	or 32       ; set /ROMCS bit
@@ -662,9 +662,9 @@ copy_page
       	ld de, 32768
       	ld bc, 16384
       	ldir
-      
+
  ; Page copied, say so, wait for a key, then back to main menu
- 
+
       	ld hl, str_done
       	call print
       	ld hl, str_anykey
@@ -675,7 +675,7 @@ copy_page
 F_FlashReadId
 ;
 ;	Read manufacturer id/device id from Flash.
-;	Returns H = Mfr ID, L = Device ID. 
+;	Returns H = Mfr ID, L = Device ID.
 ;
 
 	push af
@@ -705,7 +705,7 @@ F_FlashReadId
 
 	ld a, 0xf0
 	ld (0x00), a
-	
+
 	pop af
 	ret
 
@@ -721,7 +721,7 @@ F_FlashEraseSector
 	push AF
 
 ; 	select page 0
-	
+
 	ld a, 32
 	out (ROMPAGE_PORT), A
 
@@ -740,10 +740,10 @@ F_FlashEraseSector
 	pop af
 
 ; 	Multiply by 4 and set /ROMCS high
-      	
+
       	rla
       	rla
-      	or 32       
+      	or 32
       	out (ROMPAGE_PORT), A
 
 	ld a, #30	; erase cmd 4
@@ -752,7 +752,7 @@ F_FlashEraseSector
 	ld hl, #0
 
 EraseSector.wait
-		
+
 	bit 7, (hl)	; test DQ7 - should be 1 when complete
 	jr nz, EraseSector.complete
 	bit 5, (hl)	; test DQ5 - should be 1 to continue
@@ -761,12 +761,12 @@ EraseSector.wait
 	jr z, EraseSector.borked
 
 EraseSector.complete
-	
+
 	or 0		; clear carry flag
 	ret
 
 EraseSector.borked
-	
+
 	scf		; carry flag = error
 	ret
 
@@ -784,12 +784,12 @@ F_FlashWriteByte
       	ld c, a     ; save byte to write
 
 ; 	Try to program the requested page
-      	
+
       	ld a, 32    ; page 0 to write unlock code
       	out (ROMPAGE_PORT), a
 
 ; 	Tell the flash chip we are writing a byte to it.
-      	
+
       	ld a, #aa
       	ld (#555), a
       	ld a, #55
@@ -798,7 +798,7 @@ F_FlashWriteByte
       	ld (#555), a
 
 ; 	page in the page we're actually writing
-     	
+
      	ld a, (v_page)
      	out (ROMPAGE_PORT), a
 
@@ -806,7 +806,7 @@ F_FlashWriteByte
       	ld (de), a  ; write it
 
 WriteData.wait
-		
+
 	ld a, (de)	; read programmed address
 	ld b, a		; save status
 	xor c
@@ -830,7 +830,7 @@ writeData.byteComplete
 	ret
 
 writeData.borked
-	
+
 ;	Something went wrong when writing the byte
 
 	pop bc
@@ -845,10 +845,10 @@ beep
 	push hl
 	push de
 	push bc
-	
+
 	ld a, 7
 	ld l, a
-	ld de, 0x50				
+	ld de, 0x50
 
 .tone.duration
 
@@ -864,13 +864,13 @@ beep
 ;	Toggle speaker output, preserve border
 
 	ld a, l
-	xor 0x10				
-	ld l, a 
+	xor 0x10
+	ld l, a
 	out (0xfe), a
 
 ;	Generate tone for desired duration
 
-	dec de					
+	dec de
 	ld a, d
 	or e
 	jr nz, .tone.duration
@@ -889,8 +889,8 @@ is_alphanumeric
 	jr c, not_alphanum
 	cp 'Z'
 	jr nc, not_alphanum
-	
-	cp '9'
+
+	cp '9' + 1
 	jr c, is_alpha
 	cp 'A'
 	jr nc, is_alpha
@@ -905,13 +905,13 @@ is_alpha
 ;	Translates a pressed key to a page number
 ;
 map_key_to_page
-	
+
 	sub '0'
-	cp '9'
+	cp 0x10
 	ret c
-	sub 9
+	sub 7
 	ret
-	
+
 
 ;
 ;	Maps the given device id to an information block describing
@@ -934,7 +934,7 @@ map_dev_loop
 
 	scf
 	ret
-	
+
 map_dev_next
 	ld de, 6
 	add ix, de
@@ -942,17 +942,17 @@ map_dev_next
 	ld b, (ix+1)
 	or a
 	jr nz, map_dev_loop
-	
+
 ;	Not found a match
 	and a
 	ret
-	
+
 ;
-;	Chip string table	
+;	Chip string table
 ;
 chip_amic_a29040b
 	defb "AMIC A29040B", 0
-	
+
 chip_amd_am29f040b
 	defb "AMD AM29F040B", 0
 
@@ -966,24 +966,24 @@ chip_amd_am29f040b
 map_info_table
 
 ;	AMIC A29040B - 32 pages, 64K sectors
-	
+
 	defb 0x37, 0x86
 	defw chip_amic_a29040b
 	defb 32, 64
 
 ;	AMD AM29F040B - 32 pages, 64K sectors
-	
+
 	defb 0xc2, 0xa4
 	defw chip_amd_am29f040b
 	defb 32,64
-	
+
 ;	Table end
 
 	defb 0x00, 0x00, 0x00, 0x00, 0x00 ,0x00
 
 
 
-	include "../version.asm"	
+	include "../version.asm"
      	include "../charset.asm"
  	include "../print.asm"
  	include "../scroll.asm"
@@ -993,72 +993,72 @@ chip_unknown
 	defb "Unknown (", 0
 chip_unknown2
 	defb ")",0
-	
+
 str_bad_ramtop
 
 	defb 0x0d, "Please set RAMTOP to 32767 or ", 0x0d
 	defb "lower to use this utility.", 0
-	
+
 str_banner
-	
+
 	defb TEXTBOLD, "Diagnostic Board Flash Utility", TEXTNORM, 0
-	
+
 str_run
   	defb  AT, 2, 0, "Select ROM page to boot:", 0
 
 str_p1
 	defb AT, 4, 0, "0: Page 0", TAB, 90, "1: Page 1", TAB, 180, "2: Page 2\n"
-str_p2   
+str_p2
 	defb "3: Page 3", TAB, 90, "4: Page 4", TAB, 180, "5: Page 5\n"
-str_p3   
+str_p3
 	defb "6: Page 6", TAB, 90, "7: Page 7", TAB, 180, "8: Page 8\n"
-str_p4 
+str_p4
 	defb "9: Page 9", TAB, 90, "a: Page 10", TAB, 180, "b: Page 11\n"
-str_p5   
+str_p5
 	defb "c: Page 12", TAB, 90, "d: Page 13", TAB, 180, "e: Page 14\n"
-str_p6   
+str_p6
 	defb "f: Page 15", TAB, 90, "g: Page 16", TAB, 180, "h: Page 17\n"
-str_p7   
+str_p7
 	defb "i: Page 18", TAB, 90, "j: Page 19", TAB, 180, "k: Page 20\n"
-str_p8   
+str_p8
 	defb "l: Page 21", TAB, 90, "m: Page 22", TAB, 180, "n: Page 23\n"
-str_p9   
+str_p9
 	defb "o: Page 24", TAB, 90, "p: Page 25", TAB, 180, "q: Page 26\n"
-str_p10  
+str_p10
 	defb "r: Page 27", TAB, 90, "s: Page 28", TAB, 180, "t: Page 29\n"
-str_p11  
+str_p11
 	defb "u: Page 30", TAB, 90, "v: Page 31\n\n",0
 
-str_others  
+str_others
 	defb "Press ", TEXTBOLD, INK, 2,"ENTER ", TEXTNORM, INK, 0, "for Other Options menu\n\n"
 	defb "Press ", TEXTBOLD, INK, 2,"SPACE ", TEXTNORM, INK, 0, "to exit to ZX Basic",0
-	
+
 str_options_menu
 
 	defb TEXTBOLD, "Other Options", TEXTNORM, 0
-	
+
 str_options
 	defb AT, 2, 0, "Select option:\n\n"
-	defb "P: Program a 16K flash page\n"  
-	defb "X: Erase a 64K flash sector\n"  
+	defb "P: Program a 16K flash page\n"
+	defb "X: Erase a 64K flash sector\n"
 	defb "C: Copy 16K page to RAM at 32768\n"
 	defb "L: Load a 16K image from tape to\n"
 	defb "   RAM at 32768\n\n"
 	defb "Press ", TEXTBOLD, INK, 2, "SPACE ", TEXTNORM, INK, 0, "to return to main menu", 0
-	
+
 str_mfrdevice
-	
+
 	defb AT, 23, 0, "Flash type: ", 0
-	
+
 str_proghdr
 
 	defb TEXTBOLD, "Program 16K Flash Page", TEXTNORM, 0
-	
-str_progopt 
+
+str_progopt
 
 	defb AT, 2, 0, "Select a page to program:\n", 0
 
-str_writing 
+str_writing
 
 	defb "Writing image to flash chip...\n", 0
 
@@ -1070,34 +1070,34 @@ str_copyhdr
 
   	defb AT, 2, 0, "Select a page to copy:\n", 0
 
-str_copying 
-	
+str_copying
+
 	defb "Copying page to address 32768..\n", 0
 
-str_borked  
+str_borked
 
 	defb "Sorry, the operation failed.\n", 0
 
-str_done    
+str_done
 
 	defb "Done!\n", 0
 
-str_back    
+str_back
 	defb "Press ", TEXTBOLD, INK, 2, "Z ", TEXTNORM, INK, 0,"to go back\n", 0
 
-str_anykey  
+str_anykey
 
 	defb "Press any key to exit", 0
 
 str_erasehdr
 
 	defb TEXTBOLD, "Erase 64K Flash Sector", TEXTNORM, 0
-	
-str_chooseerase   
+
+str_chooseerase
 	defb AT, 2, 0, "Press ", TEXTBOLD, INK, 2, "0 ", TEXTNORM, INK, 0,"to "
-	defb TEXTBOLD, INK, 2, "7 ", TEXTNORM, INK, 0, "to choose the sector to \n" 
+	defb TEXTBOLD, INK, 2, "7 ", TEXTNORM, INK, 0, "to choose the sector to \n"
 	defb "erase, or ", TEXTBOLD, INK, 2, "X ", TEXTNORM, INK, 0, "to exit."
-	
+
 str_eraseinfo  defb AT, 5, 0, "Sectors map to pages as follows:"
 str_sectors defb AT, 7, 0, "Sector 0  ->  Pages  0 to 3\n"
        	defb  "Sector 1  ->  Pages  4 to 7\n"
@@ -1108,58 +1108,58 @@ str_sectors defb AT, 7, 0, "Sector 0  ->  Pages  0 to 3\n"
         defb  "Sector 6  ->  Pages 24 to 27\n"
         defb  "Sector 7  ->  Pages 28 to 31\n\n", 0
 
-str_erasing 
+str_erasing
 	defb "Erasing...\n", 0
 
-str_reprogramming 
+str_reprogramming
 	defb "Reprogramming utility to page 4\n", 0
 
 str_delp4_hdr
 
 	defb TEXTBOLD, "*** WARNING *** WARNING ***", TEXTNORM, 0
-	
+
 str_delp4
-  
+
 	defb AT, 2,0, TEXTBOLD, "ERASING SECTOR 1 (PAGES 4 -> 7)\n\n", TEXTNORM
         defb "You will delete me by deleting sector 1\n"
         defb "since I live in page 4.\n\n"
         defb "Press ", TEXTBOLD, INK, 2, "Y "
         defb TEXTNORM, INK, 0,"if you want to re-write the\n"
         defb "utility back into page 4.\n\n"
-        defb "Press ", TEXTBOLD, INK, 2, "N " 
-        defb TEXTNORM, INK, 0,"if you want to kill off the flash\n" 
+        defb "Press ", TEXTBOLD, INK, 2, "N "
+        defb TEXTNORM, INK, 0,"if you want to kill off the flash\n"
         defb "utility.\n\n"
         defb "Any other key aborts.\n\n", 0
 
-str_warning 
+str_warning
 	defb "WARNING!\n\n", 0
 
-str_unused  
+str_unused
 	defb "This flash page seems to be\n"
   	defb "unused... are you really\n"
         defb "sure you want to select it? (Y/N)\n\n", 0
 
-str_prog_anyway     
+str_prog_anyway
 	defb "Well, OK...here goes nothing...\n",0
 
-str_inuse   
+str_inuse
 	defb "This flash page seems used.\n"
         defb "Continue anyway? (Y/N)\n", 0
 
 str_tapehdr
 	defb TEXTBOLD, "Load ROM Image from Tape", TEXTNORM, 0
-	
+
 str_loadmsg
 
 	defb AT, 2, 0, "Insert tape and press play.\n"
 	defb "Press ", TEXTBOLD, INK, 2, "SPACE/BREAK ", TEXTNORM, INK, 0,"to abort.\n\n", 0
-	
+
 str_headerok
 
 	defb "Loading image: ", 0
-	
+
 str_headerlength
-	
+
 	defb "Ignoring, wrong length: ", 0
 
 str_headertype
@@ -1167,9 +1167,9 @@ str_headertype
 	defb "Ignoring, wrong type: ", 0
 
 str_tapeerror
-	
+
 	defb "Tape loading error!\n",0
-	
+
 str_loadok
-	
+
 	defb "\nImage loaded successfully.\n",0

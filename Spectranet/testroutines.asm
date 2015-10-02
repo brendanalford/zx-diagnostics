@@ -16,14 +16,14 @@
 ;	Lesser General Public License for more details.
 ;
 ;	testroutines.asm
-;	
+;
 
 
 ;
 ;	Test routines used by the Spectranet version of the RAM tests.
 ;	Ported from the macros in defines.asm to save space.
 ;
-	
+
 
 ;
 ;	Run a RAM walk test
@@ -115,19 +115,19 @@ altpata
 	push hl
 	push de
 	push bc
-	
+
 	ld a, d
 	ld (hl), a
 	ld de, hl
 	inc de
 	ldir
-	
+
 	pop bc
 	pop de
 	pop hl
 	push hl
 	push bc
-	
+
 .altpat1.wrloop1
 
 	ld a, d
@@ -143,7 +143,7 @@ altpata
 
 	pop bc
 	pop hl
-	
+
 .altpat1.rd
 
 .altpat1.rdloop1
@@ -161,7 +161,7 @@ altpata
 	dec bc
 	ld a, b
 	or c
-	jr nz, .altpat1.rdloop1 
+	jr nz, .altpat1.rdloop1
 	jr .altpat1.done
 
 .altpat1.borked
@@ -204,19 +204,19 @@ altpatb
 	push hl
 	push de
 	push bc
-	
+
 	ld a, d
 	ld (hl), a
 	ld de, hl
 	inc de
 	ldir
-	
+
 	pop bc
 	pop de
 	pop hl
 	push hl
 	push bc
-	
+
 .altpat2.wrloop1
 
 	ld a, d
@@ -249,7 +249,7 @@ altpatb
 	dec bc
 	ld a, b
 	or c
-	jr nz, .altpat2.rdloop1 
+	jr nz, .altpat2.rdloop1
 	jr .altpat2.done
 
 .altpat2.borked
@@ -274,7 +274,7 @@ altpatb
 	jr .altpat2.exit
 
 .altpat2.done
-.altpat2.exit	
+.altpat2.exit
 
 	ret
 
@@ -283,8 +283,8 @@ altpatb
 ;	Step1: write 0 with up addressing order;
 ;	Step2: read 0 and write 1 with up addressing order;
 ;	Step3: read 1 and write 0 with down addressing order;
-;	Step4: read 0 with down addressing order. 
-;	
+;	Step4: read 0 with down addressing order.
+;
 ; 	Credit - Karl (PokeMon) on WoS for the algorithm description
 ;
 ;	Inputs:
@@ -292,24 +292,24 @@ altpatb
 ;	BC: Range to test
 
 marchtest
-	
+
 	; Step 1 - write 0 with up addressing order
 	; No errors expected with this part :)
-	
+
 	push hl
 	push bc
-	
+
 .marchtest1.loop
-	
+
 	ld (hl), 0
 	inc hl
 	dec bc
 	ld a, b
 	or c
 	jr nz, .marchtest1.loop
-	
+
 	; Step 2 - read 0 and write 1 with up addressing order
-	
+
 	pop bc
 	pop hl
 	push hl
@@ -319,9 +319,9 @@ marchtest
 	ld a, (hl)
 	cp 0
 	jr z, .marchtest2.next
-	
+
 	call marchborked
-	
+
 .marchtest2.next
 	ld a, 0xff
 	ld (hl), a
@@ -337,8 +337,8 @@ marchtest
 	pop hl
 	push hl
 	push bc
-	
-	; Step 3 - read 1 and write 0 with down addressing order 
+
+	; Step 3 - read 1 and write 0 with down addressing order
 	dec bc
 	add hl, bc
 
@@ -348,11 +348,11 @@ marchtest
 	cp 0xff
 	jr z, .marchtest3.next
 
-	xor a 
+	xor a
 	call marchborked
-	
+
 .marchtest3.next
-	
+
 	xor a
 	ld (hl), a
 	dec hl
@@ -360,16 +360,16 @@ marchtest
 	ld a, b
 	or c
 	jr nz, .marchtest3.loop
-	
+
 .marchtest4.start
 	; Step 4 - read 0 with down addressing order
-	
+
 	pop bc
 	pop hl
-	
+
 	dec bc
 	add hl, bc
-	
+
 .marchtest4.loop
 
 	ld a, (hl)
@@ -377,7 +377,7 @@ marchtest
 	jr z, .marchtest4.next
 
 	call marchborked
-	
+
 .marchtest4.next
 
 	dec hl
@@ -390,7 +390,7 @@ marchtest
 
 	ret
 
-	
+
 marchborked
 
 	exx
@@ -399,7 +399,7 @@ marchborked
 	or b
 	ld ixh, a
 	ld a, BORDERRED
-	out (ULA_PORT), a	
+	out (ULA_PORT), a
 	exx
 	ret
 
@@ -450,14 +450,14 @@ randfillup
 	ld (v_rand_addr), hl
 	ld (v_rand_reps), de
 	ld (v_rand_seed), bc
-	
+
 	ld sp, (v_rand_addr)
 	exx
 	ld bc, (v_rand_seed)
 	exx
 	ld bc, (v_rand_reps)
 
-.randfill.up.loop      
+.randfill.up.loop
 
 	exx
 	RAND16
@@ -473,13 +473,14 @@ randfillup
 	or c
 	jp nz, .randfill.up.loop
 
-.randfill.up.test      
+.randfill.up.test
 
 	ld sp, (v_rand_addr)
 	exx
 	ld bc, (v_rand_seed)
 	exx
 	ld bc, (v_rand_reps)
+	ld l, 0
 
 .randfill.up.testloop
 
@@ -488,31 +489,40 @@ randfillup
 	pop de	; Pop memory off the stack to test into DE
 	ld a, h
 	cp d
-	jp nz, .randfill.up.borked1
+	jr nz, .randfill.up.borked
 	ld a, l
 	cp e
-	jp nz, .randfill.up.borked2
+	jr nz, .randfill.up.borked
+	jr .randfill.up.next
+
+.randfill.up.borked
+
+	exx
+	or l
+	ld l, a
+	exx
+
+.randfill.up.next
+
 	exx
 	dec bc
 	ld a, b
 	or c
-	jp nz, .randfill.up.testloop
-	jp .randfill.up.done
+	jr nz, .randfill.up.testloop
 
-.randfill.up.borked1
+	ld a, l
+	cp 0
+	jr nz, .randfill.up.borkedreport
+	jr .randfill.up.done
 
-	ld e, d	; bad byte should be in E
-	ld l, h   ; expected byte in L 
+.randfill.up.borkedreport
 
-.randfill.up.borked2
-
-	ld a, e
-	xor l
-	
-; 	Store dodgy bit in ixh
+; Store dodgy bit in ixh
 
 	ld bc, ix
-	; And in D for borkedloop
+
+; And in D for borkedloop
+
 	ld d, a
 	or b
 
@@ -528,7 +538,7 @@ randfillup
 
 .randfill.up.done
 .randfill.up.exit
-	
+
 	ld sp, (v_stacktmp)
 	ret
 
@@ -552,20 +562,20 @@ randfilldown
 	ld (v_rand_addr), hl
 	ld (v_rand_reps), de
 	ld (v_rand_seed), bc
-	
+
 	ld sp, (v_rand_addr)
 	exx
 	ld bc, (v_rand_seed)
 	exx
 	ld bc, (v_rand_reps)
 
-	; Adjust stack pointer as we won't be popping values off in 
+	; Adjust stack pointer as we won't be popping values off in
 	; the normal sense when testing
-	
+
 	inc sp
 	inc sp
-	
-.randfill.down.loop      
+
+.randfill.down.loop
 
 	exx
 	RAND16
@@ -576,14 +586,15 @@ randfilldown
 	or c
 	jp nz, .randfill.down.loop
 
-.randfill.down.test      
+.randfill.down.test
 
 	ld sp, (v_rand_addr)
 	exx
 	ld bc, (v_rand_seed)
 	exx
 	ld bc, (v_rand_reps)
-	
+	ld l, 0
+
 .randfill.down.testloop
 
 	exx
@@ -591,36 +602,45 @@ randfilldown
 	pop de		; corresponding memory in DE
 	dec sp
 	dec sp		; Adjust stack pointer back downwards
-	dec sp		
 	dec sp
-	
+	dec sp
+
 	ld a, h
 	cp d
-	jp nz, .randfill.down.borked1
+	jr nz, .randfill.down.borked
 	ld a, l
 	cp e
-	jp nz, .randfill.down.borked2
+	jr nz, .randfill.down.borked
+	jr .randfill.down.next
+
+.randfill.down.borked
+
+	exx
+	or l
+	ld l, a
+	exx
+
+.randfill.down.next
+
 	exx
 	dec bc
 	ld a, b
 	or c
 	jp nz, .randfill.down.testloop
+
+	ld a, l
+	cp 0
+	jr nz, .randfill.down.borkedreport
 	jp .randfill.down.done
 
-.randfill.down.borked1
+.randfill.down.borkedreport
 
-	ld e, d	; bad byte should be in E
-	ld l, h   ; expected byte in L 
-
-.randfill.down.borked2
-
-	ld a, e
-	xor l
-	
-; 	Store dodgy bit in ixh
+; Store dodgy bit in ixh
 
 	ld bc, ix
-	; And in D for borkedloop
+
+; And in D for borkedloop
+
 	ld d, a
 	or b
 
@@ -636,12 +656,12 @@ randfilldown
 
 .randfill.down.done
 .randfill.down.exit
-	
+
 	ld sp, (v_stacktmp)
 	ret
-	
-	
-;	
+
+
+;
 ;	Routine to interpret the results of a 48k memory test
 ;	and store the result, write result to screen etc
 ;
@@ -674,7 +694,7 @@ testresult
 
 	ret
 
-;	
+;
 ;	Routine to interpret the results of a 128k memory test
 ;	and store the result
 ;
@@ -689,7 +709,7 @@ testresult128
 	ret
 
 ;
-;	Blanks the H register. 
+;	Blanks the H register.
 ;
 
 preparehreg
@@ -703,7 +723,7 @@ preparehreg
 
 ;
 ;	Routine to sound a tone.
-;	Inputs: 
+;	Inputs:
 ;	BC: frequence
 ;	DE: length
 ;	L:  border colour.
@@ -712,7 +732,7 @@ preparehreg
 beep
 
 	push bc
-	
+
 .tone.duration
 
 	pop bc
@@ -728,25 +748,25 @@ beep
 ;	Toggle speaker output, preserve border
 
 	ld a, l
-	xor 0x10				
-	ld l, a 
+	xor 0x10
+	ld l, a
 	out (0xfe), a
 
 ;	Generate tone for desired duration
 
-	dec de					
+	dec de
 	ld a, d
 	or e
 	jr nz, .tone.duration
 
 	pop bc
 	ret
-	
+
 ;	A quick routine to write a value in a to four consecutive
 ;	memory locations starting at HL.
 
 ldhl4times
-	
+
 	ld (hl), a
 	inc hl
 	ld (hl), a
@@ -754,5 +774,5 @@ ldhl4times
 	ld (hl), a
 	inc hl
 	ld (hl), a
-	
+
 	ret

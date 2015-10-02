@@ -38,7 +38,7 @@
 	io.input(file)
 	branch = io.read()
 	io.close(file)
-	
+
 	file = io.open("commit.txt", "r")
 	io.input(file)
 	commit = io.read()
@@ -46,7 +46,7 @@
 	
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
 	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
-
+	sj.insert_define("HOSTNAME", '"' .. os.getenv("USERDOMAIN") .. '"');
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
 
 	ENDLUA
@@ -92,7 +92,7 @@ str_gitbranch
 str_gitcommit
 
 	defb  "Commit: ", GIT_COMMIT, 0
-	
+
 	BLOCK 0x0100-$, 0xff
 
 start
@@ -175,16 +175,26 @@ start
 ;	Andrew Bunker special :) Check if FIRE button of a Kempston interface
 ;	is being held, initiate soak tests if so
 
-	ld bc, 0xff10
+	ld bc, 0xff00
 
-kemp_fire_test
+kemp_interface_test
 
-	xor a
+;	Check to see if the user is holding the stick up, down,
+;	left or right. If so, skip the fire check.
+;	This also acts as an interface test.
+
 	in a, (0x1f)
 	and 0x1f
-	and c
+	or c
 	ld c, a
-	djnz kemp_fire_test
+	djnz kemp_interface_test
+
+	ld a, c
+	and 0xf
+	cp 0
+	jr nz, start_testing
+
+;	Interface is present. Is the user holding fire?
 
 	bit 4, c
 	jr nz, enable_soak_test
@@ -192,6 +202,8 @@ kemp_fire_test
 	jr start_testing
 
 enable_soak_test
+
+;	User is holding Fire on a Kempston stick, enable soak tests.
 
 	ld iy, 1	; Soak testing - start at iteration 1
 	BEEP 0x10, 0x300
@@ -239,8 +251,8 @@ lowerram_march
 
 lowerram_random
 
-    	RANDFILLUP 16384, 8192, 11
-    	RANDFILLDOWN 32766, 8191, 17
+    	RANDFILLUP 16384, 8192, 0
+    	RANDFILLDOWN 32766, 8191, 255
 
 ;	This gives the opportunity to visually see what's happening in
 ;	lower memory in case there is a problem with it.
