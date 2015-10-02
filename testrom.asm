@@ -172,6 +172,13 @@ start
 	bit 1, a
 	jr z, enable_soak_test
 
+;	Test if FIRE on Sinclair IF2 Port 1 is being pressed (or 0), if true launch soaktest mode
+
+	ld bc, 0xeffe
+	in a, (c)
+	bit 0, a
+	jr z, enable_soak_test
+	
 ;	Andrew Bunker special :) Check if FIRE button of a Kempston interface
 ;	is being held, initiate soak tests if so
 
