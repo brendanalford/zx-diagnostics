@@ -956,6 +956,9 @@ chip_amic_a29040b
 chip_amd_am29f040b
 	defb "AMD AM29F040B", 0
 
+chip_amd_am29f040
+	defb "AMD AM29F040", 0
+	
 ;
 ;	Map info table - each entry is six bytes long
 ;	Bytes 0-1: Mfr Id/Device ID
@@ -977,6 +980,12 @@ map_info_table
 	defw chip_amd_am29f040b
 	defb 32,64
 
+;	AMD AM29F040 - 32 pages, 64K sectors
+
+	defb 0x01, 0xa4
+	defw chip_amd_am29f040
+	defb 32,64
+	
 ;	Table end
 
 	defb 0x00, 0x00, 0x00, 0x00, 0x00 ,0x00
