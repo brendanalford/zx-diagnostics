@@ -53,7 +53,9 @@ v_fail_ic_uncontend	equ #7d37; Failed IC bitmap, uncontended memory banks 0,2,4,
 v_fail_ic_contend	equ #7d38; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
 v_fail_rom			equ #7d39; Failed ROM indication
 v_128type			equ #7d3a; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
-v_ay_present			equ #7d3b; 0 - not present, present otherwise
+v_ay_present		equ #7d3b; 0 - not present, present otherwise
+v_ulacycles			equ #7d3c; ULA cycles x 6 since last interrupt
+v_ulafloatbus		equ #7d3e; ULA floating bus detected (0 no, 1 yes)
 v_testhwtype		equ #7d40; Type of interface we're running on. 0-none found,
 							 ; 1-Diagboard, 2-Retroleum SMART card, 3-ZXC3/ZXC4
 v_hw_page			equ #7d41; Paged ROM index on startup (SMART and ZXC4 hardware)

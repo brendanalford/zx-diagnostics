@@ -18,8 +18,9 @@
 ;	ulatest.asm
 ;	
 
-ULATEST_ROW	equ 0x58a0
-	
+ULATEST_ROW	equ 0x5900
+FETEST_POS	equ 0x58B8
+
 ulatest
 
 	ld sp, sys_stack
@@ -39,10 +40,58 @@ ulatest
 	ld a, 0
 	call pagein
 
-;	Set up ISR for interrupt test sweep
+;	Detect frame length. Once HALT is issued, we start counting until the 
+;	second interrupt is reached.
+;	NOTE: This routine doesn't produce exact lengths, but close enough
+;	for us to be able to identify specific ULA types (48/128/NTSC).
 
-	ld hl, ulatest_scan
+	ld hl, ulatest_get_frame_length
 	ld (v_userint), hl
+	ld hl, 0
+	ld (v_ulacycles), hl
+	ld a, 0
+	ei
+	halt
+	
+;	Loop counting T states
+;	ISR set above will break us out of this.
+ulatest_count_loop
+	
+	inc hl			
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	jp ulatest_count_loop
+	
+ulatest_count_loop_done
+
+	xor a
+	ld (v_ulafloatbus), a
+	ld hl, 0xfff
+	ld a, 0xff
+	ld b, a
+	
+ulatest_check_floating_bus
+
+	in a, (0xff)
+	and b
+	ld b, a
+	dec hl
+	ld a, h
+	or l
+	jr nz, ulatest_check_floating_bus
+	
+	ld a, b
+	cp 0xff
+	jr z, checks_done
+	
+	ld a, 1
+	ld (v_ulafloatbus), a
+	
+checks_done
 
 ;	IX will be used as the last recorded interrupt counter value
 ;	IY will be the number of cycles that IX was the same
@@ -60,6 +109,73 @@ ulatest
 	
 	ld hl, str_ulabanner
 	call print_header
+	
+	ld hl, str_ulatype
+	call print
+	
+	ld hl, (v_ulacycles)
+	ld de, hl
+	ld ix, ula_type_table_contend
+	
+	ld a, (v_ulafloatbus)
+	cp 0
+	jr nz, ula_type_find
+	
+	ld ix, ula_type_table_uncontend
+	
+;	Given the ULA cycles in DE, and an index to the ULA type table
+;	in IX, find and print the ULA type.
+
+ula_type_find
+
+	ld a, (ix)
+	xor e
+	jr nz, ula_type_next
+	ld a, (ix+1)
+	xor d
+	jr nz, ula_type_next
+	
+;	Found ULA type
+
+	ld hl, (ix+2)
+	call print
+	jr ula_type_done
+	
+ula_type_next
+
+	ld bc, 4
+	add ix, bc
+	ld a, (ix)
+	or (ix+1)
+	jr nz, ula_type_find
+	
+;	ULA type unknown
+
+	ld hl, str_ulaunknown
+	call print
+
+	ld hl, (v_ulacycles)
+	ld de, v_hexstr
+	call Num2Hex
+	ld hl, v_hexstr
+	call print
+	ld a, ')'
+	call putchar
+	
+ula_type_done
+	
+	ld hl, str_floatingbus
+	call print
+	
+	ld hl, str_fb_detected
+	ld a, (v_ulafloatbus)
+	cp 0
+	jr nz, ula_print_floatbus_type
+	ld hl, str_fb_absent
+	
+ula_print_floatbus_type
+
+	call print
 	
 	ld hl, str_ulainresult
 	call print
@@ -80,8 +196,6 @@ ulatest
 	call print
 	
 	call print_footer
-
-
 	exx
 
 ;	'Have we printed the FAIL message' flag
@@ -105,6 +219,14 @@ store_bord
 	ld l, a
 	exx
 	
+;	Set up ISR for interrupt test sweep
+
+	ld hl, 0
+	ld ix, hl
+	ld (v_intcount), hl
+	ld hl, ulatest_scan
+	ld (v_userint), hl
+
 ;	Start the interrupt service routine
 
 	ei
@@ -119,8 +241,8 @@ ulatest_loop
 	in a, (0xfe)
 	ld c, a
 		
-	ld hl, 0x5858 	; Start of 76543210 on screen
-	ld de, 0x4778	; D = B/W attrs, E = W/B
+	ld hl, FETEST_POS 	; Start of 76543210 on screen
+	ld de, 0x4778		; D = B/W attrs, E = W/B
 	ld b, 8
 
 	
@@ -488,34 +610,124 @@ ulatest_scan_changedir
 	
 	ret
 
+;	
+;	ISR to approximate the frame length of the machine under test.
+;
+ulatest_get_frame_length
+
+	ld hl, (v_ulacycles)
+	ld a, h
+	or l
+	jr nz, ulatest_get_frame_length_done
+	ld hl, 0xffff
+	ld (v_ulacycles), hl
+	ret
+	
+ulatest_get_frame_length_done
+
+;	Disable our ISR
+
+	ld hl, 0
+	ld (v_userint), hl
+	
+;	Unwind the stack, grabbing the pre-interrupt value of HL as we go
+
+	pop bc
+	pop bc
+	pop bc
+	pop hl
+	pop bc
+	pop bc
+	
+	ld (v_ulacycles), hl
+
+
+	jp ulatest_count_loop_done
+	
 str_ulabanner
 
 	defb	TEXTBOLD, "ULA Test", TEXTNORM, 0	
 	
 str_ulainresult
 
-	defb AT, 2, 0, "ULA port 0xFE read............. ", 0
+	defb AT, 5, 0, "ULA port 0xFE read............. ", 0
 	
 str_ulain_row
 
-	defb AT, 2, 24 * 8, 0x88, 0x87, 0x86, 0x85, 0x84, 0x83, 0x82, 0x81, 0
+	defb AT, 5, 24 * 8, 0x88, 0x87, 0x86, 0x85, 0x84, 0x83, 0x82, 0x81, 0
 
 str_ulaint_test
 	
-	defb AT, 4, 0, "Interrupt test (movement should be smooth)", 0
+	defb AT, 7, 0, "Interrupt test (movement should be smooth)", 0
 	
 str_ulaintfail
 
-	defb AT, 5, 13 * 6, ATTR, ATTR_TRANS, TEXTBOLD, "FAIL FAIL FAIL", TEXTNORM, ATTR, 56, 0
+	defb AT, 8, 13 * 6, ATTR, ATTR_TRANS, TEXTBOLD, "FAIL FAIL FAIL", TEXTNORM, ATTR, 56, 0
 	
 str_ulaselecttest
 
-	defb AT, 7, 0, "Select:"
-	defb AT, 9, 0, "1) Output tone to MIC port"
-	defb AT, 10, 0, "2) Output tone to EAR port"
-	defb AT, 11, 0, "3) Test border generation"
-	defb AT, 12, 0, "4) Test screen switching (128K)", 0
+	defb AT, 10, 0, "Select:"
+	defb AT, 12, 0, "1) Output tone to MIC port"
+	defb AT, 13, 0, "2) Output tone to EAR port"
+	defb AT, 14, 0, "3) Test border generation"
+	defb AT, 15, 0, "4) Test screen switching (128K)", 0
 
 str_ulaexit
 
-	defb AT, 14, 12 * 6, "Hold BREAK to exit", 0
+	defb AT, 17, 12 * 6, "Hold BREAK to exit", 0
+	
+str_ulatype
+
+	defb AT, 2, 0, "ULA type: ", 0
+	
+;	Tables defining ULA timings to type strings.
+;	Contended ULA's first
+ula_type_table_contend
+
+	defw 0x06CB, str_ula48pal
+	defw 0x06E4, str_ula128
+	defw 0x05BE, str_ula48ntsc
+	defw 0x05B3, str_ts2068
+	defw 0x0000
+	
+;	Uncontended ULA's
+ula_type_table_uncontend
+
+	defw 0x06E4, str_ulaplus3
+	defw 0x0000
+	
+str_ula48pal
+
+	defb "Spectrum 48K (PAL)", 0
+
+str_ula48ntsc
+
+	defb "Spectrum 48K (NTSC)", 0
+	
+str_ula128
+
+	defb "Spectrum 128K", 0
+	
+str_ulaplus3
+
+	defb "Spectrum +2A/+3 ASIC", 0
+	
+str_ts2068
+
+	defb "TS2048/TS2068 ASIC", 0
+	
+str_ulaunknown
+
+	defb "Unknown (", 0
+
+str_floatingbus
+
+	defb AT, 3, 0, "Floating bus ", 0
+	
+str_fb_detected
+
+	defb "detected", 0
+	
+str_fb_absent
+
+	defb "absent", 0
