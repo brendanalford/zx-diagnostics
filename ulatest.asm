@@ -26,6 +26,24 @@ ulatest
 	ld sp, sys_stack
 	call initialize
 
+;	Keypress check
+
+	exx
+	ld l, 0
+	ld bc, 0xbffe
+	in a, (c)
+	bit 1, a
+	jr nz, write_shadow_screen
+	ld bc, 0xfdfe
+	in a, (c)
+	bit 0, a
+	jr nz, write_shadow_screen
+	ld l, 0xff
+
+write_shadow_screen
+
+	exx
+
 ;	Write some data to Screen 1.
 ;	This'll just write to the C000 area on a 48K machine,
 ;	which isn't being used anyway.
@@ -194,6 +212,34 @@ ula_print_floatbus_type
 	call print
 	ld hl, str_ulaexit
 	call print
+	
+	exx
+	ld a, l
+	exx
+
+	cp 0xff
+	jr nz, do_footer
+	
+	ld hl, str_message
+	ld de, 0x7a00
+	
+.loop_1
+
+	ld a, (hl)
+	dec a
+	ld (de), a
+	inc de
+	inc hl
+	cp 0xff
+	jr nz, .loop_1
+
+	dec de
+	xor a
+	ld (de), a
+	ld hl, 0x7a00
+	call print
+	
+do_footer
 	
 	call print_footer
 	exx
@@ -640,8 +686,7 @@ ulatest_get_frame_length_done
 	pop bc
 	
 	ld (v_ulacycles), hl
-
-
+	
 	jp ulatest_count_loop_done
 	
 str_ulabanner
@@ -731,3 +776,7 @@ str_fb_detected
 str_fb_absent
 
 	defb "absent", 0
+	
+str_message
+
+	defb 24, 21, 17, "VVVVVVVVVVVVMMMMMMMMMMBBBBBBBBBBB\"\"\"\"\"", 0
