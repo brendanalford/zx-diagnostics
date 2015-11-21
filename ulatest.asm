@@ -738,6 +738,7 @@ ula_type_table_contend
 ;	Uncontended ULA's
 ula_type_table_uncontend
 
+	defw 0x06CB, str_ula48notr6
 	defw 0x06E4, str_ulaplus3
 	defw 0x0000
 	
@@ -760,6 +761,10 @@ str_ulaplus3
 str_ts2068
 
 	defb "TS2048/TS2068 ASIC", 0
+	
+str_ula48notr6
+
+	defb "48K Issue 1 or TR6 missing", 0
 	
 str_ulaunknown
 
