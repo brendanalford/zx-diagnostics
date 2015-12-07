@@ -596,7 +596,7 @@ ulatest_scan
 	ld a, l
 	exx
 	and 0xe0
-	or 0x2
+	or 0x12
 
 	out (0xfe), a
 	ld hl, ULATEST_ROW
