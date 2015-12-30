@@ -61,6 +61,10 @@ rom_signature_table
 
 	defw 0x870c, str_rom48kbeckman, test_48k, 0x0000
 	
+; 	Gosh Wonderful ROM (assume 48K)
+	
+	defw 0x8116, str_rom48gw03, test_48k, 0x0000
+	
 	ENDIF
 	
 ;	End of ROM table
@@ -207,4 +211,8 @@ str_rom48kbeckman
 
 	defb 	"Beckman Spectrum 48K ROM... ", 0
 
+str_rom48gw03
+
+	defb	"Gosh Wonderful 48K ROM...   ", 0
+	
 	ENDIF
