@@ -62,6 +62,9 @@ v_hw_page			equ #7d41; Paged ROM index on startup (SMART and ZXC4 hardware)
 v_test_rtn			equ #7d42;	Address of RAM test routine to run after ROM check
 v_keybuffer			equ #7d44; keyboard bitmap (8 bytes)
 v_testcard			equ #7d50; Workspace for testcard string
+v_rand_addr			equ #7d60;	Random fill test base addr
+v_rand_seed			equ #7d62;	Random fill test rand seed
+v_rand_reps			equ #7d64;	Random fill test repetitions
 
 ;	Relocation addresses for routines that need the original ROM paged
 

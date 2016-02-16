@@ -1084,7 +1084,8 @@ page_speccy_rom
 ;
 ;	Testing Routines
 ;
-
+	
+	include "testroutines.asm"
 	include "48tests.asm"
 	include "128tests.asm"
 

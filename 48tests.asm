@@ -226,12 +226,11 @@ upperram_test
 	ld hl, str_test4
 	call print
 
-	PREPAREHREG
-	SAVESTACK
-	WALKLOOP 32768,32768
-	  
-	RESTORESTACK
-	TESTRESULT
+	call preparehreg
+	ld hl, 32768
+	ld de, 32768
+	call walkloop
+	call testresult
 	
 ;	Do the upper RAM inversion test
 	    
@@ -240,16 +239,29 @@ upperram_inversion
 	ld hl, str_test5
 	call print
 
-	PREPAREHREG
-	SAVESTACK
+	call preparehreg
 
-	ALTPATA 32768, 32768, 0
-	ALTPATA 32768, 32768, 255
-	ALTPATB 32768, 32768, 0
-	ALTPATB 32768, 32768, 255
+	ld hl, 32768
+	ld bc, 32768
+	ld d, 0
+	call altpata
 
-	RESTORESTACK
-	TESTRESULT
+	ld hl, 32768
+	ld bc, 32768
+	ld d, 255
+	call altpata
+
+	ld hl, 32768
+	ld bc, 32768
+	ld d, 0
+	call altpatb
+
+	ld hl, 32768
+	ld bc, 32768
+	ld d, 255
+	call altpatb
+
+	call testresult
 
 ;	Do the upper RAM March test
 
@@ -258,13 +270,12 @@ upperram_march
 	ld hl, str_test6
 	call print
 
-	PREPAREHREG
-	SAVESTACK
+	call preparehreg
 
-	MARCHTEST 32768, 32768
-
-	RESTORESTACK
-	TESTRESULT
+	ld hl, 32768
+	ld bc, 32768
+	call marchtest
+	call testresult
 	
 ;	And lastly the upper RAM Random fill test.
 	  
@@ -273,14 +284,19 @@ upperram_random
 	ld hl, str_test7
 	call print
 	  
-	PREPAREHREG
-	SAVESTACK
+	call preparehreg
 
-	RANDFILLUP 32768, 16384, 11
-	RANDFILLDOWN 65534, 16383, 17
-
-	RESTORESTACK
-	TESTRESULT
+	ld hl, 32768
+	ld de, 16384
+	ld bc, 11
+	call randfillup
+	
+	ld hl, 65534
+	ld de, 16383
+	ld bc, 17
+	call randfilldown
+	
+	call testresult
 	
 	ret
 	

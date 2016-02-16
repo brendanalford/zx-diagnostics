@@ -97,25 +97,49 @@ test_ram_page
 ;	to keep track of the current page being tested.
 	
 	push bc
-	SAVESTACK
-	WALKLOOP 49152,16384
-	TESTRESULT128
+	ld hl, 49152
+	ld de, 16384
+	call walkloop
+	call testresult128
 
-	ALTPATA 49152, 16384, 0 
-	ALTPATA 49152, 16384, 255
-	ALTPATB 49152, 16384, 0
-	ALTPATB 49152, 16384, 255
-	TESTRESULT128
+	ld hl, 49152
+	ld bc, 16384
+	ld d, 0
+	call altpata
 
-	MARCHTEST 49152, 16384
-	TESTRESULT128
+	ld hl, 49152
+	ld bc, 16384
+	ld d, 255
+	call altpata
+
+	ld hl, 49152
+	ld bc, 16384
+	ld d, 0
+	call altpatb
+
+	ld hl, 49152
+	ld bc, 16384
+	ld d, 255
+	call altpatb
+	call testresult128
+
+	ld hl, 49152
+	ld bc, 16384
+	call marchtest
+	call testresult128
 	
-	RANDFILLUP 49152, 8192, 11
-	RANDFILLDOWN 65534, 8191, 17
+	
+	ld hl, 49152
+	ld de, 8192
+	ld bc, 11
+	call randfillup
+	
+	ld hl, 65534
+	ld de, 8191
+	ld bc, 17
+	call randfilldown
+	call testresult128
 
-	TESTRESULT128
-
-	RESTORESTACK
 	pop bc
 
 ; Check if we got a failure for this bank
