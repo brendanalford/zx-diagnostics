@@ -107,12 +107,12 @@ print_hw
 	ld a, (v_testhwtype)
 	cp 0
 	jr nz, wait_for_key
-	
+
 ;	No diagnostic hardware means no means of exit - just halt
 
 	di
 	halt
-	
+
 wait_for_key
 
 ;	Prompt and wait for a key press
@@ -142,8 +142,14 @@ str_hardware
 
 str_diagboard
 
+	IFNDEF SLAMTEST
 	defb "Alioth Diagboard\n\n", 0
+	ENDIF
 
+	IFDEF SLAMTEST
+	defb "SLAM48/128 ULA Replacement\n\n", 0
+	ENDIF
+	
 str_smart
 
 	defb "Retroleum SMART Card\n\n", 0

@@ -29,7 +29,7 @@
 	include "version.asm"
 
 ;	Uncomment this to build a version of the diags for the SLAM module.
-;	DEFINE SLAMTEST
+	DEFINE SLAMTEST
 ;
 ;	Define a build timestamp
 ;	Also insert defines for Git branch and commit hash
@@ -45,7 +45,7 @@
 	io.input(file)
 	commit = io.read()
 	io.close(file)
-	
+
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
 	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
 	sj.insert_define("HOSTNAME", '"' .. os.getenv("USERDOMAIN") .. '"');
@@ -145,7 +145,7 @@ start
 	jp z, mem_browser
 
 	ENDIF
-	
+
 ;	Jump to ULA test routine if U key is pressed
 
 	ld bc, 0xdffe
@@ -184,7 +184,7 @@ start
 	in a, (c)
 	bit 0, a
 	jr z, enable_soak_test
-	
+
 ;	Andrew Bunker special :) Check if FIRE button of a Kempston interface
 ;	is being held, initiate soak tests if so
 
@@ -1090,7 +1090,7 @@ page_speccy_rom
 ;
 ;	Testing Routines
 ;
-	
+
 	include "testroutines.asm"
 	include "48tests.asm"
 	include "128tests.asm"
@@ -1367,11 +1367,11 @@ diagrom_exit
 	include "testcard.asm"
 	include "ulatest.asm"
 	include "keyboardtest.asm"
-	
+
 	IFNDEF SLAMTEST
 	include "membrowser.asm"
 	ENDIF
-	
+
 	include "romtables.asm"
 	include "about.asm"
 
@@ -1680,11 +1680,11 @@ free_space
 	IFNDEF SLAMTEST
 	BLOCK 0x3ae0-$, 0xff
 	ENDIF
-	
+
 	IFDEF SLAMTEST
-	BLOCK 0x2e00-$, 0xff
+	BLOCK 0x3000-$, 0xff
 	ENDIF
-	
+
 free_space_end
 
 str_bit_ref
@@ -1732,7 +1732,7 @@ str_plus3_ic_uncontend
 	BLOCK 0x3c00-$, 0xff
 	ENDIF
 	IFDEF SLAMTEST
-	BLOCK 0x3000-$, 0xff
+	BLOCK 0x3200-$, 0xff
 	ENDIF
 ;	Character set at 0x3C00
 
