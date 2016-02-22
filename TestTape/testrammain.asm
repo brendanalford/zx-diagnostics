@@ -508,7 +508,7 @@ tests_done
 ;
 ;	Testing Routines
 ;
-
+	include "..\testroutines.asm"
 	include "..\48tests.asm"
 	include "..\128tests.asm"
 
@@ -933,3 +933,6 @@ v_fail_ic_contend	equ #7fb8; Failed IC bitmap, contended memory banks 1,3,5,7 (1
 v_128type		equ #7fb9; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
 v_test_rtn		equ #7fba;	Address of test routine for extra memory (48/128)
 v_keybuffer		equ #7fbc; Keyboard bitmap (8 bytes)
+v_rand_addr		equ #7fc4;	Random fill test base addr
+v_rand_seed		equ #7fc6;	Random fill test rand seed
+v_rand_reps		equ #7fc8;	Random fill test repetitions

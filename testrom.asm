@@ -28,6 +28,8 @@
 	include "defines.asm"
 	include "version.asm"
 
+;	Uncomment this to build a version of the diags for the SLAM module.
+;	DEFINE SLAMTEST
 ;
 ;	Define a build timestamp
 ;	Also insert defines for Git branch and commit hash
@@ -135,11 +137,15 @@ start
 	bit 1, a
 	jp z, about
 
+	IFNDEF SLAMTEST
+
 ;	Jump to memory browser if M is pressed
 
 	bit 2, a
 	jp z, mem_browser
 
+	ENDIF
+	
 ;	Jump to ULA test routine if U key is pressed
 
 	ld bc, 0xdffe
@@ -1361,7 +1367,11 @@ diagrom_exit
 	include "testcard.asm"
 	include "ulatest.asm"
 	include "keyboardtest.asm"
+	
+	IFNDEF SLAMTEST
 	include "membrowser.asm"
+	ENDIF
+	
 	include "romtables.asm"
 	include "about.asm"
 
@@ -1667,8 +1677,14 @@ free_space
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
+	IFNDEF SLAMTEST
 	BLOCK 0x3ae0-$, 0xff
-
+	ENDIF
+	
+	IFDEF SLAMTEST
+	BLOCK 0x2e00-$, 0xff
+	ENDIF
+	
 free_space_end
 
 str_bit_ref
@@ -1712,8 +1728,12 @@ str_plus3_ic_uncontend
 	defb "5  ", 0, "6  ", 0
 
 
+	IFNDEF SLAMTEST
 	BLOCK 0x3c00-$, 0xff
-
+	ENDIF
+	IFDEF SLAMTEST
+	BLOCK 0x3000-$, 0xff
+	ENDIF
 ;	Character set at 0x3C00
 
 	include "charset.asm"
