@@ -16,7 +16,7 @@
 ;	Lesser General Public License for more details.
 ;
 ;	ulatest.asm
-;	
+;
 
 ULATEST_ROW	equ 0x5900
 FETEST_POS	equ 0x58B8
@@ -51,14 +51,14 @@ write_shadow_screen
 
 	ld a, 7
 	call pagein
-	
+
 	BLANKMEM 0xc000, 0x1800, 0x00
 	BLANKMEM 0xd800, 0x300, 0x20
-	
+
 	ld a, 0
 	call pagein
 
-;	Detect frame length. Once HALT is issued, we start counting until the 
+;	Detect frame length. Once HALT is issued, we start counting until the
 ;	second interrupt is reached.
 ;	NOTE: This routine doesn't produce exact lengths, but close enough
 ;	for us to be able to identify specific ULA types (48/128/NTSC).
@@ -70,12 +70,12 @@ write_shadow_screen
 	ld a, 0
 	ei
 	halt
-	
+
 ;	Loop counting T states
 ;	ISR set above will break us out of this.
 ulatest_count_loop
-	
-	inc hl			
+
+	inc hl
 	nop
 	nop
 	nop
@@ -83,7 +83,7 @@ ulatest_count_loop
 	nop
 	nop
 	jp ulatest_count_loop
-	
+
 ulatest_count_loop_done
 
 	xor a
@@ -91,7 +91,7 @@ ulatest_count_loop_done
 	ld hl, 0xfff
 	ld a, 0xff
 	ld b, a
-	
+
 ulatest_check_floating_bus
 
 	in a, (0xff)
@@ -101,14 +101,14 @@ ulatest_check_floating_bus
 	ld a, h
 	or l
 	jr nz, ulatest_check_floating_bus
-	
+
 	ld a, b
 	cp 0xff
 	jr z, checks_done
-	
+
 	ld a, 1
 	ld (v_ulafloatbus), a
-	
+
 checks_done
 
 ;	IX will be used as the last recorded interrupt counter value
@@ -121,26 +121,26 @@ checks_done
 	ld iy, hl
 
 	call cls
-	
+
 	ld a, BORDERWHT
 	out (0xfe), a
-	
+
 	ld hl, str_ulabanner
 	call print_header
-	
+
 	ld hl, str_ulatype
 	call print
-	
+
 	ld hl, (v_ulacycles)
 	ld de, hl
 	ld ix, ula_type_table_contend
-	
+
 	ld a, (v_ulafloatbus)
 	cp 0
 	jr nz, ula_type_find
-	
+
 	ld ix, ula_type_table_uncontend
-	
+
 ;	Given the ULA cycles in DE, and an index to the ULA type table
 ;	in IX, find and print the ULA type.
 
@@ -152,13 +152,13 @@ ula_type_find
 	ld a, (ix+1)
 	xor d
 	jr nz, ula_type_next
-	
+
 ;	Found ULA type
 
 	ld hl, (ix+2)
 	call print
 	jr ula_type_done
-	
+
 ula_type_next
 
 	ld bc, 4
@@ -166,7 +166,7 @@ ula_type_next
 	ld a, (ix)
 	or (ix+1)
 	jr nz, ula_type_find
-	
+
 ;	ULA type unknown
 
 	ld hl, str_ulaunknown
@@ -179,22 +179,22 @@ ula_type_next
 	call print
 	ld a, ')'
 	call putchar
-	
+
 ula_type_done
-	
+
 	ld hl, str_floatingbus
 	call print
-	
+
 	ld hl, str_fb_detected
 	ld a, (v_ulafloatbus)
 	cp 0
 	jr nz, ula_print_floatbus_type
 	ld hl, str_fb_absent
-	
+
 ula_print_floatbus_type
 
 	call print
-	
+
 	ld hl, str_ulainresult
 	call print
 
@@ -207,22 +207,22 @@ ula_print_floatbus_type
 
 	ld hl, str_ulaint_test
 	call print
-	
+
 	ld hl, str_ulaselecttest
 	call print
 	ld hl, str_ulaexit
 	call print
-	
+
 	exx
 	ld a, l
 	exx
 
 	cp 0xff
 	jr nz, do_footer
-	
+
 	ld hl, str_message
 	ld de, 0x7a00
-	
+
 .loop_1
 
 	ld a, (hl)
@@ -238,9 +238,9 @@ ula_print_floatbus_type
 	ld (de), a
 	ld hl, 0x7a00
 	call print
-	
+
 do_footer
-	
+
 	call print_footer
 	exx
 
@@ -259,12 +259,12 @@ do_footer
 	bit 6, a
 	jr z, store_bord
 	or 0x07
-	
+
 store_bord
 
 	ld l, a
 	exx
-	
+
 ;	Set up ISR for interrupt test sweep
 
 	ld hl, 0
@@ -276,22 +276,22 @@ store_bord
 ;	Start the interrupt service routine
 
 	ei
-	
+
 ulatest_loop
-	
+
 ; 	Display the status of the bits from a read
-;	of port 0xFE. Black on white - 0, 
+;	of port 0xFE. Black on white - 0,
 ;	White on black - 1.
 
 	xor a
 	in a, (0xfe)
 	ld c, a
-		
+
 	ld hl, FETEST_POS 	; Start of 76543210 on screen
 	ld de, 0x4778		; D = B/W attrs, E = W/B
 	ld b, 8
 
-	
+
 inval_print
 
 ;	Check and set the correct colour for the current
@@ -303,7 +303,7 @@ inval_print
 	bit 7, c
 	jr z, inval_print2
 	ld a, e
-	
+
 inval_print2
 
 	ld (hl), a
@@ -312,9 +312,9 @@ inval_print2
 	djnz inval_print
 
 	call read_ear_bit
-	
+
 ;	Check how we're doing with the interrupt count
-	
+
 	ld hl, (v_intcount)
 	ld de, ix
 	sub hl, de
@@ -330,13 +330,13 @@ inval_print2
 	ld a, iyh
 	cp 0
 	jp nz, interrupt_fail
-	
+
 ;	High byte zero, check if low byte is less than 30
 
 	ld a, iyl
 	cp 0x40
 	jp c, check_input
-	
+
 ;	More than 30 cycles have occurred since an interrupt,
 ;	something's failed to do with interrupt generation. Flag it.
 
@@ -345,10 +345,10 @@ interrupt_fail
 	exx
 	ld a, b
 	exx
-	
+
 	cp 0
 	jr nz, check_input
-	
+
 	ld hl, str_ulaintfail
 	call print
 
@@ -356,9 +356,9 @@ interrupt_fail
 	ld a, 1
 	ld b, a
 	exx
-	
+
 	jp check_input
-	
+
 interrupt_detected
 
 	call read_ear_bit
@@ -371,21 +371,21 @@ interrupt_detected
 	ld a, l
 	cp 1
 	jr z, interrupt_ok
-	
+
 	ld hl, str_ulaintfail
 	call print
-	
+
 ;	Counter's ok, reset the counters and print the latest
 
 interrupt_ok
 
 	ld ix, (v_intcount)
 	ld iy, 0
-	
+
 check_input
 
 	call read_ear_bit
-		
+
 ;	Check input for keys 1, 2, 3 or 4.
 
 	ld bc, 0xf7fe
@@ -398,7 +398,7 @@ check_input
 	jr z, test_border
 	bit 3, a
 	jp z, test_screen
-	
+
 ;	Check for Break (Caps Shift+Space)
 
 	ld bc, 0x7ffe
@@ -411,7 +411,7 @@ check_input
 	jp nz, ulatest_loop		; Caps shift not pressed
 
 	call diagrom_exit
-	
+
 ;
 ;	Reads bit 6 of port 0xFE (EAR bit) and
 ;	reflects its status by changing the border colour.
@@ -421,29 +421,29 @@ read_ear_bit
 	push af
 	exx
 	ld h, l
-	
+
 	in a, (0xfe)
 	bit 6, a
 	jr nz, read_ear_bit_2
-	
+
 	ld a, h
 	xor 0x07
 	ld h, a
-	
+
 read_ear_bit_2
-	
+
 	ld a, h
 	out (0xfe), a
-	
+
 	exx
 	pop af
 	ret
-	
+
 out_mictone
-	
+
 ;	Test effectiveness of outputting sound via bit 3 (MIC).
 
-	di	
+	di
 	ld c, 0x0a
 
 out_mictone1
@@ -457,7 +457,7 @@ out_mictone1
 out_mictone2
 
 	djnz out_mictone2
-	
+
 ;	Check if we're holding any keys down, keep going if so
 
 	xor a
@@ -465,18 +465,18 @@ out_mictone2
 	and 0x1f
 	cp 0x1f
 	jr nz, out_mictone1
-	
+
 ;	Restore border to white and return
 
-	ld a, BORDERWHT	
+	ld a, BORDERWHT
 	out (0xfe), a
 	ei
 	jp ulatest_loop
-	
+
 out_eartone
-	
+
 ;	Test effectiveness of outputting sound via bit 4 (EAR).
-	
+
 	di
 	ld c, 0x11
 
@@ -486,13 +486,13 @@ out_eartone1
 	out (0xfe), a
 	xor 0x17
 	ld c, a
-	
+
 	ld b, 0x30
 
 out_eartone2
 
 	djnz out_eartone2
-	
+
 ;	Check if we're holding any keys down, keep going if so
 
 	xor a
@@ -500,10 +500,10 @@ out_eartone2
 	and 0x1f
 	cp 0x1f
 	jr nz, out_eartone1
-	
+
 ;	Restore border to white and return
 
-	ld a, BORDERWHT	
+	ld a, BORDERWHT
 	out (0xfe), a
 	ei
 	jp ulatest_loop
@@ -511,7 +511,7 @@ out_eartone2
 test_border
 
 ;	Test that the border colour can be changed successfully.
-	
+
 	di
 	ld c, 0
 
@@ -524,13 +524,13 @@ test_border1
 	inc a
 	and 0x7
 	ld c, a
-	
+
 	ld b, 0xa2
 
 test_border2
 
 	djnz test_border2
-	
+
 ;	Check if we're holding any keys down, keep going if so
 
 	xor a
@@ -538,10 +538,10 @@ test_border2
 	and 0x1f
 	cp 0x1f
 	jr nz, test_border1
-	
+
 ;	Restore border to white and return
 
-	ld a, BORDERWHT	
+	ld a, BORDERWHT
 	out (0xfe), a
 	ei
 	jp ulatest_loop
@@ -552,7 +552,7 @@ test_screen
 
 	ld a, 0x9b
 	ld h, a
-	
+
 test_screen_loop
 
 	ld a, 4
@@ -560,11 +560,11 @@ test_screen_loop
 	ld bc, 0x7ffd
 	ld a, 0x08
 	out (c), a
-	
+
 	ld b, h
-	
+
 test_screen_loop1
-	
+
 	djnz test_screen_loop1
 
 	ld a, 7
@@ -574,16 +574,16 @@ test_screen_loop1
 	out (c), a
 
 	ld b, h
-	
+
 test_screen_loop2
-	
+
 	djnz test_screen_loop2
-	
+
 	in a, (0xfe)
 	and 0x1f
 	cp 0x1f
 	jr nz, test_screen_loop
-	
+
 	ei
 	jp ulatest_loop
 
@@ -596,14 +596,14 @@ ulatest_scan
 	ld a, l
 	exx
 	and 0xe0
-	or 0x12
+	or 0x02
 
 	out (0xfe), a
 	ld hl, ULATEST_ROW
 	ld b, 0x20
 	ld a, 0x7
 	ld c, a
-	
+
 ulatest_scan_fade
 
 	ld a, (hl)
@@ -616,8 +616,8 @@ ulatest_scan_fade_2
 	ld (hl), a
 	inc hl
 	djnz ulatest_scan_fade
-	
-	
+
+
 ;	Draw current scan dot
 
 	ld hl, ULATEST_ROW
@@ -627,19 +627,19 @@ ulatest_scan_fade_2
 	ld a, 7
 	ld (hl), a
 
-; 	Move scan dot left or right	
+; 	Move scan dot left or right
 
 	ld a, (v_ulatest_dir)
 	cp 0
 	jr z, ulatest_scan_right
-	
+
 	ld a, (v_ulatest_pos)
 	inc a
 	ld (v_ulatest_pos), a
 	cp 0x1f
 	ret nz
 	jr ulatest_scan_changedir
-	
+
 ulatest_scan_right
 
 	ld a, (v_ulatest_pos)
@@ -647,16 +647,16 @@ ulatest_scan_right
 	ld (v_ulatest_pos), a
 	cp 0
 	ret nz
-	
+
 ulatest_scan_changedir
 
 	ld a, (v_ulatest_dir)
 	cpl
 	ld (v_ulatest_dir), a
-	
+
 	ret
 
-;	
+;
 ;	ISR to approximate the frame length of the machine under test.
 ;
 ulatest_get_frame_length
@@ -668,14 +668,14 @@ ulatest_get_frame_length
 	ld hl, 0xffff
 	ld (v_ulacycles), hl
 	ret
-	
+
 ulatest_get_frame_length_done
 
 ;	Disable our ISR
 
 	ld hl, 0
 	ld (v_userint), hl
-	
+
 ;	Unwind the stack, grabbing the pre-interrupt value of HL as we go
 
 	pop bc
@@ -684,31 +684,31 @@ ulatest_get_frame_length_done
 	pop hl
 	pop bc
 	pop bc
-	
+
 	ld (v_ulacycles), hl
-	
+
 	jp ulatest_count_loop_done
-	
+
 str_ulabanner
 
-	defb	TEXTBOLD, "ULA Test", TEXTNORM, 0	
-	
+	defb	TEXTBOLD, "ULA Test", TEXTNORM, 0
+
 str_ulainresult
 
 	defb AT, 5, 0, "ULA port 0xFE read............. ", 0
-	
+
 str_ulain_row
 
 	defb AT, 5, 24 * 8, 0x88, 0x87, 0x86, 0x85, 0x84, 0x83, 0x82, 0x81, 0
 
 str_ulaint_test
-	
+
 	defb AT, 7, 0, "Interrupt test (movement should be smooth)", 0
-	
+
 str_ulaintfail
 
 	defb AT, 8, 13 * 6, ATTR, ATTR_TRANS, TEXTBOLD, "FAIL FAIL FAIL", TEXTNORM, ATTR, 56, 0
-	
+
 str_ulaselecttest
 
 	defb AT, 10, 0, "Select:"
@@ -720,11 +720,11 @@ str_ulaselecttest
 str_ulaexit
 
 	defb AT, 17, 12 * 6, "Hold BREAK to exit", 0
-	
+
 str_ulatype
 
 	defb AT, 2, 0, "ULA type: ", 0
-	
+
 ;	Tables defining ULA timings to type strings.
 ;	Contended ULA's first
 ula_type_table_contend
@@ -734,14 +734,14 @@ ula_type_table_contend
 	defw 0x05BE, str_ula48ntsc
 	defw 0x05B3, str_ts2068
 	defw 0x0000
-	
+
 ;	Uncontended ULA's
 ula_type_table_uncontend
 
 	defw 0x06CB, str_ula48notr6
 	defw 0x06E4, str_ulaplus3
 	defw 0x0000
-	
+
 str_ula48pal
 
 	defb "Spectrum 48K (PAL)", 0
@@ -749,23 +749,23 @@ str_ula48pal
 str_ula48ntsc
 
 	defb "Spectrum 48K (NTSC)", 0
-	
+
 str_ula128
 
 	defb "Spectrum 128K", 0
-	
+
 str_ulaplus3
 
 	defb "Spectrum +2A/+3 ASIC", 0
-	
+
 str_ts2068
 
 	defb "TS2048/TS2068 ASIC", 0
-	
+
 str_ula48notr6
 
 	defb "48K Issue 1 or TR6 missing", 0
-	
+
 str_ulaunknown
 
 	defb "Unknown (", 0
@@ -773,15 +773,15 @@ str_ulaunknown
 str_floatingbus
 
 	defb AT, 3, 0, "Floating bus ", 0
-	
+
 str_fb_detected
 
 	defb "detected", 0
-	
+
 str_fb_absent
 
 	defb "absent", 0
-	
+
 str_message
 
 	defb 24, 21, 17, "VVVVVVVVVVVVMMMMMMMMMMBBBBBBBBBBB\"\"\"\"\"", 0
