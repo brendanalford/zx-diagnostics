@@ -1375,7 +1375,7 @@ diagrom_exit
 
 str_romdiagboard
 
-	defb	AT, 4, 0, "Diagnostic hardware not detected", 0
+	defb	AT, 4, 0, "Diagnostic hardware not detected (/M1 bad?)", 0
 
 ;
 ;	Table to define pointers to test routines
