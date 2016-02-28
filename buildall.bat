@@ -5,6 +5,10 @@ echo *****************
 git rev-parse --abbrev-ref HEAD > branch.txt
 git rev-parse --short HEAD > commit.txt
 call build.bat
+echo *****************
+echo Building SLAM ROM
+echo *****************
+call buildslam.bat
 cd FlashUtils
 echo **********************
 echo Building FLASH Utility

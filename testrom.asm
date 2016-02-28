@@ -28,8 +28,6 @@
 	include "defines.asm"
 	include "version.asm"
 
-;	Uncomment this to build a version of the diags for the SLAM module.
-;	DEFINE SLAMTEST
 ;
 ;	Define a build timestamp
 ;	Also insert defines for Git branch and commit hash
