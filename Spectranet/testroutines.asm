@@ -473,6 +473,23 @@ randfillup
 	or c
 	jp nz, .randfill.up.loop
 
+;	Delay for a second or so if we are soak testing.
+; This will hopefully reveal any memory refresh issues.
+.randfill.up.soak
+
+		ld a, iyl
+		or iyh
+		jr z, .randfill.up.test
+
+		ld bc, 0xffff
+
+.randfill.up.delay
+
+		dec bc
+		ld a, c
+		or b
+		jr nz, .randfill.up.delay
+
 .randfill.up.test
 
 	ld sp, (v_rand_addr)
@@ -585,6 +602,23 @@ randfilldown
 	ld a, b
 	or c
 	jp nz, .randfill.down.loop
+
+;	Delay for a second or so if we are soak testing.
+; This will hopefully reveal any memory refresh issues.
+.randfill.down.soak
+
+		ld a, iyl
+		or iyh
+		jr z, .randfill.down.test
+
+		ld bc, 0xffff
+
+.randfill.down.delay
+
+		dec bc
+		ld a, c
+		or b
+		jr nz, .randfill.down.delay
 
 .randfill.down.test
 
