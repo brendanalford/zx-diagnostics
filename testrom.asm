@@ -1451,7 +1451,7 @@ str_48ktestsfail
 
 str_isthis16k
 
-	defb	"This appears to be be a 16K Spectrum\n"
+	defb	"This appears to be a 16K Spectrum\n"
 	defb    "If 48K, check IC23-IC26 (74LS157, 32, 00)",0
 
 str_128ktestsfail
