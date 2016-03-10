@@ -119,19 +119,49 @@ start
 ;	Display splash screen (i.e. line)
 
 	ld hl, splash_screen
-	ld iy, 0x4100
+	ld iy, 0x4840
 
 splash_loop
 
+;	Copy each line in double-height format
 	ld de, iy
 	ld bc, 0x20
 	ldir
 	inc iyh
+	ld de, 0x20
+	or a
+	sbc hl, de
+	ld de, iy
+	ld bc, 0x20
+	ldir
+	inc iyh
+
+; Are we doing the first 8-line block or the second?
+
+	ld a, iyl
+	cp 0x40
+	jr nz, splash_check_upper
+
+; First block, check if we've got off into the second
+
 	ld a, iyh
-	cp 0x46
+	cp 0x50
 	jr nz, splash_loop
 
-	BLANKMEM 0x5800, 32, 7
+; Alter offset to second line if so
+
+	ld iy, 0x4860
+	jr splash_loop
+
+splash_check_upper
+
+;	On second line, loop if we need to
+
+	ld a, iyh
+	cp 0x4a
+	jr nz, splash_loop
+
+	BLANKMEM 0x5800, 768, 7
 
 	ENDIF
 
