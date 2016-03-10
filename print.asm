@@ -16,14 +16,14 @@
 ;	Lesser General Public License for more details.
 ;
 ;	print.asm
-;	
+;
 
-;	Routines for printing a string to the screen. 
-;	Control codes AT, PAPER, INK, BRIGHT 
+;	Routines for printing a string to the screen.
+;	Control codes AT, PAPER, INK, BRIGHT
 ;	and INVERSE are handled as you'd expect.
 ;	HL holds the location of the string to print
 
-;	Defines for in-string control codes 
+;	Defines for in-string control codes
 
 	define LEFT		8
 	;define	RIGHT		9
@@ -59,9 +59,9 @@ print_rom
 	push hl
 	call 0x1601
 	pop hl
-	
+
 print_rom_loop
-	
+
 	ld a, (hl)
 	cp 0
 	ret z
@@ -91,23 +91,23 @@ print
 ;	Once we have the current char value, HL always points to the next value to be read.
 
 print_nextchar
-	
+
 	ld a, (hl)
 	inc hl
 
 ;	Check for end of printable string, zero terminated
-	
-	cp 0 
+
+	cp 0
 	jp z, print_done
-	
+
 ;	Jump straight to character printing if obviously not
 ;	a control character
 
 	cp 31
 	jp nc, print_char
-	
+
 ;	Check for carriage return
-	
+
 	cp '\n'
 	jr nz, print_chk_left
 	call newline
@@ -140,7 +140,7 @@ print_chk_left
 ;	Check for ATTR control code
 
 print_chk_attr
-	
+
 	cp ATTR
 	jp nz, print_chk_ink
 	ld a, (hl)
@@ -295,7 +295,7 @@ print_chk_norm
 	jp print_nextchar
 
 print_chk_inverse
-	
+
 	cp INVERSE
 	jr nz, print_chk_width
 	ld a, (hl)
@@ -306,7 +306,7 @@ print_chk_inverse
 	set 1, a
 	ld (v_pr_ops), a
 	jp print_nextchar
-	
+
 print_chk_inverse_on
 
 	ld a, (v_pr_ops)
@@ -314,7 +314,7 @@ print_chk_inverse_on
 	ld (v_pr_ops), a
 
 	jp print_nextchar
-	
+
 print_chk_width
 
 	cp WIDTH
@@ -323,13 +323,13 @@ print_chk_width
 	inc hl
 	ld (v_width), a
 	jp print_nextchar
-	
+
 ;	Print a single character to screen
 
 print_char
 
 	ld b, a
-	
+
 	call putchar
 
 ;	Update the print position, wrapping around
@@ -338,12 +338,12 @@ print_char
 	ld a, (v_width)
 	cp 0
 	jr z, do_proportional
-	
+
 	ld b, a
 	ld a, (v_column)
 	add b
 	jr print_wrap
-	
+
 do_proportional
 
 	push hl
@@ -353,7 +353,7 @@ do_proportional
 	add hl, de
 	ld b, (hl)
 	pop hl
-	
+
 print_wrap
 
 	ld (v_column), a
@@ -364,11 +364,11 @@ print_wrap
 	ld a, (v_row)
 	inc a
 	ld (v_row), a
-	
+
 	ld a, (v_scroll)
 	cp 0xff
 	jr nz, print_scroll
-	
+
 ;	Wrap text from bottom to top
 	cp 24
 	jp nz, print_nextchar
@@ -390,7 +390,7 @@ print_scroll
 	ld (v_row), a
 	call prt_scroll
 	jp print_nextchar
-	
+
 ;	Return without printing the rest if we overflowed the bottom
 ;	of the screen.
 
@@ -403,9 +403,9 @@ print_done
 	pop de
 	pop hl
 	ret
-	
+
 ;
-;	Puts a single character on screen. 
+;	Puts a single character on screen.
 ;	Inputs: A=character to print, HL=y,x coordinates to print at.
 ;	This routine drops directly into the putchar routine.
 ;
@@ -423,7 +423,7 @@ putchar_at
 ;	Puts a single character on screen at the location in the
 ;	v_col and v_row variables, with v_attr colours.
 ;	Inputs: A=character to print.
-;	
+;
 
 putchar
 
@@ -431,7 +431,7 @@ putchar
 	push bc
 	push de
 	push ix
-	
+
 ;	Find the address of the character in the bitmap table
 
 	sub 32      ; space = offset 0
@@ -439,22 +439,22 @@ putchar
 	ld l, a
 
 ;	Multiply by 8 to get the byte offset
-    
+
 	add hl, hl
 	add hl, hl
 	add hl, hl
 
 ;	Add the offset
-    
+
 	ld bc, charset
 	add hl, bc
 
 ;	Store result in de for later use
-	
+
 	ex de, hl
-      
+
 ;	Now find the address in the frame buffer to be written.
-	
+
 	ld a, (v_row)
 	and 0x18
 	or 0x40
@@ -481,7 +481,7 @@ putchar
 ;	HL contains address in the frame buffer
 
 ;	Calculate mask for printing partial characters
-	
+
 	push hl
 	push de
 
@@ -506,15 +506,15 @@ putchar
 .putchar.loop
 
 ;	Move character bitmap into the frame buffer
-	
-	ld a, (de)        
+
+	ld a, (de)
 	push de
 
 ;	Store bitmap row in d, and mask in e for the duration
 
 	ld d, a
 	ld e, ixh
-	
+
 ;	Do we need to print the character in bold?
 
 	ld a, (v_pr_ops)
@@ -536,22 +536,22 @@ putchar
 	ld a, (v_pr_ops)
 	bit 1, a
 	jr z, .putchar.afterinverse
-	
+
 	ld a, d
 	xor 0xff
 	ld d, a
-	
+
 .putchar.afterinverse
 
 	push bc
-	
-;	Apply mask to first byte 
+
+;	Apply mask to first byte
 
 	ld a, e
 	ld b, (hl)
 	and b
 	ld (hl), a
-	
+
 	ld a, ixl
 	cp 0
 	jr z, .putchar.norot
@@ -563,11 +563,11 @@ putchar
 	srl a
 	djnz .putchar.rot1
 	jr .putchar.byte1
-	
+
 .putchar.norot
 
 	ld a, d
-	
+
 .putchar.byte1
 
 	ld b, (hl)
@@ -576,7 +576,7 @@ putchar
 	pop bc
 
 ;	Check if we need to do second byte
-	
+
 	ld a, ixl
 	cp 0
 	jr z, .putchar.nextbmpline
@@ -584,22 +584,22 @@ putchar
 
 	push bc
 
-;	Apply mask to second byte	
+;	Apply mask to second byte
 
 	ld a, e
 	cpl
 	ld b, (hl)
-	and b 
+	and b
 	ld (hl), a
-	
+
 	ld a, ixl
 	ld b, a
 	ld a, 8
 	sub b
 	ld b, a
-	
+
 	ld a, d
-	
+
 .putchar.rot2
 
 	sla a
@@ -608,10 +608,10 @@ putchar
 	ld b, (hl)
 	or b
 	ld (hl), a
-	
+
 	pop bc
 	dec hl
-	
+
 .putchar.nextbmpline
 
 	pop de
@@ -629,7 +629,7 @@ putchar
 	ld a, (v_attr)
 	cp ATTR_TRANS
 	jr z, .putchar.end
-	
+
 	ld a, (v_row)
 	srl a
 	srl a
@@ -656,7 +656,7 @@ putchar
 
 	ld a, (v_attr)
 	ld (hl), a
-	
+
 	ld a, ixl
 	cp 0
 	jr z, .putchar.end
@@ -666,7 +666,7 @@ putchar
 	ld a, (v_attr)
 	inc hl
 	ld (hl), a
-	
+
 ;	Done, restore registers and return
 
 .putchar.end
@@ -732,8 +732,8 @@ Num2
 ;	Prints a 16-bit decimal number to the buffer pointed to by DE.
 ;	Inputs: HL=number to print.
 ;
-Num2Dec	
-	
+Num2Dec
+
 	ld	bc, -10000
 	call	Num1D
 	ld	bc, -1000
@@ -744,11 +744,11 @@ Num2Dec
 	call	Num1D
 	ld	c, b
 
-Num1D	
+Num1D
 
 	ld	a, '0'-1
 
-Num2D	
+Num2D
 
 	inc	a
 	add	hl,bc
@@ -766,7 +766,7 @@ Num2D
 ;
 
 check_end_of_line
-	
+
 	push bc
 	ld b, a
 	ld a, (v_column)
@@ -829,13 +829,13 @@ newline
 	xor a
 	ld (v_column), a
 	ld a, (v_row)
-	inc a 
+	inc a
 	ld (v_row), a
-	
+
 	ld a, (v_scroll)
 	cp 0xff
 	jr nz, nl_scroll
-	
+
 ;	Wrap text from bottom to top
 	cp 24
 	jr nz, newline_done
@@ -844,7 +844,7 @@ newline
 	jr newline_done
 
 nl_scroll
-	
+
 	ld a, (v_scroll)
 	ld b, a
 	ld a, (v_scroll_lines)
@@ -856,7 +856,7 @@ nl_scroll
 	dec a
 	ld (v_row), a
 	call prt_scroll
-	
+
 newline_done
 	pop bc
 	pop af
@@ -888,15 +888,15 @@ print_header
 	call print
 	pop af
 	ld (v_attr), a
-	
+
 	ld hl, stripe_attr
 	ld de, 0x581a
 	ld bc, 6
-	ldir 
-	
+	ldir
+
 	ld a, 8
 	ld b, a
-	
+
 	ld a, 1
 	ld hl, 0x401a
 
@@ -919,17 +919,17 @@ print_header
 	rla
 	set 0, a
 	djnz .stripeloop
-	
+
 	ret
 
 print_footer
-	
+
 	push hl
 	ld hl, str_footer
 	call print
 	pop hl
 	ret
-	
+
 str_footer
 
 	defb	AT, 22, 0, VERSION_STRING
@@ -938,27 +938,27 @@ str_footer
 mask_bits
 
 	defb 0, 128, 192, 224, 240, 248, 252, 254
-	
+
 stripe_attr
-	
+
 	defb 0x42, 0x56, 0x74, 0x65, 0x68, 0x40
-	
+
 proportional_data
 
-	defb 0,0,0,0,0,0,0,0
-	defb 0,0,0,0,0,0,0,0
-	defb 0,0,0,0,0,0,0,0
-	defb 0,0,0,0,0,0,0,0
-	defb 4, 2, 4, 6, 6, 6, 6, 2	; Space - '
-	defb 4, 4, 6, 6, 3, 6, 2, 6	; ( - /
-	defb 6, 4, 6, 6, 6, 6, 6, 6	; 0 - 7
-	defb 6, 6, 2, 3, 5, 6, 5, 6	; 8 - ?
-	defb 6, 6, 6, 6, 6, 6, 6, 6	; @ - G
-	defb 6, 2, 6, 6, 6, 6, 6, 6 	; H - O
-	defb 6, 6, 6, 6, 6, 6, 6, 6	; P - W
-	defb 6, 6, 6, 4, 6, 4, 6, 6	; X - _
-	defb 6, 6, 6, 6, 6, 6, 4, 6	; £ - g
-	defb 6, 2, 3, 5, 2, 6, 6, 6	; h - o
-	defb 6, 6, 6, 6, 4, 6, 6, 6	; p - w
-	defb 6, 6, 6, 4, 2, 4, 5, 8	; x - (C)
-	defb 8, 8, 8, 8, 8, 8, 8, 8	; Extra characters
+	; defb 0,0,0,0,0,0,0,0
+	; defb 0,0,0,0,0,0,0,0
+	; defb 0,0,0,0,0,0,0,0
+	; defb 0,0,0,0,0,0,0,0
+	; defb 4, 2, 4, 6, 6, 6, 6, 2	; Space - '
+	; defb 4, 4, 6, 6, 3, 6, 2, 6	; ( - /
+	; defb 6, 4, 6, 6, 6, 6, 6, 6	; 0 - 7
+	; defb 6, 6, 2, 3, 5, 6, 5, 6	; 8 - ?
+	; defb 6, 6, 6, 6, 6, 6, 6, 6	; @ - G
+	; defb 6, 2, 6, 6, 6, 6, 6, 6 	; H - O
+	; defb 6, 6, 6, 6, 6, 6, 6, 6	; P - W
+	; defb 6, 6, 6, 4, 6, 4, 6, 6	; X - _
+	; defb 6, 6, 6, 6, 6, 6, 4, 6	; ï¿½ - g
+	; defb 6, 2, 3, 5, 2, 6, 6, 6	; h - o
+	; defb 6, 6, 6, 6, 4, 6, 6, 6	; p - w
+	; defb 6, 6, 6, 4, 2, 4, 5, 8	; x - (C)
+	; defb 8, 8, 8, 8, 8, 8, 8, 8	; Extra characters
