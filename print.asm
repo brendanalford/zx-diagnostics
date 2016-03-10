@@ -43,6 +43,8 @@
 	define	WIDTH		24
 	define  ATTR_TRANS	0xff
 
+;	define PROPORTIONAL_PRINT_SUPPORT
+
 ;
 ;	Prints a string to the screen using ROM routines.
 ;	Assumes the ROM is actually paged in...
@@ -336,12 +338,18 @@ print_char
 ;	to screen start if necessary
 
 	ld a, (v_width)
+
+	IFDEF PROPORTIONAL_PRINT_SUPPORT
 	cp 0
 	jr z, do_proportional
+	ENDIF
+
 
 	ld b, a
 	ld a, (v_column)
 	add b
+
+	IFDEF PROPORTIONAL_PRINT_SUPPORT
 	jr print_wrap
 
 do_proportional
@@ -353,6 +361,8 @@ do_proportional
 	add hl, de
 	ld b, (hl)
 	pop hl
+
+	ENDIF
 
 print_wrap
 
@@ -943,22 +953,26 @@ stripe_attr
 
 	defb 0x42, 0x56, 0x74, 0x65, 0x68, 0x40
 
+	IFDEF PROPORTIONAL_PRINT_SUPPORT
+
 proportional_data
 
-	; defb 0,0,0,0,0,0,0,0
-	; defb 0,0,0,0,0,0,0,0
-	; defb 0,0,0,0,0,0,0,0
-	; defb 0,0,0,0,0,0,0,0
-	; defb 4, 2, 4, 6, 6, 6, 6, 2	; Space - '
-	; defb 4, 4, 6, 6, 3, 6, 2, 6	; ( - /
-	; defb 6, 4, 6, 6, 6, 6, 6, 6	; 0 - 7
-	; defb 6, 6, 2, 3, 5, 6, 5, 6	; 8 - ?
-	; defb 6, 6, 6, 6, 6, 6, 6, 6	; @ - G
-	; defb 6, 2, 6, 6, 6, 6, 6, 6 	; H - O
-	; defb 6, 6, 6, 6, 6, 6, 6, 6	; P - W
-	; defb 6, 6, 6, 4, 6, 4, 6, 6	; X - _
-	; defb 6, 6, 6, 6, 6, 6, 4, 6	; � - g
-	; defb 6, 2, 3, 5, 2, 6, 6, 6	; h - o
-	; defb 6, 6, 6, 6, 4, 6, 6, 6	; p - w
-	; defb 6, 6, 6, 4, 2, 4, 5, 8	; x - (C)
-	; defb 8, 8, 8, 8, 8, 8, 8, 8	; Extra characters
+	defb 0,0,0,0,0,0,0,0
+	defb 0,0,0,0,0,0,0,0
+	defb 0,0,0,0,0,0,0,0
+	defb 0,0,0,0,0,0,0,0
+	defb 4, 2, 4, 6, 6, 6, 6, 2	; Space - '
+	defb 4, 4, 6, 6, 3, 6, 2, 6	; ( - /
+	defb 6, 4, 6, 6, 6, 6, 6, 6	; 0 - 7
+	defb 6, 6, 2, 3, 5, 6, 5, 6	; 8 - ?
+	defb 6, 6, 6, 6, 6, 6, 6, 6	; @ - G
+	defb 6, 2, 6, 6, 6, 6, 6, 6 	; H - O
+	defb 6, 6, 6, 6, 6, 6, 6, 6	; P - W
+	defb 6, 6, 6, 4, 6, 4, 6, 6	; X - _
+	defb 6, 6, 6, 6, 6, 6, 4, 6	; � - g
+	defb 6, 2, 3, 5, 2, 6, 6, 6	; h - o
+	defb 6, 6, 6, 6, 4, 6, 6, 6	; p - w
+	defb 6, 6, 6, 4, 2, 4, 5, 8	; x - (C)
+	defb 8, 8, 8, 8, 8, 8, 8, 8	; Extra characters
+
+	ENDIF
