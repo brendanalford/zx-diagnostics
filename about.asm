@@ -89,6 +89,9 @@ print_hw
 	call newline
 	ld hl, str_gitcommit
 	call print
+	call newline
+	ld hl, str_buildmachine
+	call print
 
 ;	Output the amount of free space left in the ROM image
 
@@ -149,7 +152,7 @@ str_diagboard
 	IFDEF SLAMTEST
 	defb "SLAM48/128 ULA Replacement\n\n", 0
 	ENDIF
-	
+
 str_smart
 
 	defb "Retroleum SMART Card\n\n", 0

@@ -93,6 +93,10 @@ str_gitcommit
 
 	defb  "Commit: ", GIT_COMMIT, 0
 
+str_buildmachine
+
+	defb  "Host:   ", HOSTNAME, 0
+
 	BLOCK 0x0100-$, 0xff
 
 start
