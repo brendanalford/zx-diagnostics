@@ -1,0 +1,6 @@
+@echo off
+echo Building Test ROM...
+sjasmplus testrom.sjasm
+echo Building tape image...
+bin2tap -a 32768 -o testrom.tap testrom.bin
+echo Done!
