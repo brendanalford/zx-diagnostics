@@ -161,7 +161,7 @@ splash_check_upper
 	cp 0x4a
 	jr nz, splash_loop
 
-	BLANKMEM 0x5800, 768, 7
+	BLANKMEM 0x5940, 64, 7
 
 	ENDIF
 
