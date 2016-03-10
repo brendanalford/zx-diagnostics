@@ -1269,7 +1269,7 @@ initialize_no_ram_check
 	ld (v_fail_ic_contend), a
 	ld (v_fail_ic_uncontend), a
 	ld (v_fail_rom), a
-	ld (v_ay_present), a
+	ld (v_testcard_flags), a
 	ld (v_column), a
     	ld (v_row), a
 	ld (v_pr_ops), a
