@@ -21,15 +21,15 @@ echo Building FLASH Utility
 echo **********************
 echo.
 call build.bat
+if %errorlevel% neq 0 goto :cderror
 cd ..\TestTape
-if %errorlevel% neq 0 goto :error
 echo.
 echo *************************
 echo Building tape based tests
 echo *************************
 echo.
 call build.bat
-if %errorlevel% neq 0 goto :error
+if %errorlevel% neq 0 goto :cderror
 cd ..\Spectranet
 echo.
 echo ********************************
@@ -37,10 +37,14 @@ echo Building Spectranet test modules
 echo ********************************
 echo.
 call build.bat
+if %errorlevel% neq 0 goto :cderror
 cd ..
-if %errorlevel% neq 0 goto :error
 echo All builds complete.
 goto :done
+
+:cderror
+
+cd ..
 
 :error
 
