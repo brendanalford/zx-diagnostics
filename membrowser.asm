@@ -16,10 +16,10 @@
 ;	Lesser General Public License for more details.
 ;
 ;	membrowser.asm
-;	
+;
 
 	define KEY_DELAY 10
-	
+
 mem_browser
 
     ld sp, sys_stack
@@ -30,12 +30,12 @@ mem_browser
 	ld de, sys_ld_a_hl
 	ld bc, ld_a_hl_end-ld_a_hl
 	ldir
-	
+
 ;	Set the correct interrupt service routine
 
-	ld hl, membrowser_isr 
+	ld hl, membrowser_isr
 	ld (v_userint), hl
-	
+
     	ld a, BORDERWHT
     	out (ULA_PORT), a
 
@@ -45,7 +45,7 @@ mem_browser
 	call print_header
 	ld hl, str_mem_browser_footer
 	call print
-	
+
 ;	Paint initial memory locations
 ;	HL is our starting address.
 
@@ -61,21 +61,21 @@ mem_browser
 
 ;	Set up the keyboard delay
 
-	ex af, af'	
+	ex af, af'
 	ld a, 0
-	ex af, af'	
-	
+	ex af, af'
+
 	ld c, a
 	call print_cursor
-		
+
 	ei
 
 mem_loop
 
-	ex af, af'	
+	ex af, af'
 	ld b, a
-	ex af, af'	
-	
+	ex af, af'
+
 ;	Delay repeat key presses
 
 	ld a, b
@@ -83,9 +83,9 @@ mem_loop
 	jr nz, key_delay
 	ld a, 1
 	ld b, a
-	
+
 key_delay
-	
+
 	halt
 	djnz key_delay
 
@@ -94,12 +94,12 @@ key_delay
 	xor a
 	call scan_keys
 	jr c, mem_key_pressed
-	
+
 ;	No key pressed, reset the delay timer
 
-	ex af, af'	
+	ex af, af'
 	ld a, 0
-	ex af, af'	
+	ex af, af'
 
 	jr mem_loop
 
@@ -109,21 +109,21 @@ mem_key_pressed
 ;	A key was pressed, set the timer to the initial delay,
 ;	or reduce the delay by one if not already = 1.
 
-	ex af, af'	
+	ex af, af'
 	cp 0
 	jr z, delay_timer_start
 	cp 1
 	jr z, delay_timer_end
 	dec a
 	jr delay_timer_end
-	
+
 delay_timer_start
 
 	ld a, KEY_DELAY
-	
+
 delay_timer_end
-	
-	ex af, af'	
+
+	ex af, af'
 
 check_keys
 
@@ -148,13 +148,11 @@ check_keys
 	jp z, ram_page
 	cp 'R'
 	jp z, rom_page
-	cp 'U'
-	jp z, goto_upper
-	cp 'L'
-	jp z, goto_lower
+	cp 'G'
+	jp z, goto_addr
 	cp BREAK
 	jr z, exit
-	
+
 ;	Test for Hex characters
 
 	cp 'F' + 1
@@ -167,23 +165,23 @@ check_keys
 	cp 'A'
 	jr nc, hex_digit
 
-	
+
 hex_digit
 
-;	Normalise it 
-	
+;	Normalise it
+
 	sub '0'
 	cp 10
 	jr c, hex_digit_2
 	sub 0x7
-	
+
 hex_digit_2
 
 ;	Work out the target byte
-	
-	push hl	
+
+	push hl
 	push af
-		
+
 	call get_hl_cursor_addr
 
 ;	Now work out the high or low
@@ -192,7 +190,7 @@ hex_digit_2
 	ld a, ixl
 	bit 0, a
 	jr z, write_high_nibble
-	
+
 write_low_nibble
 
 	call sys_ld_a_hl
@@ -201,9 +199,9 @@ write_low_nibble
 	pop af
 	and 0x0f
 	jr write_end
-	
+
 write_high_nibble
-	
+
 	call sys_ld_a_hl
 	and 0x0f
 	ld b, a
@@ -213,40 +211,134 @@ write_high_nibble
 	rla
 	rla
 	and 0xf0
-	
+
 write_end
 	or b
 	ld (hl), a
-	
+
 	pop hl
 	call refresh_mem_display
 	call cur_right
 	jp mem_loop
-	
+
 exit
+
 	call diagrom_exit
-	
 
-goto_lower
 
-	ld hl, 0x4000
+;	Routine to allow the user to enter a 4 digit
+;	hexadecimal memory address to go to
+goto_addr
+
+;	We're replacing the value of HL (memory pointer)
+; so it's okay to trash it
+
+	ld hl, str_goto_addr_prompt
+	call print
+	ld hl, str_cursor
+	call print
+
+	ld bc, 0x0000
+
+	call get_hex_digit
+	sla a
+	sla a
+	sla a
+	sla a
+	or b
+	ld b, a
+	call get_hex_digit
+	or b
+	ld b, a
+
+	call get_hex_digit
+	sla a
+	sla a
+	sla a
+	sla a
+	or c
+	ld c, a
+	call get_hex_digit
+	or c
+	ld ixl, a
+	and 0xf8
+	ld c, a
+
+	ld hl, str_goto_addr_default
+	call print
+
+	push bc
+	pop hl
+
+	ld ixh, 0
+	ld a, ixl
+	and 0x07
+	sla a
+	ld ixl, a
+
+	set 0, c
 	call refresh_mem_display
 	call print_cursor
 	jp mem_loop
-	
-goto_upper
 
-	ld hl, 0x8000
-	call refresh_mem_display
-	call print_cursor
-	jp mem_loop
-	
+get_hex_digit
+
+;	Get a keypress and see if it's a valid hex digit
+	xor a
+	call scan_keys
+	jr nc, get_hex_digit
+
+	cp 'F' + 1
+	jr nc, get_hex_digit
+	cp '0'
+	jr c, get_hex_digit
+
+	cp '9' + 1
+	jr c, got_hex_digit
+	cp 'A'
+	jr c, get_hex_digit
+
+got_hex_digit
+
+	push af
+
+;	Debounce the keypress
+
+get_hex_digit_2
+
+	xor a
+	call scan_keys
+	jr c, get_hex_digit_2
+	pop af
+
+; Print the digit
+
+	push af
+	call putchar
+	ld d, 6
+	ld a, (v_column)
+	add a, d
+	ld (v_column), a
+	ld hl, str_cursor
+	call print
+	pop af
+
+;	Normalise the ASCII keypress to a hex digit 0-F
+
+	sub '0'
+	cp 10
+	ret c
+	sub 0x7
+	ret
+
+
+; Page in whatever ROM the user wants
 rom_page
 
 	push hl
 	ld hl, str_selrompage
 	call print_header
-	
+
 rom_page_sel
 
 	xor a
@@ -255,19 +347,19 @@ rom_page_sel
 
 	cp ' '
 	jp nz, rom_page_sel_chk
-	
+
 	ld hl, str_mem_browser_header
 	call print_header
 	pop hl
 	jp mem_loop
-	
+
 rom_page_sel_chk
 
 	cp '0'
 	jr c, rom_page_sel
 	cp '4'
 	jr nc, rom_page_sel
-	
+
 ;	Normalise to 0-3
 
 	sub '0'
@@ -284,8 +376,8 @@ rom_page_sel_chk
 	ld bc, 0x1ffd
 	out (c), a
 	ld (v_paging_2), a
-		
-;	Write 0x7ffd part 
+
+;	Write 0x7ffd part
 
 	pop af
 	and 0x1
@@ -314,7 +406,7 @@ ram_page
 	push hl
 	ld hl, str_selrampage
 	call print_header
-	
+
 ram_page_sel
 
 	xor a
@@ -323,24 +415,24 @@ ram_page_sel
 
 	cp ' '
 	jp nz, ram_page_sel_chk
-	
+
 	ld hl, str_mem_browser_header
 	call print_header
 	pop hl
 	jp mem_loop
-	
+
 ram_page_sel_chk
 
 	cp '0'
 	jr c, ram_page_sel
 	cp '8'
 	jr nc, ram_page_sel
-	
+
 ;	Page in required RAM bank
 
 	sub '0'
 	and 0x7
-	
+
 	ld b, a
 	ld a, (v_paging)
 	and 0xf8
@@ -370,7 +462,7 @@ page_down
 	call refresh_mem_display
 	call print_cursor
 	jp mem_loop
-	
+
 cur_left
 
 	ld c, 0
@@ -379,29 +471,29 @@ cur_left
 	ld a, ixl
 	cp 0
 	jr nz, cur_left_normal
-	
+
 	ld a, 15
 	ld ixl, a
-	
+
 	ld a, ixh
 	cp 0
 	jr nz, cur_left_nopage
 
 	call scroll_mem_down
 	inc ixh
-	
+
 cur_left_nopage
-	
+
 	dec ixh
 	call print_cursor
 	jp mem_loop
-	
+
 cur_left_normal
 
 	dec ixl
 	call print_cursor
 	jp mem_loop
-	
+
 cur_right
 
 	ld c, 0
@@ -410,22 +502,22 @@ cur_right
 	ld a, ixl
 	cp 15
 	jr nz, cur_right_normal
-	
+
 	ld a, 0
 	ld ixl, a
-	
+
 	ld a, ixh
 	cp 0x11
 	jr nz, cur_right_nopage
 
 	call scroll_mem_up
 	dec ixh
-	
+
 cur_right_nopage
-	
+
 	inc ixh
 	call print_cursor
-	jp mem_loop	
+	jp mem_loop
 
 cur_right_normal
 
@@ -441,17 +533,17 @@ cur_up
 	ld a, ixh
 	cp 0
 	jr nz, cur_up_normal
-	
+
 	call scroll_mem_down
 	call print_cursor
 	jp mem_loop
-	
+
 cur_up_normal
 
 	dec ixh
 	call print_cursor
 	jp mem_loop
-	
+
 cur_down
 
 	ld c, 0
@@ -460,19 +552,19 @@ cur_down
 	ld a, ixh
 	cp 0x11
 	jr nz, cur_down_normal
-	
+
 	call scroll_mem_up
 	call print_cursor
 	jp mem_loop
-	
+
 cur_down_normal
 
 	inc ixh
 	call print_cursor
 	jp mem_loop
-	
+
 scroll_mem_up
-	
+
 	ld de, 8
 	add hl, de
 	push hl
@@ -487,7 +579,7 @@ scroll_mem_up
 	call print_mem_line
 	pop hl
 	ret
-	
+
 scroll_mem_down
 
 	ld de, 8
@@ -515,15 +607,15 @@ refresh_mem_display
 	ld (v_row), a
 	xor a
 	ld (v_column), a
-	
+
 	ld b, 0x12
 
 	push hl
-		
+
 init_mem_loop
 
 	call print_mem_line
-	call newline		
+	call newline
 	djnz init_mem_loop
 
 	pop hl
@@ -556,19 +648,19 @@ print_mem_line
 ;	Set red ink if we're in ROM address space
 
 	call set_mem_line_colour
-	
+
 	ld de, v_hexstr
 	call Num2Hex
 	push hl
 	ld hl, v_hexstr
 	call print
-	
+
 	ld hl, str_colon
 	call print
 	pop hl
 	push bc
 	ld b, 8
-		
+
 mem_loop_hex
 
 	call sys_ld_a_hl
@@ -584,23 +676,23 @@ mem_loop_hex
 	ld d, 6
 	add d
 	ld (v_column), a
-	
+
 	pop bc
 	pop hl
 	inc hl
-	djnz mem_loop_hex		
+	djnz mem_loop_hex
 
 ;	Step back 8 bytes , time to output in ASCII
 
 	ld de, 8
 	and a
 	sbc hl, de
-	
+
 	ld a, (v_column)
 	ld d, 12
 	add d
 	ld (v_column), a
-	
+
 	ld b, 8
 
 mem_loop_ascii
@@ -612,12 +704,12 @@ mem_loop_ascii
 	jr nc, control_char
 	call putchar
 	jr mem_loop_ascii_next
-	
+
 control_char
-	
+
 	ld a, '?'
 	call putchar
-	
+
 mem_loop_ascii_next
 
 	ld d, 6
@@ -625,7 +717,7 @@ mem_loop_ascii_next
 	add d
 	ld (v_column), a
 	inc hl
-	djnz mem_loop_ascii	
+	djnz mem_loop_ascii
 	pop bc
 
 	ld a, 56
@@ -644,7 +736,7 @@ print_cursor
 	push hl
 	call get_hl_cursor_addr
 	call set_mem_line_colour
-	
+
 ;	HL now contains the memory address. Grab it
 ;	and store it in B register
 
@@ -658,14 +750,14 @@ print_cursor
 	ld e, ixh
 	add e
 	ld h, a
-	
+
 
 ;	IXL = cursor position (8 bytes * 2 nibbles)
 
 	ld a, ixl
 
 ;	Divide by 2 to take account of nibbles
-	
+
 	srl a
 
 ;	Every byte takes 3 print positions ( * 6 )
@@ -675,7 +767,7 @@ print_cursor
 	add l
 	add l
 	add l
-	add l 
+	add l
 
 ;	(byte * 6) * 3
 
@@ -685,7 +777,7 @@ print_cursor
 	add l
 	add l
 	ld l, a
-	
+
 ;	42 + (byte * 6) * 3
 
 	ld a, 7 * 6
@@ -701,22 +793,22 @@ print_cursor
 	ld a, b
 	ld hl, v_pr_ops
 	res 1, (hl)
-	
+
 	rra
 	rra
 	rra
 	rra
-	
+
 	call num_2_hex
 	ld d, ixl
 	bit 0, d
 	jr nz, no_inverse_1
-	
+
 	bit 0, c
 	jr z, no_inverse_1
-	
+
 	set 1, (hl)
-	
+
 no_inverse_1
 
 	call putchar
@@ -732,19 +824,19 @@ no_inverse_1
 	inc a
 	inc a
 	ld (v_column), a
-	
+
 	ld a, b
 	and 0x0f
 	call num_2_hex
 	ld d, ixl
 	bit 0, d
 	jr z, no_inverse_2
-	
+
 	bit 0, c
 	jr z, no_inverse_2
-	
+
 	set 1, (hl)
-	
+
 no_inverse_2
 
 	call putchar
@@ -773,7 +865,7 @@ get_hl_cursor_addr
 	ld e, a
 	ld d, 0
 	add hl, de
-	
+
 ;	Now get offset within row
 
 	ld a, ixl
@@ -785,7 +877,7 @@ get_hl_cursor_addr
 ;	Converts number in A to its ASCII hex equivalent.
 ;
 num_2_hex
-	
+
 	or	0xF0
 	daa
 	add	a,#A0
@@ -811,13 +903,13 @@ rel_key_loop
 membrowser_isr
 
 	ret
-	
+
 ;
 ;	Routine for relocation to RAM. Loads A with memory location in HL.
 ;	Pages out ROM to do it.
 ;
 ld_a_hl
-	
+
 	di
 	push bc
 	ld a, 2
@@ -831,30 +923,37 @@ ld_a_hl
 	ei
 	ret
 
-ld_a_hl_end	
+ld_a_hl_end
 
 str_mem_browser_header
 
 	defb	TEXTBOLD, "Memory Browser  ", TEXTNORM, 0
-	
+
 str_mem_browser_footer
 
 	defb	AT, 21, 0, "Q,Z,O,P: cursor, 0-9,A-F: enter data\n"
 	defb	"W: PgUp X: PgDown R: Page ROM, T: Page RAM\n"
-	defb	"U/L: Goto Upper/Lower RAM. BREAK exits.",0
-	
+
+str_goto_addr_default
+
+	defb	AT, 23, 0, "G: Goto Address. BREAK to exit. ",0
+
+str_goto_addr_prompt
+
+	defb  AT, 23, 15 * 6, ":               ", AT,23, 17 * 6, 0
+
+str_cursor
+
+	defb INVERSE, 1, ' ', INVERSE, 0, LEFT, 0
+
 str_colon
 
 	defb ":  ", 0
-	
+
 str_selrompage
 
 	defb	TEXTBOLD, "ROM Page (0-3)?", TEXTNORM, 0
-	
+
 str_selrampage
 
 	defb	TEXTBOLD, "RAM Page (0-7)?", TEXTNORM, 0
-	
-str_seladdr
-
-	defb	TEXTBOLD, "Go to address: ---- (Spc cancels)", TEXTNORM, 0
