@@ -242,34 +242,28 @@ splash_check_upper
 	in a, (c)
 	bit 0, a
 	jr z, enable_soak_test
-	bit 4, a
-	jp z, testcard
 	bit 3, a
 	jp z, ulatest
+	bit 4, a
+	jp z, testcard
 
-;	Andrew Bunker special :) Check if FIRE button of a Kempston interface
-;	is being held, initiate soak tests if so
+;	Andrew Bunker special :)
 
 	ld bc, 0xff00
 
 kemp_interface_test
 
-;	Check to see if the Kempston bits indicate an invalid state, i.e.
-; left and right being held simultaneously. This would indicate
-; the interface isn't present or is faulty. Skip if so.
+;	Check to see if the upper three bits of the Kempston port are
+; at any time non-zero - this would indicate a faulty interface or
+; one that's not present.
 
 	in a, (0x1f)
 	ld c, a
-	and 0x2
+	and 0xe0
 
-;	Are left and right indicated active?
-	cp 2
-	jr z, start_testing
-
-; Are up and down indicated active
-	ld c, a
-	and 0xb
-	jr z, start_testing
+;	Are amy of the top bits set?
+	cp 0
+	jr nz, start_testing
 
 ; Loop a bit to make sure
 	djnz kemp_interface_test
@@ -280,12 +274,13 @@ kemp_interface_test
 ; LEFT - activate test card
 ; RIGHT - activate ULA test
 
-	bit 4, c
-	jr nz, enable_soak_test
-	bit 1, c
-	jp nz, testcard
 	bit 0, c
 	jp nz, ulatest
+	bit 1, c
+	jp nz, testcard
+	bit 4, c
+	jr nz, enable_soak_test
+
 
 ;	No options selected, start normal testing
 	jr start_testing
