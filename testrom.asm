@@ -231,12 +231,21 @@ splash_check_upper
 	bit 1, a
 	jr z, enable_soak_test
 
+; IF2 inputs
+; These are actioned on port 2 (67890)
+; FIRE - activate soak test
+; LEFT - activate test card
+; RIGHT - activate ULA test
 ;	Test if FIRE on Sinclair IF2 Port 1 is being pressed (or 0), if true launch soaktest mode
 
 	ld bc, 0xeffe
 	in a, (c)
 	bit 0, a
 	jr z, enable_soak_test
+	bit 4, a
+	jp z, testcard
+	bit 3, a
+	jp z, ulatest
 
 ;	Andrew Bunker special :) Check if FIRE button of a Kempston interface
 ;	is being held, initiate soak tests if so
@@ -245,26 +254,40 @@ splash_check_upper
 
 kemp_interface_test
 
-;	Check to see if the user is holding the stick up, down,
-;	left or right. If so, skip the fire check.
-;	This also acts as an interface test.
+;	Check to see if the Kempston bits indicate an invalid state, i.e.
+; left and right being held simultaneously. This would indicate
+; the interface isn't present or is faulty. Skip if so.
 
 	in a, (0x1f)
-	and 0x1f
-	or c
 	ld c, a
+	and 0x2
+
+;	Are left and right indicated active?
+	cp 2
+	jr z, start_testing
+
+; Are up and down indicated active
+	ld c, a
+	and 0xb
+	jr z, start_testing
+
+; Loop a bit to make sure
 	djnz kemp_interface_test
 
-	ld a, c
-	and 0xf
-	cp 0
-	jr nz, start_testing
-
-;	Interface is present. Is the user holding fire?
+;	Interface is present.
+; Perform actions based on the same controls as the IF2:
+; FIRE - activate soak test
+; LEFT - activate test card
+; RIGHT - activate ULA test
 
 	bit 4, c
 	jr nz, enable_soak_test
+	bit 1, c
+	jp nz, testcard
+	bit 0, c
+	jp nz, ulatest
 
+;	No options selected, start normal testing
 	jr start_testing
 
 enable_soak_test
