@@ -121,6 +121,19 @@ tone_start
 
 check_testcard_keys
 
+; Check for Q being pressed, go into quiet mode if so
+
+	ld bc, 0xfbfe
+	in a, (c)
+	bit 0, a
+	jr nz, check_testcard_keys_2
+
+	ld hl, v_testcard_flags
+	set 1, (hl)
+	jp tone_start
+
+check_testcard_keys_2
+
 ;	Don't check for A being pressed if there's no AY present
 
   ld hl, v_testcard_flags
@@ -132,17 +145,7 @@ check_testcard_keys
 	ld bc, 0xfdfe
 	in a, (c)
 	bit 0, a
-	jr z, start_ay_testing
-
-	ld bc, 0xfbfe
-	in a, (c)
-	bit 0, a
 	jr nz, tone_start
-
-	ld hl, v_testcard_flags
-	set 1, (hl)
-	jp tone_start
-
 
 ;
 ;	Start reading and outputting AY tone data. Exit if BREAK is pressed.
