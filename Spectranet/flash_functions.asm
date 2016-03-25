@@ -204,9 +204,6 @@ write_sram_to_flash
 ;	At this point, we have a full sector backed up to SRAM.
 ;	Now erase its target sector.
 
-	ld a, 2
-	out (0xfe), a
-
 	ld a, (v_modindex)
 	and 0xfc
 
@@ -223,10 +220,8 @@ write_sram_to_flash
 	call F_writesector
 	jr c, write_page_write_error
 
-	ld a, 1
-	out (0xfe), a
-
 ;	Our work here is done.
+
 	ret
 
 write_page_erase_error
@@ -240,8 +235,6 @@ write_page_write_error
 
 write_page_giveup
 
-	ld a, 1
-	out (0xfe), a
 	CALL PRINT42
 	scf
 	ret
@@ -311,16 +304,6 @@ F_FlashWriteByte:
         ld (0x555), a   ; Program address
         ld a, c         ; retrieve A
         ld (de), a      ; program it
-
-;		Do border stripes depending on the content being written
-
-		;cpl
-		ld a, e
-		sra a
-		sra a
-		sra a
-		and 0x7
-		out (0xfe), a
 
 .wait3:
 
