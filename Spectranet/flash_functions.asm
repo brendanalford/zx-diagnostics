@@ -16,7 +16,7 @@
 ;	Lesser General Public License for more details.
 ;
 ;	flash_functions.asm
-;	
+;
 ;	Flash utilities for Spectranet test modules.
 ;	Heavily borrowed from ZXGuesser and Winston's code.
 ;
@@ -40,7 +40,7 @@ write_rom_pages
 ;	Start at the first of 4 pages at the top of SRAM designated as workspace
 
 	ld c, 0xdc
-	
+
 copy_mult_to_sram_loop
 
 	ld a, c
@@ -51,11 +51,11 @@ copy_mult_to_sram_loop
 	push bc
 	call SETPAGEA
 	pop bc
-	
+
 	ld a, (v_module1page)
 	cp b
 	jr nz, copy_mult_1
-	
+
 ;	Module 1 location found, copy it
 
 	push hl
@@ -75,7 +75,7 @@ copy_mult_1
 	ld a, (v_module2page)
 	cp b
 	jr nz, copy_mult_2
-	
+
 ;	Module 2 location found, copy it
 
 	push hl
@@ -89,11 +89,11 @@ copy_mult_1
 	pop de
 	pop hl
 	jr copy_mult_to_sram_next
-	
+
 copy_mult_2
 
 ;	Neither module current, just copy this page from Flash to SRAM
-	
+
 	push hl
 	push de
 	push bc
@@ -104,7 +104,7 @@ copy_mult_2
 	pop bc
 	pop de
 	pop hl
-	
+
 copy_mult_to_sram_next
 
 	inc b
@@ -112,17 +112,17 @@ copy_mult_to_sram_next
 	ld a, c
 	cp 0xe0
 	jr nz, copy_mult_to_sram_loop
-	
+
 ;	All done, jump into our next routine to finish the write.
-;	Beforehand, set the target page so that routine knows which 
+;	Beforehand, set the target page so that routine knows which
 ;	sector to wipe.
 
 	ld a, (v_module1page)
 	ld (v_modindex), a
-	
+
 	jr write_sram_to_flash
-	
-	
+
+
 ;
 ;	Writes a given ROM page. This is entered as follows:
 ;	v_modaddr contains the start address in main RAM of the module to write
@@ -134,13 +134,13 @@ write_rom_page
 
 ;	We need to write to this page within this sector.
 ;	Step back to v_modindex mod 4 for a full sector,
-;	then back it up page by page to SRAM, except if 
+;	then back it up page by page to SRAM, except if
 ; 	the current page matches our target, then take it instead.
 
 	ld a, (v_modindex)
 	and 0xfc
 	ld b, a
-	
+
 ;	Start with page 0xDC of SRAM
 
 	ld c, 0xdc
@@ -155,13 +155,13 @@ copy_to_sram_loop
 	push bc
 	call SETPAGEA
 	pop bc
-	
+
 ;	Is our page current?
 
 	ld a, (v_modindex)
 	cp b
 	jr nz, copy_rom_to_sram
-	
+
 ;	Yes, copy the 4K block at v_modaddr to SRAM
 
 	push hl
@@ -179,7 +179,7 @@ copy_to_sram_loop
 ;	No, just copy this page from Flash to SRAM
 
 copy_rom_to_sram
-	
+
 	push hl
 	push de
 	push bc
@@ -190,7 +190,7 @@ copy_rom_to_sram
 	pop bc
 	pop de
 	pop hl
-	
+
 copy_to_sram_next
 
 	inc b
@@ -198,7 +198,7 @@ copy_to_sram_next
 	ld a, c
 	cp 0xe0
 	jr nz, copy_to_sram_loop
-	
+
 write_sram_to_flash
 
 ;	At this point, we have a full sector backed up to SRAM.
@@ -206,10 +206,10 @@ write_sram_to_flash
 
 	ld a, 2
 	out (0xfe), a
-	
+
 	ld a, (v_modindex)
 	and 0xfc
-	
+
 	push bc
 	di
 	call F_FlashEraseSector
@@ -222,31 +222,31 @@ write_sram_to_flash
 	di
 	call F_writesector
 	jr c, write_page_write_error
-	
+
 	ld a, 1
 	out (0xfe), a
-	
+
 ;	Our work here is done.
 	ret
-	
+
 write_page_erase_error
 
 	ld hl, str_eraseerror
 	jr write_page_giveup
-	
+
 write_page_write_error
-	
+
 	ld hl, str_writeerror
-	
+
 write_page_giveup
-		
+
 	ld a, 1
 	out (0xfe), a
 	CALL PRINT42
 	scf
 	ret
-	
-	
+
+
 ;---------------------------------------------------------------------------
 ; F_FlashEraseSector
 ; Simple flash writer for the Am29F010 (and probably any 1 megabit flash
@@ -255,7 +255,7 @@ write_page_giveup
 ; Parameters: A = page to erase (based on 4k Spectranet pages, but
 ; erases a 16k sector)
 ; Carry flag is set if an error occurs.
-F_FlashEraseSector: 
+F_FlashEraseSector:
 
         ; Page in the appropriate sector first 4k into page area B.
         ; Page to start the erase from is in A.
@@ -275,7 +275,7 @@ F_FlashEraseSector:
         ld (0x1000), a  ; erase sector address
 
         ld hl, 0x1000
-.wait1: 
+.wait1:
         bit 7, (hl)     ; test DQ7 - should be 1 when complete
         jr nz,  .complete1
         bit 5, (hl)     ; test DQ5 - should be 1 to continue
@@ -283,11 +283,11 @@ F_FlashEraseSector:
         bit 7, (hl)     ; test DQ7 again
 		jr z,  .borked1
 
-.complete1: 
+.complete1:
         or 0            ; clear carry flag
         ret
 
-.borked1: 
+.borked1:
         scf             ; carry flag = error
         ret
 
@@ -299,7 +299,7 @@ F_FlashEraseSector:
 ; On return, carry flag set = error
 ; Page the appropriate flash area into one of the paging areas to write to
 ; it, and the address should be in that address space.
-F_FlashWriteByte: 
+F_FlashWriteByte:
         push bc
         ld c, a         ; save A
 
@@ -314,34 +314,38 @@ F_FlashWriteByte:
 
 ;		Do border stripes depending on the content being written
 
-		cpl
+		;cpl
+		ld a, e
+		sra a
+		sra a
+		sra a
 		and 0x7
 		out (0xfe), a
-		
-.wait3: 
-		
+
+.wait3:
+
 		ld a, (de)      ; read programmed address
         ld b, a         ; save status
-        xor c           
-        bit 7, a        ; If bit 7 = 0 then bit 7 = data        
+        xor c
+        bit 7, a        ; If bit 7 = 0 then bit 7 = data
         jr z,  .byteComplete3
 
         bit 5, b        ; test DQ5
         jr z,  .wait3
 
         ld a, (de)      ; read programmed address
-        xor c           
+        xor c
         bit 7, a        ; Does DQ7 = programmed data? 0 if true
         jr nz,  .borked3
 
-.byteComplete3: 
-		
+.byteComplete3:
+
         pop bc
         or 0            ; clear carry flag
         ret
 
-.borked3: 
-	
+.borked3:
+
 	push de
 	ld hl, str_byteverifyfail
 	call PRINT42
@@ -374,7 +378,7 @@ F_FlashWriteByte:
 ;             DE = destination start address
 ;             BC = number of bytes to copy
 ; On error, the carry flag is set.
-F_FlashWriteBlock: 
+F_FlashWriteBlock:
         ld a, (hl)      ; get byte to write
         call F_FlashWriteByte
         ret c           ; on error, return immediately
@@ -386,16 +390,16 @@ F_FlashWriteBlock:
         jr nz, F_FlashWriteBlock
         ret
 
-		
+
 ;---------------------------------------------------------------------------
 ; F_writesector
 ; Writes 4 pages from the last 4 pages of RAM to flash, starting at the
 ; page specified in A
-F_writesector: 
+F_writesector:
         ex af, af'      ; swap with alternate set
         ld a, 0xDC      ; RAM page 0xDC
         ld b, 4         ; number of pages
-.loop4: 
+.loop4:
         push bc
         call SETPAGEA 	; Page RAM into area A
         inc a           ; next page
@@ -425,7 +429,7 @@ F_writesector:
 		call PRINT42
 		ld a, '\n'
 		CALL PUTCHAR42
-		
+
         pop af
 		ld hl, v_workspace
 		call ITOH8
@@ -438,11 +442,11 @@ F_writesector:
         pop bc
         scf
         ret
-		
+
 str_byteverifyfail
 
 	defb "\nProgrammed byte failed verification\nat address: ", 0
-	
+
 str_sectorfail
 
 	defb "\nFailed writing ROM page: ", 0
@@ -450,13 +454,11 @@ str_sectorfail
 str_sectorramfail
 
 	defb "\nSource SRAM page: ", 0
-		
+
 str_eraseerror
 
 	defb "\nError erasing Flash sector, aborting.\n",0
-	
+
 str_writeerror
 
 	defb "\nError writing Flash sector, aborting.\n",0
-	
-
