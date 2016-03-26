@@ -193,7 +193,7 @@ hex_digit_2
 
 write_low_nibble
 
-	call sys_ld_a_hl
+	call ld_a_hl
 	and 0xf0
 	ld b, a
 	pop af
@@ -907,8 +907,24 @@ membrowser_isr
 ;
 ;	Routine for relocation to RAM. Loads A with memory location in HL.
 ;	Pages out ROM to do it.
+; Checks to see if ZXC4 is active, and if the location points to the
+; area between 3FC0-3FFF. It'll return FF's in this case.
 ;
 ld_a_hl
+
+	ld a, (v_testhwtype)
+	cp 3
+	jr nz, ld_a_hl_2
+	ld a, h
+	cp 0x3f
+	jr nz, ld_a_hl_2
+	ld a, l
+	cp 0xc0
+	jr c, ld_a_hl_2
+	ld a, 0xff
+	ret
+
+ld_a_hl_2
 
 	di
 	push bc
