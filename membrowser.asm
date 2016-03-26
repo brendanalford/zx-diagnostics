@@ -961,7 +961,7 @@ str_goto_addr_prompt
 
 str_cursor
 
-	defb INVERSE, 1, ' ', INVERSE, 0, LEFT, 0
+	defb INVERSE, 1, ' ', INVERSE, 0, ' ', LEFT, LEFT, 0
 
 str_colon
 
