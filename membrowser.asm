@@ -193,7 +193,7 @@ hex_digit_2
 
 write_low_nibble
 
-	call ld_a_hl
+	call sys_ld_a_hl
 	and 0xf0
 	ld b, a
 	pop af
@@ -912,6 +912,7 @@ membrowser_isr
 ;
 ld_a_hl
 
+	di
 	ld a, (v_testhwtype)
 	cp 3
 	jr nz, ld_a_hl_2
@@ -922,11 +923,11 @@ ld_a_hl
 	cp 0xc0
 	jr c, ld_a_hl_2
 	ld a, 0xff
+	ei
 	ret
 
 ld_a_hl_2
 
-	di
 	push bc
 	ld a, 2
 	call sys_rompaging
