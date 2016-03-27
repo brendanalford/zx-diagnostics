@@ -953,7 +953,7 @@ str_mem_browser_footer
 
 str_goto_addr_default
 
-	defb	AT, 23, 0, "G: Goto Address. BREAK to exit. ",0
+	defb	AT, 23, 0, "G: Goto address. BREAK to exit. ",0
 
 str_goto_addr_prompt
 
