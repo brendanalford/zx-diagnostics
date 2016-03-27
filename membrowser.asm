@@ -184,8 +184,28 @@ hex_digit_2
 
 	call get_hl_cursor_addr
 
+;	If on ZXC3 hardware, check if
+; we're about to write to 3Fc0-3FFF.
+; Do not perform the write if so.
+
+	ld a, (v_testhwtype)
+	cp 3
+	jr nz, write_calc_nibble
+	ld a, h
+	cp 0x3f
+	jr nz, write_calc_nibble
+	ld a, l
+	cp 0xc0
+	jr c, write_calc_nibble
+
+	pop af
+	pop hl
+	jr write_end
+
 ;	Now work out the high or low
-; 	nibble to write, and write it
+; nibble to write, and write it
+
+write_calc_nibble
 
 	ld a, ixl
 	bit 0, a
@@ -198,7 +218,7 @@ write_low_nibble
 	ld b, a
 	pop af
 	and 0x0f
-	jr write_end
+	jr write_byte
 
 write_high_nibble
 
@@ -212,12 +232,15 @@ write_high_nibble
 	rla
 	and 0xf0
 
-write_end
+write_byte
+
 	or b
 	ld (hl), a
-
 	pop hl
 	call refresh_mem_display
+
+write_end
+
 	call cur_right
 	jp mem_loop
 
