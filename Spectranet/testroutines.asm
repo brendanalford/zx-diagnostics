@@ -454,6 +454,7 @@ randfillup
 	ld sp, (v_rand_addr)
 	exx
 	ld bc, (v_rand_seed)
+	ld hl, 0
 	exx
 	ld bc, (v_rand_reps)
 
@@ -505,10 +506,10 @@ randfillup
 	RAND16	; byte pair to test now in HL
 	pop de	; Pop memory off the stack to test into DE
 	ld a, h
-	cp d
+	xor d
 	jr nz, .randfill.up.borked
 	ld a, l
-	cp e
+	xor e
 	jr nz, .randfill.up.borked
 	jr .randfill.up.next
 
@@ -640,10 +641,10 @@ randfilldown
 	dec sp
 
 	ld a, h
-	cp d
+	xor d
 	jr nz, .randfill.down.borked
 	ld a, l
-	cp e
+	xor e
 	jr nz, .randfill.down.borked
 	jr .randfill.down.next
 
