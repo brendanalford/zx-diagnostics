@@ -454,6 +454,7 @@ randfillup
 	ld sp, (v_rand_addr)
 	exx
 	ld bc, (v_rand_seed)
+	ld hl, 0
 	exx
 	ld bc, (v_rand_reps)
 
@@ -477,18 +478,18 @@ randfillup
 ; This will hopefully reveal any memory refresh issues.
 .randfill.up.soak
 
-		ld a, iyl
-		or iyh
-		jr z, .randfill.up.test
+	ld a, iyl
+	or iyh
+	jr z, .randfill.up.test
 
-		ld bc, 0xffff
+	ld bc, 0xffff
 
 .randfill.up.delay
 
-		dec bc
-		ld a, c
-		or b
-		jr nz, .randfill.up.delay
+	dec bc
+	ld a, c
+	or b
+	jr nz, .randfill.up.delay
 
 .randfill.up.test
 
@@ -505,10 +506,10 @@ randfillup
 	RAND16	; byte pair to test now in HL
 	pop de	; Pop memory off the stack to test into DE
 	ld a, h
-	cp d
+	xor d
 	jr nz, .randfill.up.borked
 	ld a, l
-	cp e
+	xor e
 	jr nz, .randfill.up.borked
 	jr .randfill.up.next
 
@@ -529,8 +530,7 @@ randfillup
 
 	ld a, l
 	cp 0
-	jr nz, .randfill.up.borkedreport
-	jr .randfill.up.done
+	jp z, .randfill.up.done
 
 .randfill.up.borkedreport
 
@@ -641,10 +641,10 @@ randfilldown
 	dec sp
 
 	ld a, h
-	cp d
+	xor d
 	jr nz, .randfill.down.borked
 	ld a, l
-	cp e
+	xor e
 	jr nz, .randfill.down.borked
 	jr .randfill.down.next
 
