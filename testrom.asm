@@ -738,6 +738,12 @@ rom_check_found
 	jr z, rom_test_pass
 
 ;	Extra ROM tests here
+
+	push hl
+	ld hl, str_testpending
+	call print
+	pop hl
+	
 ;	HL points to the ROM check table address
 ;	Pop it into IX for handiness sake
 
@@ -1550,6 +1556,10 @@ str_selectplus3
 str_dblbackspace
 
 	defb	LEFT, LEFT, 0
+
+str_testpending
+
+	defb	INK, 0, TAB, 38 * 6, TEXTNORM, "Test", 0
 
 str_testpass
 
