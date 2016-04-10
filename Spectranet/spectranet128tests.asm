@@ -16,7 +16,7 @@
 ;	Lesser General Public License for more details.
 ;
 ;	128tests.asm
-;	
+;
 
 ;
 ;	128K Specific Tests
@@ -29,13 +29,13 @@
 ;
 
 test_128k
-	
+
 	xor a
 	ld (v_128type), a
 	jr begin_128_tests
-	
+
 test_plus2
-	
+
 	ld a, 1
 	ld (v_128type), a
 	jr begin_128_tests
@@ -45,7 +45,7 @@ test_plus3
 	ld a, 2
 	ld (v_128type), a
 	jr begin_128_tests
-	
+
 test_js128
 
 	ld a, 3
@@ -68,7 +68,7 @@ begin_128_tests
 ;	Test an individual RAM page.
 
 test_ram_page
-	
+
 	ld a, b
 
 ;	Don't touch page 5. That's where the screen and sysvars live.
@@ -82,7 +82,7 @@ test_ram_page
 ;	to keep track of the current page being tested.
 
 	push bc
-	
+
 	call pagein
 	ld a, b
 	or 0x30
@@ -94,9 +94,9 @@ test_ram_page
 	ld (v_fail_ic), a
 	ld ixh, a
 
-;	Run the walk, inversion and random fill tests on the 
-;	target page. 
-	
+;	Run the walk, inversion and random fill tests on the
+;	target page.
+
 	ld hl, 49152
 	ld de, 16384
 	call walkloop
@@ -127,13 +127,13 @@ test_ram_page
 	ld bc, 16384
 	call marchtest
 	call testresult128
-	
-	
+
+
 	ld hl, 49152
 	ld de, 8192
 	ld bc, 11
 	call randfillup
-	
+
 	ld hl, 65534
 	ld de, 8191
 	ld bc, 17
@@ -151,22 +151,28 @@ test_ram_page
 ; 	Skip to test next page if not
 
 	jr z, test_ram_page_next
-	
+
 	ld c, ixh
+
+	; Are we on a machine with contention as per the 128 documentation
+	; (+2A/+3/JS128)?
 
 	ld a, (v_128type)
 	cp 2
-	jr nz, odd_contend
+	jr z, even_contend
 	cp 3
-	jr nz, odd_contend
-	
+	jr z, even_contend
+	jr odd_contend
+
+even_contend
+
 ;	+2a/+3 - Was this in a contented bank (4,5,6,7)?
 
 	ld a, b
 	cp 4
 	jr nc, test_ram_fail_contend
 	jr test_ram_fail_uncontend
-	
+
 ; 	128/+2 - Was this in a contended bank (1,3,5,7)?
 
 odd_contend
@@ -196,7 +202,7 @@ test_ram_fail_contend
 ;	Check if we've any more pages to test
 
 test_ram_page_next
-	
+
 test_ram_page_skip
 
 	inc b
@@ -219,7 +225,7 @@ test_ram_page_skip
 	call newline
 	ld hl, str_128ktestsfail
 	call outputstring
-	
+
 ; 	If possible, output the failing IC's to the screen
 
 	ld hl, str_check_ic
@@ -231,7 +237,7 @@ test_ram_page_skip
 	cp 1
 	jr z, ic_fail_plus2
 	cp 2
-	jr z, ic_fail_plus3 
+	jr z, ic_fail_plus3
 	cp 3
 	jr z, ic_fail_js128
 
@@ -303,10 +309,10 @@ test_ram_bank_pass
 	call newline
 	ld hl, str_testingpaging
 	call outputstring
-	
+
 ;	Fill all RAM pages (except page 5) with a pattern
 ;	that uniquely identifies the page
-	
+
 	ld b, 0
 
 test_write_paging
@@ -316,7 +322,7 @@ test_write_paging
 	jr z, skip_write_page5
 
 ;	Page target page in and write the pattern
-	
+
 	call pagein
 
 	push bc
@@ -352,7 +358,7 @@ test_read_paging
 	jr z, skip_read_page5
 
 ;	Page in test page and write which one is being tested to the screen
-	
+
 	call pagein
 
 	ld a, b
@@ -362,7 +368,7 @@ test_read_paging
 	push bc
 	call outputstring
 	pop bc
-	
+
 ; Test the full page to see if it matches what was written
 
 	ld hl, 0xc000
@@ -399,7 +405,7 @@ skip_read_page5
 	call newline
 	ld hl, str_128ktestspass
 	call outputstring
-	
+
 	ret
 
 test_paging_fail
@@ -411,7 +417,7 @@ test_paging_fail
 	call newline
 	ld hl, str_128kpagingfail
 	call outputstring
-	
+
 ;	A paging fault is most likely the PAL/HAL/ULA chip so identify
 ;	what type of machine we are running on, then use this info to
 ;	inform the user which IC to check
@@ -423,7 +429,7 @@ test_paging_fail
 	jr z, plus3_ula_msg
 	cp 3
 	jr z, js128_pal_msg
-	
+
 	ld hl, str_check_128_hal
 	call outputstring
 	call newline
@@ -434,7 +440,7 @@ js128_pal_msg
 	ld hl, str_check_js128_hal
 	call outputstring
 	ret
-	
+
 plus2_pal_msg
 
 	ld hl, str_check_plus2_hal
