@@ -398,6 +398,8 @@ check_input
 	jr z, test_border
 	bit 3, a
 	jp z, test_screen
+	bit 4, a
+	jp z, test_ula_addressing
 
 ;	Check for Break (Caps Shift+Space)
 
@@ -587,6 +589,54 @@ test_screen_loop2
 	ei
 	jp ulatest_loop
 
+
+test_ula_addressing
+
+	di
+
+	ld b, 0
+	ld hl, 0x0204
+
+test_ula_addr_loop
+
+	push bc
+	ld bc, 0x3fff
+
+test_ula_addr_delay
+
+	dec bc
+	ld a, b
+	or c
+	jr nz, test_ula_addr_delay
+
+	pop bc
+
+	ld a, 7
+	bit 0, b
+	jr z, test_ula_addr_border
+
+	out (0xfe), a
+	out (0xff), a
+	jr test_ula_addr_next
+
+test_ula_addr_border
+
+	ld a, l
+	out (0xfe), a
+	ld a, h
+	out (0xff), a
+
+test_ula_addr_next
+
+	inc b
+	in a, (0xfe)
+	and 0x1f
+	cp 0x1f
+	jr nz, test_ula_addr_loop
+
+	ei
+	jp ulatest_loop
+
 ;
 ;	Interrupt routine to run the ula test visual indication.
 ;
@@ -715,11 +765,14 @@ str_ulaselecttest
 	defb AT, 12, 0, "1) Output tone to MIC port"
 	defb AT, 13, 0, "2) Output tone to EAR port"
 	defb AT, 14, 0, "3) Test border generation"
-	defb AT, 15, 0, "4) Test screen switching (128K)", 0
+	defb AT, 15, 0, "4) Test screen switching (128K)"
+	defb AT, 16, 0, "5) Test ULA port addressing"
+	defb AT, 17, 18, "(Flashing green border: pass,"
+	defb AT, 18, 18, "flashing red border: fail)", 0
 
 str_ulaexit
 
-	defb AT, 17, 12 * 6, "Hold BREAK to exit", 0
+	defb AT, 20, 12 * 6, "Hold BREAK to exit", 0
 
 str_ulatype
 
@@ -744,7 +797,7 @@ ula_type_table_uncontend
 
 str_ula48pal
 
-	defb "Spectrum 48K (PAL)", 0
+	defb "Spectrum 48K", 0
 
 str_ula48ntsc
 
@@ -752,7 +805,7 @@ str_ula48ntsc
 
 str_ula128
 
-	defb "Spectrum 128K", 0
+	defb "Spectrum 128K or +2", 0
 
 str_ulaplus3
 
