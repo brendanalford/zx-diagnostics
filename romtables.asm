@@ -16,7 +16,7 @@
 ;	Lesser General Public License for more details.
 ;
 ;	romtables.asm
-;	
+;
 
 ;
 ;	Table to define ROM signatures.
@@ -28,11 +28,12 @@
 rom_signature_table
 
 	defw 0x44e2, str_rom48k, test_48k, 0x0000
+	defw 0x5eb1, str_rom48kesp, test_48k, 0x0000
 	defw 0x62c7, str_rom128k, test_128k, rom_table_rom128k
 	defw 0xdbaa, str_romplus2, test_plus2, rom_table_romplus2
 	defw 0x26f5, str_romplus2a, test_plus3,	rom_table_romplus2a
 	defw 0x1f83, str_romplus3, test_plus3, rom_table_romplus3
-	
+
 	defw 0xe157, str_rom128esp, test_128k, rom_table_rom128esp
 	defw 0xc563, str_romplus2esp, test_plus2, rom_table_romplus2esp
 	defw 0xda64, str_romplus2fra, test_plus2, rom_table_romplus2fra
@@ -44,7 +45,7 @@ rom_signature_table
 
 	defw 0xdba9, str_romplus3e_v1_38, test_plus3, rom_table_romplus3e_v1_38
 	defw 0x3710, str_romplus3e_v1_38esp, test_plus3, rom_table_romplus3e_v1_38esp
-	
+
 ;	Soviet clones that some people are inexplicably fond of :)
 
 	defw 0x26f0, str_orelbk08, test_48kgeneric, 0x0000
@@ -57,16 +58,16 @@ rom_signature_table
 
 	defw 0xe56c, str_harlequin_f, test_48kgeneric, 0x0000
 
-;	Beckman 48K 
+;	Beckman 48K
 
 	defw 0x870c, str_rom48kbeckman, test_48k, 0x0000
-	
+
 ; 	Gosh Wonderful ROM (assume 48K)
-	
+
 	defw 0x8116, str_rom48gw03, test_48k, 0x0000
-	
+
 	ENDIF
-	
+
 ;	End of ROM table
 	defw 0x0000
 
@@ -92,7 +93,7 @@ rom_table_romplus2a
 rom_table_romplus3
 
 	defw	0x4e7b, str_romplus3_a_fail, 0x3388, str_romplus3_b_fail, 0x4f34, str_romplus3_b_fail, 0x0000
-	
+
 rom_table_rom128esp
 
 	defw	0x8413, str_rom128_fail, 0x0000
@@ -104,13 +105,13 @@ rom_table_romplus2esp
 rom_table_romplus2fra
 
 	defw	0x9a23, str_romplus2_fail, 0x0000
-	
+
 rom_table_romplus3esp
 
 	defw	0x89c8, str_romplus3_a_fail, 0xf579, str_romplus3_b_fail, 0x8a84, str_romplus3_b_fail, 0x0000
 
 	IFNDEF SAVEMEM
-		
+
 rom_table_romplus3e_v1_38
 
 	defw	0xa8e8, str_romplus3_a_fail, 0xe579, str_romplus3_b_fail, 0x4f34, str_romplus3_b_fail, 0x0000
@@ -124,7 +125,7 @@ rom_table_js128
 	defw	0x8616, str_romjs128_fail, 0x0000
 
 	ENDIF
-	
+
 str_rom128_fail
 
 	defb 	"IC5", 0
@@ -144,7 +145,7 @@ str_romplus3_b_fail
 str_romjs128_fail
 
 	defb	"U18", 0
-	
+
 ;
 ;	ROM ID Strings
 ;
@@ -153,6 +154,10 @@ str_rom48k
 
 	defb	"Spectrum 16/48K ROM...      ", 0
 
+str_rom48kesp
+
+	defb	"Spectrum 48K (Spanish) ROM...", 0
+	
 str_rom128k
 
 	defb	"Spectrum 128K ROM...        ", 0
@@ -168,7 +173,7 @@ str_romplus3
 str_romplus2a
 
 	defb    "Spectrum +2A (v4.1) ROM...  ", 0
-	
+
 str_rom128esp
 
 	defb	"Spectrum 128K (Spanish) ROM...  ", 0
@@ -202,7 +207,7 @@ str_orelbk08
 str_harlequin_f
 
 	defb	"Harlequin Rev. F...         ", 0
-	
+
 str_js128
 
 	defb	"Just Speccy 128 ROM...          ", 0
@@ -214,5 +219,5 @@ str_rom48kbeckman
 str_rom48gw03
 
 	defb	"Gosh Wonderful 48K ROM...   ", 0
-	
+
 	ENDIF
