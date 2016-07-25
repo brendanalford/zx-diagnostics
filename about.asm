@@ -70,6 +70,14 @@ about
 
 .checkhw_3
 
+	cp 4
+	jr nz, .checkhw_4
+
+	ld hl, str_dand
+	jr print_hw
+
+.checkhw_4
+
 	ld hl, str_no_hardware
 
 print_hw
@@ -161,6 +169,10 @@ str_zxc
 
 	defb "Paul Farrow ZXC3/ZXC4\n\n", 0
 
+str_dand
+
+	defb "ZX Dandanator! Mini\n\n", 0
+	
 str_no_hardware
 
 	defb "None detected\n\n", 0

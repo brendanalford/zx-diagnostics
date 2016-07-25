@@ -27,14 +27,13 @@
 
 rompage_reloc
 
-;	Funny ordering here as we're right on the edge of relative jump range
-
+	cp 0
+	jr z, romhw_test_jump
 	cp 1
 	jr z, romhw_pagein
 	cp 2
 	jr z, romhw_pageout
-	cp 0
-	jr z, romhw_test
+
 
 ;	Command not understood, return with error in A
 
@@ -52,6 +51,8 @@ romhw_pagein
 	jr z, romhw_pagein_smart
 	cp 3
 	jr z, romhw_pagein_zxc
+	cp 4
+	jr z, romhw_pagein_dand
 	ld a, 0xff
 	ret
 
@@ -80,6 +81,18 @@ romhw_pagein_zxc
 	pop hl
 	ret
 
+romhw_pagein_dand
+
+	di
+	halt
+
+;
+;	Just here so we can maintain fully relocatable code
+romhw_test_jump
+
+	jr romhw_test
+
+
 ;	Command 2: Page out external ROM
 ;	BC = 0x1234: Jump to start of internal ROM
 
@@ -92,6 +105,8 @@ romhw_pageout
 	jr z, romhw_pageout_smart
 	cp 3
 	jr z, romhw_pageout_zxc
+	cp 4
+	jr z, romhw_pageout_dand
 	ld a, 0xff
 	ret
 
@@ -128,7 +143,7 @@ romhw_pageout_zxc
 	ld hl, 0x3fd0
 	ld a, (hl)
 	pop hl
-	
+
 	ld a, b
 	cp 0x12
 	ret nz
@@ -136,6 +151,11 @@ romhw_pageout_zxc
 	cp 0x34
 	ret nz
 	jp 0
+
+romhw_pageout_dand
+
+	di
+	halt
 
 ;	Command 3: Test for diagnostic devices
 ;	Stores result in system variable v_testhwtype
