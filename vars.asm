@@ -65,6 +65,8 @@ v_testcard					equ #7d50; Workspace for testcard string
 v_rand_addr					equ #7d60;	Random fill test base addr
 v_rand_seed					equ #7d62;	Random fill test rand seed
 v_rand_reps					equ #7d64;	Random fill test repetitions
+v_dand_iy_save			equ #7d66; IY register copy during Dandinator card test
+
 
 ;	Relocation addresses for routines that need the original ROM paged
 

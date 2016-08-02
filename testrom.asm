@@ -743,7 +743,7 @@ rom_check_found
 	ld hl, str_testpending
 	call print
 	pop hl
-	
+
 ;	HL points to the ROM check table address
 ;	Pop it into IX for handiness sake
 
@@ -1775,7 +1775,7 @@ free_space
 	ENDIF
 
 	IFDEF SLAMTEST
-	BLOCK 0x3000-$, 0xff
+	BLOCK 0x3100-$, 0xff
 	ENDIF
 
 free_space_end
@@ -1825,7 +1825,7 @@ str_plus3_ic_uncontend
 	BLOCK 0x3c00-$, 0xff
 	ENDIF
 	IFDEF SLAMTEST
-	BLOCK 0x3200-$, 0xff
+	BLOCK 0x3300-$, 0xff
 	ENDIF
 ;	Character set at 0x3C00
 

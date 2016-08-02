@@ -83,14 +83,21 @@ romhw_pagein_zxc
 
 romhw_pagein_dand
 
-	di
-	halt
+	push bc
+	push de
+	push hl
+	ld a, 80
+	ld e, a
+	ld a, 32
+	ld hl, 0
+	ld d, a
+	jr dandinator_paging
 
 ;
 ;	Just here so we can maintain fully relocatable code
 romhw_test_jump
 
-	jr romhw_test
+	jr romhw_test_jump_2
 
 
 ;	Command 2: Page out external ROM
@@ -123,6 +130,7 @@ romhw_pageout_diagboard
 	jp 0
 
 romhw_pageout_smart
+
 	push bc
 	ld bc, SMART_ROM_PORT
 	ld a, (v_hw_page)
@@ -154,8 +162,77 @@ romhw_pageout_zxc
 
 romhw_pageout_dand
 
-	di
-	halt
+	push bc
+	push de
+	push hl
+	ld a, 80
+	ld e, a
+	ld a, 33
+	ld hl, 0
+	ld d, a
+	jr dandinator_paging
+
+;
+;	Just here so we can maintain fully relocatable code
+romhw_test_jump_2
+
+		jr romhw_test
+
+dandinator_paging
+
+	ld (v_dand_iy_save), iy
+
+	ld c, a; Save A, 4 ts
+	ld b, 100 ; First number of pulses : Command, 7 ts (pulse @50us -> PIC Window = ~5ms)
+
+dandinator_cmdloop ; Add extra 110 t-states for ~50us pulse cycle (109 for 48k, 111,34 for 128k)
+
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+
+	; Branch Send NZ = 4+4+12+(7+6)+4+4+12+13=66 ts
+	; Branch NoSend Z = 4+4+7+13+13+12+13=66 ts
+
+	ld a, c 	; Restore A, 4 ts
+	or a			; Get when A=0  , 4 ts
+	jr nz, dandinator_sppulse ; Jump if pulses left to send 12ts if jumps, 7 otherwise
+
+	ld a, (1) ; Load Dummy Value to A, 13 ts
+	ld a, (1) ; Load Dummy Value to A, 13 ts
+	jr dandinator_afterpul ; Jump to end pulse cycle, 12 ts
+
+dandinator_sppulse
+
+	ld (hl), d ; Send Pulse 7 ts (ZESARUX)
+	dec de ; Dummy instruction 6 t-states
+	dec c ; Countdown pulses 4ts
+	inc e ; 4ts Dummy instruction that restores E to previous value
+	jr dandinator_afterpul ; Jump to end pulse cycle, 12 ts
+
+dandinator_afterpul
+
+	djnz dandinator_cmdloop ; Cycle all pulses: 13ts if cycle 8 if no cycle
+	nop ; 4ts Last cycle takes 1ts less
+	ld b, 28 ; Drift ~100us actual measured drift=~160us)
+
+dandinator_drift
+
+	djnz dandinator_drift ; Drift will allow for variances in PIC clock Speed and Spectrum type.
+	ld iy, (v_dand_iy_save)
+	pop hl
+	pop de
+	pop bc
+	ret
+
 
 ;	Command 3: Test for diagnostic devices
 ;	Stores result in system variable v_testhwtype
@@ -252,7 +329,7 @@ romhw_test_zxc
 	inc hl
 	ld a, (hl)
 	cp 'M'
-	jr z, romhw_not_found
+	jr z, romhw_test_dandinator
 
 ;	Paged out successfully. Now we need to page each bank
 ; 	back in turn to find our diags rom again.
@@ -310,6 +387,151 @@ zxc_paged_in
 	ld a, 3
 	ld (v_testhwtype), a
 
+	ret
+
+romhw_test_dandinator
+
+;	Set up for disable of test ROM
+
+	ld a, 80
+	ld e, a
+	ld a, 33
+	ld d, a
+	ld hl, 0
+	ld (v_dand_iy_save), iy
+
+	ld c, a; Save A, 4 ts
+	ld b, 100 ; First number of pulses : Command, 7 ts (pulse @50us -> PIC Window = ~5ms)
+
+test_dandinator_cmdloop ; Add extra 110 t-states for ~50us pulse cycle (109 for 48k, 111,34 for 128k)
+
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+
+	; Branch Send NZ = 4+4+12+(7+6)+4+4+12+13=66 ts
+	; Branch NoSend Z = 4+4+7+13+13+12+13=66 ts
+
+	ld a, c 	; Restore A, 4 ts
+	or a			; Get when A=0  , 4 ts
+	jr nz, test_dandinator_sppulse ; Jump if pulses left to send 12ts if jumps, 7 otherwise
+
+	ld a, (1) ; Load Dummy Value to A, 13 ts
+	ld a, (1) ; Load Dummy Value to A, 13 ts
+	jr test_dandinator_afterpul ; Jump to end pulse cycle, 12 ts
+
+test_dandinator_sppulse
+
+	ld (hl), d ; Send Pulse 7 ts (ZESARUX)
+  dec de ; Dummy instruction 6 t-states
+	dec c ; Countdown pulses 4ts
+	inc e ; 4ts Dummy instruction that restores E to previous value
+	jr test_dandinator_afterpul ; Jump to end pulse cycle, 12 ts
+
+test_dandinator_afterpul
+
+	djnz test_dandinator_cmdloop ; Cycle all pulses: 13ts if cycle 8 if no cycle
+	nop ; 4ts Last cycle takes 1ts less
+	ld b, 28 ; Drift ~100us actual measured drift=~160us)
+
+test_dandinator_drift
+
+	djnz test_dandinator_drift ; Drift will allow for variances in PIC clock Speed and Spectrum type.
+	ld iy, (v_dand_iy_save)
+
+;	Now check for the TROM magic string
+
+	ld hl, de
+	ld a, (hl)
+
+	ld hl, str_rommagicstring
+	ld a, (hl)
+	cp 'T'
+	jr nz, dandinator_paging_test_success
+	inc hl
+	ld a, (hl)
+	cp 'R'
+	jr nz, dandinator_paging_test_success
+	inc hl
+	ld a, (hl)
+	cp 'O'
+	jr nz, dandinator_paging_test_success
+	inc hl
+	ld a, (hl)
+	cp 'M'
+	jr nz, dandinator_paging_test_success
+
+	jr romhw_not_found
+
+dandinator_paging_test_success
+
+;	Successfully paged out the test ROM, set flags and page ourselves
+; back in.
+
+	ld a, 4
+	ld (v_testhwtype), a
+
+	ld a, 80
+	ld e, a
+	ld a, 32
+	ld d, a
+	ld hl, 0
+	ld (v_dand_iy_save), iy
+
+	ld c, a; Save A, 4 ts
+	ld b, 100 ; First number of pulses : Command, 7 ts (pulse @50us -> PIC Window = ~5ms)
+
+after_test_dandinator_cmdloop ; Add extra 110 t-states for ~50us pulse cycle (109 for 48k, 111,34 for 128k)
+
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+
+	; Branch Send NZ = 4+4+12+(7+6)+4+4+12+13=66 ts
+	; Branch NoSend Z = 4+4+7+13+13+12+13=66 ts
+
+	ld a, c 	; Restore A, 4 ts
+	or a			; Get when A=0  , 4 ts
+	jr nz, after_test_dandinator_sppulse ; Jump if pulses left to send 12ts if jumps, 7 otherwise
+
+	ld a, (1) ; Load Dummy Value to A, 13 ts
+	ld a, (1) ; Load Dummy Value to A, 13 ts
+	jr after_test_dandinator_afterpul ; Jump to end pulse cycle, 12 ts
+
+after_test_dandinator_sppulse
+
+	ld (hl), d ; Send Pulse 7 ts (ZESARUX)
+  dec de ; Dummy instruction 6 t-states
+	dec c ; Countdown pulses 4ts
+	inc e ; 4ts Dummy instruction that restores E to previous value
+	jr after_test_dandinator_afterpul ; Jump to end pulse cycle, 12 ts
+
+after_test_dandinator_afterpul
+
+	djnz after_test_dandinator_cmdloop ; Cycle all pulses: 13ts if cycle 8 if no cycle
+	nop ; 4ts Last cycle takes 1ts less
+	ld b, 28 ; Drift ~100us actual measured drift=~160us)
+
+after_test_dandinator_drift
+
+	djnz after_test_dandinator_drift ; Drift will allow for variances in PIC clock Speed and Spectrum type.
+	ld iy, (v_dand_iy_save)
 	ret
 
 romhw_not_found
