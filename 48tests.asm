@@ -255,22 +255,22 @@ upperram_inversion
 	call preparehreg
 
 	ld hl, 32768
-	ld bc, 32768
+	ld bc, 32767
 	ld d, 0
 	call altpata
 
 	ld hl, 32768
-	ld bc, 32768
+	ld bc, 32766
 	ld d, 255
 	call altpata
 
 	ld hl, 32768
-	ld bc, 32768
+	ld bc, 32766
 	ld d, 0
 	call altpatb
 
 	ld hl, 32768
-	ld bc, 32768
+	ld bc, 32766
 	ld d, 255
 	call altpatb
 

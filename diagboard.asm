@@ -165,6 +165,7 @@ romhw_pageout_dand
 	push bc
 	push de
 	push hl
+	push af
 	ld a, 80
 	ld e, a
 	ld a, 33
@@ -228,10 +229,19 @@ dandinator_drift
 
 	djnz dandinator_drift ; Drift will allow for variances in PIC clock Speed and Spectrum type.
 	ld iy, (v_dand_iy_save)
+	pop af
 	pop hl
 	pop de
 	pop bc
-	ret
+	cp 0x33		; Was this a page out?
+	ret nz
+	ld a, b		; If so, does BC=0x1234?
+	cp 0x12
+	ret nz
+	ld a, c
+	cp 0x34
+	ret nz
+	jp 0			; Yes - restart the machine
 
 
 ;	Command 3: Test for diagnostic devices

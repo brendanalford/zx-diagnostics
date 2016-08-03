@@ -103,24 +103,25 @@ test_ram_page
 	call testresult128
 
 	ld hl, 49152
-	ld bc, 16384
+	ld bc, 16382
 	ld d, 0
 	call altpata
 
 	ld hl, 49152
-	ld bc, 16384
+	ld bc, 16382
 	ld d, 255
 	call altpata
 
 	ld hl, 49152
-	ld bc, 16384
+	ld bc, 16382
 	ld d, 0
 	call altpatb
 
 	ld hl, 49152
-	ld bc, 16384
+	ld bc, 16382
 	ld d, 255
 	call altpatb
+
 	call testresult128
 
 	ld hl, 49152
