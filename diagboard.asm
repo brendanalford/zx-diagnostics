@@ -89,6 +89,7 @@ romhw_pagein_dand
 	ld a, 80
 	ld e, a
 	ld a, 32
+	push af
 	ld hl, 0
 	ld d, a
 	jr dandinator_paging
@@ -165,10 +166,10 @@ romhw_pageout_dand
 	push bc
 	push de
 	push hl
-	push af
 	ld a, 80
 	ld e, a
 	ld a, 33
+	push af
 	ld hl, 0
 	ld d, a
 	jr dandinator_paging
