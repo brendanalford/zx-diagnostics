@@ -97,6 +97,12 @@ str_buildmachine
 
 	defb  "Host:   ", HOSTNAME, 0
 
+	BLOCK 0x00f0-$, 0xff
+
+str_rommagicstring
+
+	defb "TROM"
+
 	BLOCK 0x0100-$, 0xff
 
 start
@@ -1440,7 +1446,6 @@ diagrom_exit
 	include "print.asm"
 	include "scroll.asm"
 	include "paging.asm"
-	include "diagboard.asm"
 	include "testcard.asm"
 	include "ulatest.asm"
 	include "keyboardtest.asm"
@@ -1451,6 +1456,15 @@ diagrom_exit
 
 	include "romtables.asm"
 	include "about.asm"
+	;	Relocatable routines for diag board detection/paging
+
+rompage_reloc
+
+	incbin "diagboard.bin"
+
+end_rompage_reloc
+
+
 
 str_romdiagboard
 
@@ -1720,14 +1734,6 @@ intservice_exit
 	pop af
 	ei
 	reti
-
-;	Magic string to tell if we can page out our ROM (so that we can
-;	tell the difference between Diagboard hardware and generic external
-;	ROM boards)
-
-str_rommagicstring
-
-	defb "TROM"
 
 ;
 ;	Bitmap used to display RAM FAIL in attributes

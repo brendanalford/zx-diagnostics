@@ -1,4 +1,9 @@
 @echo off
+echo ************************
+echo Building Diagboard stuff
+echo ************************
+call builddiag.bat
+if %errorlevel% neq 0 goto :error
 echo *****************
 echo Building Main ROM
 echo *****************

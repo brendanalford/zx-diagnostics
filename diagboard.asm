@@ -18,17 +18,17 @@
 ;	diagboard.asm
 ;
 
+	include "defines.asm"
+	include "vars.asm"
 
-
+	org sys_rompaging
 ;
 ;	Handler for diagboard paging operations.
 ;	Inputs; A=command type, BC=operands.
 ;
 
-rompage_reloc
-
 	cp 0
-	jr z, romhw_test_jump
+	jp z, romhw_test
 	cp 1
 	jr z, romhw_pagein
 	cp 2
@@ -40,7 +40,7 @@ rompage_reloc
 	ld a, 0xff
 	ret
 
-; 	Command 1: Page in external ROM
+; Command 1: Page in external ROM
 
 romhw_pagein
 
@@ -83,23 +83,9 @@ romhw_pagein_zxc
 
 romhw_pagein_dand
 
-	push bc
-	push de
-	push hl
-	ld a, 80
-	ld e, a
 	ld a, 32
-	push af
-	ld hl, 0
-	ld d, a
-	jr dandinator_paging
-
-;
-;	Just here so we can maintain fully relocatable code
-romhw_test_jump
-
-	jr romhw_test_jump_2
-
+	call issue_dandanator_command
+	ret
 
 ;	Command 2: Page out external ROM
 ;	BC = 0x1234: Jump to start of internal ROM
@@ -163,78 +149,29 @@ romhw_pageout_zxc
 
 romhw_pageout_dand
 
-	push bc
-	push de
-	push hl
-	ld a, 80
-	ld e, a
+; Are we jumping to ROM at the end of this routine?
+
+	ld a, b
+	cp 0x12
+	jr nz, romhw_pageout_dand_2
+	ld a, c
+	cp 0x34
+	jr nz, romhw_pageout_dand_2
+
+; Yes, issue command 34 instead of 33 to page out and lock further commands
+
+	ld a, 34
+	jr romhw_pageout_dand_3
+
+romhw_pageout_dand_2
+
 	ld a, 33
-	push af
-	ld hl, 0
-	ld d, a
-	jr dandinator_paging
 
-;
-;	Just here so we can maintain fully relocatable code
-romhw_test_jump_2
+romhw_pageout_dand_3
 
-		jr romhw_test
+	call issue_dandanator_command
 
-dandinator_paging
-
-	ld (v_dand_iy_save), iy
-
-	ld c, a; Save A, 4 ts
-	ld b, 100 ; First number of pulses : Command, 7 ts (pulse @50us -> PIC Window = ~5ms)
-
-dandinator_cmdloop ; Add extra 110 t-states for ~50us pulse cycle (109 for 48k, 111,34 for 128k)
-
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-
-	; Branch Send NZ = 4+4+12+(7+6)+4+4+12+13=66 ts
-	; Branch NoSend Z = 4+4+7+13+13+12+13=66 ts
-
-	ld a, c 	; Restore A, 4 ts
-	or a			; Get when A=0  , 4 ts
-	jr nz, dandinator_sppulse ; Jump if pulses left to send 12ts if jumps, 7 otherwise
-
-	ld a, (1) ; Load Dummy Value to A, 13 ts
-	ld a, (1) ; Load Dummy Value to A, 13 ts
-	jr dandinator_afterpul ; Jump to end pulse cycle, 12 ts
-
-dandinator_sppulse
-
-	ld (hl), d ; Send Pulse 7 ts (ZESARUX)
-	dec de ; Dummy instruction 6 t-states
-	dec c ; Countdown pulses 4ts
-	inc e ; 4ts Dummy instruction that restores E to previous value
-	jr dandinator_afterpul ; Jump to end pulse cycle, 12 ts
-
-dandinator_afterpul
-
-	djnz dandinator_cmdloop ; Cycle all pulses: 13ts if cycle 8 if no cycle
-	nop ; 4ts Last cycle takes 1ts less
-	ld b, 28 ; Drift ~100us actual measured drift=~160us)
-
-dandinator_drift
-
-	djnz dandinator_drift ; Drift will allow for variances in PIC clock Speed and Spectrum type.
-	ld iy, (v_dand_iy_save)
-	pop af
-	pop hl
-	pop de
-	pop bc
-	cp 0x33		; Was this a page out?
+	cp 34		; Was this a page out with further commands locked?
 	ret nz
 	ld a, b		; If so, does BC=0x1234?
 	cp 0x12
@@ -254,21 +191,8 @@ romhw_test
 
 	ld a, %00100000
 	out (ROMPAGE_PORT), a
-	ld hl, str_rommagicstring
-	ld a, (hl)
-	cp 'T'
-	jr nz, romhw_found_diagboard
-	inc hl
-	ld a, (hl)
-	cp 'R'
-	jr nz, romhw_found_diagboard
-	inc hl
-	ld a, (hl)
-	cp 'O'
-	jr nz, romhw_found_diagboard
-	inc hl
-	ld a, (hl)
-	cp 'M'
+
+	call check_magic_string
 	jr z, romhw_test_smart
 
 romhw_found_diagboard
@@ -292,21 +216,7 @@ romhw_test_smart
 
 	ld a, %10000001
 	out (c), a
-	ld hl, str_rommagicstring
-	ld a, (hl)
-	cp 'T'
-	jr nz, romhw_found_smart
-	inc hl
-	ld a, (hl)
-	cp 'R'
-	jr nz, romhw_found_smart
-	inc hl
-	ld a, (hl)
-	cp 'O'
-	jr nz, romhw_found_smart
-	inc hl
-	ld a, (hl)
-	cp 'M'
+	call check_magic_string
 	jr z, romhw_test_zxc
 
 romhw_found_smart
@@ -325,25 +235,11 @@ romhw_test_zxc
 	ld hl, 0x3fd0
 	ld a, (hl)
 
-	ld hl, str_rommagicstring
-	ld a, (hl)
-	cp 'T'
-	jr nz, romhw_found_zxc
-	inc hl
-	ld a, (hl)
-	cp 'R'
-	jr nz, romhw_found_zxc
-	inc hl
-	ld a, (hl)
-	cp 'O'
-	jr nz, romhw_found_zxc
-	inc hl
-	ld a, (hl)
-	cp 'M'
-	jr z, romhw_test_dandinator
+	call check_magic_string
+	jr z, romhw_test_dandanator
 
 ;	Paged out successfully. Now we need to page each bank
-; 	back in turn to find our diags rom again.
+; back in turn to find our diags rom again.
 
 romhw_found_zxc
 
@@ -351,24 +247,7 @@ romhw_found_zxc
 
 test_zxc_loop
 
-	ld hl, de
-	ld a, (hl)
-
-	ld hl, str_rommagicstring
-	ld a, (hl)
-	cp 'T'
-	jr nz, test_zxc_next
-	inc hl
-	ld a, (hl)
-	cp 'R'
-	jr nz, test_zxc_next
-	inc hl
-	ld a, (hl)
-	cp 'O'
-	jr nz, test_zxc_next
-	inc hl
-	ld a, (hl)
-	cp 'M'
+	call check_magic_string
 	jr nz, test_zxc_next
 
 	jr zxc_paged_in
@@ -400,89 +279,22 @@ zxc_paged_in
 
 	ret
 
-romhw_test_dandinator
+romhw_test_dandanator
 
 ;	Set up for disable of test ROM
 
-	ld a, 80
-	ld e, a
 	ld a, 33
-	ld d, a
-	ld hl, 0
-	ld (v_dand_iy_save), iy
-
-	ld c, a; Save A, 4 ts
-	ld b, 100 ; First number of pulses : Command, 7 ts (pulse @50us -> PIC Window = ~5ms)
-
-test_dandinator_cmdloop ; Add extra 110 t-states for ~50us pulse cycle (109 for 48k, 111,34 for 128k)
-
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-
-	; Branch Send NZ = 4+4+12+(7+6)+4+4+12+13=66 ts
-	; Branch NoSend Z = 4+4+7+13+13+12+13=66 ts
-
-	ld a, c 	; Restore A, 4 ts
-	or a			; Get when A=0  , 4 ts
-	jr nz, test_dandinator_sppulse ; Jump if pulses left to send 12ts if jumps, 7 otherwise
-
-	ld a, (1) ; Load Dummy Value to A, 13 ts
-	ld a, (1) ; Load Dummy Value to A, 13 ts
-	jr test_dandinator_afterpul ; Jump to end pulse cycle, 12 ts
-
-test_dandinator_sppulse
-
-	ld (hl), d ; Send Pulse 7 ts (ZESARUX)
-  dec de ; Dummy instruction 6 t-states
-	dec c ; Countdown pulses 4ts
-	inc e ; 4ts Dummy instruction that restores E to previous value
-	jr test_dandinator_afterpul ; Jump to end pulse cycle, 12 ts
-
-test_dandinator_afterpul
-
-	djnz test_dandinator_cmdloop ; Cycle all pulses: 13ts if cycle 8 if no cycle
-	nop ; 4ts Last cycle takes 1ts less
-	ld b, 28 ; Drift ~100us actual measured drift=~160us)
-
-test_dandinator_drift
-
-	djnz test_dandinator_drift ; Drift will allow for variances in PIC clock Speed and Spectrum type.
-	ld iy, (v_dand_iy_save)
+	call issue_dandanator_command
 
 ;	Now check for the TROM magic string
 
 	ld hl, de
 	ld a, (hl)
 
-	ld hl, str_rommagicstring
-	ld a, (hl)
-	cp 'T'
-	jr nz, dandinator_paging_test_success
-	inc hl
-	ld a, (hl)
-	cp 'R'
-	jr nz, dandinator_paging_test_success
-	inc hl
-	ld a, (hl)
-	cp 'O'
-	jr nz, dandinator_paging_test_success
-	inc hl
-	ld a, (hl)
-	cp 'M'
-	jr nz, dandinator_paging_test_success
+	call check_magic_string
+	jr z, romhw_not_found
 
-	jr romhw_not_found
-
-dandinator_paging_test_success
+dandanator_paging_test_success
 
 ;	Successfully paged out the test ROM, set flags and page ourselves
 ; back in.
@@ -490,59 +302,19 @@ dandinator_paging_test_success
 	ld a, 4
 	ld (v_testhwtype), a
 
-	ld a, 80
-	ld e, a
+; First though we need to issue a special command sequence to the
+; Dandanator board: 46 16 16 1
+
+	ld a, 46
+	call issue_dandanator_command
+	ld a, 16
+	call issue_dandanator_command
+	call issue_dandanator_command
+	ld a, 1
+	call issue_dandanator_command
+
 	ld a, 32
-	ld d, a
-	ld hl, 0
-	ld (v_dand_iy_save), iy
-
-	ld c, a; Save A, 4 ts
-	ld b, 100 ; First number of pulses : Command, 7 ts (pulse @50us -> PIC Window = ~5ms)
-
-after_test_dandinator_cmdloop ; Add extra 110 t-states for ~50us pulse cycle (109 for 48k, 111,34 for 128k)
-
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-
-	; Branch Send NZ = 4+4+12+(7+6)+4+4+12+13=66 ts
-	; Branch NoSend Z = 4+4+7+13+13+12+13=66 ts
-
-	ld a, c 	; Restore A, 4 ts
-	or a			; Get when A=0  , 4 ts
-	jr nz, after_test_dandinator_sppulse ; Jump if pulses left to send 12ts if jumps, 7 otherwise
-
-	ld a, (1) ; Load Dummy Value to A, 13 ts
-	ld a, (1) ; Load Dummy Value to A, 13 ts
-	jr after_test_dandinator_afterpul ; Jump to end pulse cycle, 12 ts
-
-after_test_dandinator_sppulse
-
-	ld (hl), d ; Send Pulse 7 ts (ZESARUX)
-  dec de ; Dummy instruction 6 t-states
-	dec c ; Countdown pulses 4ts
-	inc e ; 4ts Dummy instruction that restores E to previous value
-	jr after_test_dandinator_afterpul ; Jump to end pulse cycle, 12 ts
-
-after_test_dandinator_afterpul
-
-	djnz after_test_dandinator_cmdloop ; Cycle all pulses: 13ts if cycle 8 if no cycle
-	nop ; 4ts Last cycle takes 1ts less
-	ld b, 28 ; Drift ~100us actual measured drift=~160us)
-
-after_test_dandinator_drift
-
-	djnz after_test_dandinator_drift ; Drift will allow for variances in PIC clock Speed and Spectrum type.
-	ld iy, (v_dand_iy_save)
+	call issue_dandanator_command
 	ret
 
 romhw_not_found
@@ -552,4 +324,106 @@ romhw_not_found
 	ld (v_hw_page), a
 	ret
 
-end_rompage_reloc
+;	Issues a command held in the A register to the
+; Dandanator board. Preserves all registers used.
+
+issue_dandanator_command
+
+	push iy
+	push hl
+	push de
+	push bc
+	push af
+
+	ld a, 80
+	ld e, a
+	pop af
+	push af
+	ld d, a
+	ld hl, 0
+
+	ld c, a; Save A, 4 ts
+	ld b, 100 ; First number of pulses : Command, 7 ts (pulse @50us -> PIC Window = ~5ms)
+
+dandanator_cmdloop ; Add extra 110 t-states for ~50us pulse cycle (109 for 48k, 111,34 for 128k)
+
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+	inc iy ; 10 t-states
+
+; Branch Send NZ = 4+4+12+(7+6)+4+4+12+13=66 ts
+; Branch NoSend Z = 4+4+7+13+13+12+13=66 ts
+
+	ld a, c 	; Restore A, 4 ts
+	or a			; Get when A=0  , 4 ts
+	jr nz, dandanator_sppulse ; Jump if pulses left to send 12ts if jumps, 7 otherwise
+
+	ld a, (1) ; Load Dummy Value to A, 13 ts
+	ld a, (1) ; Load Dummy Value to A, 13 ts
+	jr dandanator_afterpul ; Jump to end pulse cycle, 12 ts
+
+dandanator_sppulse
+
+	ld (hl), d ; Send Pulse 7 ts (ZESARUX)
+	dec de ; Dummy instruction 6 t-states
+	dec c ; Countdown pulses 4ts
+	inc e ; 4ts Dummy instruction that restores E to previous value
+	jr dandanator_afterpul ; Jump to end pulse cycle, 12 ts
+
+dandanator_afterpul
+
+	djnz dandanator_cmdloop ; Cycle all pulses: 13ts if cycle 8 if no cycle
+	nop ; 4ts Last cycle takes 1ts less
+	ld b, 28 ; Drift ~100us actual measured drift=~160us)
+
+dandanator_drift
+
+	djnz dandanator_drift ; Drift will allow for variances in PIC clock Speed and Spectrum type.
+
+	pop af
+	pop bc
+	pop de
+	pop hl
+	pop iy
+	ret
+
+;	Checks to see if the magic string is present in ROM
+;
+
+check_magic_string
+
+	ld hl, de
+	ld a, (hl)
+
+	ld hl, v_rom_magic_loc
+	ld a, (hl)
+	cp 'T'
+	ret nz
+	inc hl
+	ld a, (hl)
+	cp 'R'
+	ret nz
+	inc hl
+	ld a, (hl)
+	cp 'O'
+	ret nz
+	inc hl
+	ld a, (hl)
+	cp 'M'
+	ret nz
+
+;	Match all the way, zero flag will be set
+
+	ret
+
+;	Magic string to tell if we can page out our ROM (so that we can
+;	tell the difference between Diagboard hardware and generic external
+;	ROM boards)

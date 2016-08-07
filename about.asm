@@ -172,7 +172,7 @@ str_zxc
 str_dand
 
 	defb "ZX Dandanator! Mini\n\n", 0
-	
+
 str_no_hardware
 
 	defb "None detected\n\n", 0
