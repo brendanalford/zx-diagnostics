@@ -69,8 +69,8 @@ v_rand_reps					equ #7d64;	Random fill test repetitions
 ;	Relocation addresses for routines that need the original ROM paged
 
 sys_romcrc					equ #7d80
-sys_ld_a_hl					equ #7da0
-sys_rompaging				equ #7db0
+sys_ld_a_hl					equ #7db0
+sys_rompaging				equ #7e00
 v_rom_magic_loc			equ #00f0
 
 ;	Default stack location
