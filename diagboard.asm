@@ -281,6 +281,18 @@ zxc_paged_in
 
 romhw_test_dandanator
 
+; Before testing for the Dandanator hardware,
+; we need to issue a special command sequence to the
+; Dandanator board: 46 16 16 1.
+
+	ld a, 46
+	call issue_dandanator_command
+	ld a, 16
+	call issue_dandanator_command
+	call issue_dandanator_command
+	ld a, 1
+	call issue_dandanator_command
+
 ;	Set up for disable of test ROM
 
 	ld a, 33
@@ -301,17 +313,6 @@ dandanator_paging_test_success
 
 	ld a, 4
 	ld (v_testhwtype), a
-
-; First though we need to issue a special command sequence to the
-; Dandanator board: 46 16 16 1
-
-	ld a, 46
-	call issue_dandanator_command
-	ld a, 16
-	call issue_dandanator_command
-	call issue_dandanator_command
-	ld a, 1
-	call issue_dandanator_command
 
 	ld a, 32
 	call issue_dandanator_command
