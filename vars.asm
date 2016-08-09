@@ -71,6 +71,9 @@ v_rand_reps					equ #7d64;	Random fill test repetitions
 sys_romcrc					equ #7d80
 sys_ld_a_hl					equ #7db0
 sys_rompaging				equ #7e00
+
+; Location of magic string for testing Diag ROM presence
+
 v_rom_magic_loc			equ #00f0
 
 ;	Default stack location

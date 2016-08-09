@@ -34,14 +34,19 @@ rom_signature_table
 	defw 0x26f5, str_romplus2a, test_plus3,	rom_table_romplus2a
 	defw 0x1f83, str_romplus3, test_plus3, rom_table_romplus3
 
-	defw 0xe157, str_rom128esp, test_128k, rom_table_rom128esp
+	defw 0xe157, str_rom128espv1, test_128k, rom_table_rom128espv1
+	defw 0x7a1f, str_rom128espv2, test_128k, rom_table_rom128espv2
 	defw 0xc563, str_romplus2esp, test_plus2, rom_table_romplus2esp
 	defw 0xda64, str_romplus2fra, test_plus2, rom_table_romplus2fra
 	defw 0x29c0, str_romplus3esp, test_plus3, rom_table_romplus3esp
 
 	IFNDEF SAVEMEM
 
-	;	Some +3E ROM sets that might be out there
+; Spectrum 128 Derby 1.4 ROM (Development machine)
+
+  defw 0x5129, str_rom128derby14, test_128k, rom_table_rom128derby14
+
+;	Some +3E ROM sets that might be out there
 
 	defw 0xdba9, str_romplus3e_v1_38, test_plus3, rom_table_romplus3e_v1_38
 	defw 0x3710, str_romplus3e_v1_38esp, test_plus3, rom_table_romplus3e_v1_38esp
@@ -94,7 +99,11 @@ rom_table_romplus3
 
 	defw	0x4e7b, str_romplus3_a_fail, 0x3388, str_romplus3_b_fail, 0x4f34, str_romplus3_b_fail, 0x0000
 
-rom_table_rom128esp
+rom_table_rom128espv1
+
+	defw	0x8413, str_rom128_fail, 0x0000
+
+rom_table_rom128espv2
 
 	defw	0x8413, str_rom128_fail, 0x0000
 
@@ -111,6 +120,10 @@ rom_table_romplus3esp
 	defw	0x89c8, str_romplus3_a_fail, 0xf579, str_romplus3_b_fail, 0x8a84, str_romplus3_b_fail, 0x0000
 
 	IFNDEF SAVEMEM
+
+rom_table_rom128derby14
+
+  defw 0x8c11, str_rom128_fail, 0x0000
 
 rom_table_romplus3e_v1_38
 
@@ -157,7 +170,7 @@ str_rom48k
 str_rom48kesp
 
 	defb	"Spectrum 48K (Spanish) ROM...", 0
-	
+
 str_rom128k
 
 	defb	"Spectrum 128K ROM...        ", 0
@@ -174,9 +187,14 @@ str_romplus2a
 
 	defb    "Spectrum +2A (v4.1) ROM...  ", 0
 
-str_rom128esp
+str_rom128espv1
 
-	defb	"Spectrum 128K (Spanish) ROM...  ", 0
+	defb	"Spectrum 128K (Spanish v1) ROM...  ", 0
+
+str_rom128espv2
+
+	defb	"Spectrum 128K (Spanish v2) ROM...  ", 0
+
 
 str_romplus2esp
 
@@ -191,6 +209,10 @@ str_romplus3esp
 	defb	"Spectrum +2A/+3 (Spanish) ROM... ", 0
 
 	IFNDEF SAVEMEM
+
+str_rom128derby14
+
+  defb "Spectrum 128 Dev, Derby 1.4 ROM... ", 0
 
 str_romplus3e_v1_38
 
