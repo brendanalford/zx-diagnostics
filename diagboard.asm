@@ -169,6 +169,7 @@ romhw_pageout_dand_2
 
 romhw_pageout_dand_3
 
+	ld hl, 1
 	call issue_dandanator_command
 
 	cp 34		; Was this a page out with further commands locked?
@@ -285,16 +286,21 @@ romhw_test_dandanator
 ; we need to issue a special command sequence to the
 ; Dandanator board: 46 16 16 1.
 
+	ld hl, 1
 	ld a, 46
 	call issue_dandanator_command
+	inc hl
+
 	ld a, 16
 	call issue_dandanator_command
+	inc hl
 	call issue_dandanator_command
-	ld a, 1
-	call issue_dandanator_command
+
+	ld (0), a
 
 ;	Set up for disable of test ROM
 
+	ld hl, 1
 	ld a, 33
 	call issue_dandanator_command
 
@@ -314,6 +320,7 @@ dandanator_paging_test_success
 	ld a, 4
 	ld (v_testhwtype), a
 
+	ld hl, 1
 	ld a, 32
 	call issue_dandanator_command
 	ret
@@ -327,18 +334,15 @@ romhw_not_found
 
 ;	Issues a command held in the A register to the
 ; Dandanator board. Preserves all registers used.
-
+;
 issue_dandanator_command
 
-	push iy
-	push hl
-	push de
 	push bc
 	push af
 
-;	Issuing Dandanator command, always set HL to 1
+;	Issue Dandanator command/data exchange
 
-	ld hl, 0x0001
+	ld b, a
 
 dandanator_cmdloop ; Add extra 110 t-states for ~50us pulse cycle (109 for 48k, 111,34 for 128k)
 
@@ -355,20 +359,17 @@ dandanator_waitxcmd
 
 ;	Need to waste about 300ms here to allow paging to settle down
 
-	ld hl, 0x100
+	ld bc, 0x100
 
 dandanator_waitforpaging
 
-	dec hl
-	ld a, h
-	or l
+	dec bc
+	ld a, b
+	or c
 	jr nz, dandanator_waitforpaging
 
 	pop af
 	pop bc
-	pop de
-	pop hl
-	pop iy
 	ret
 
 ;	Checks to see if the magic string is present in ROM
