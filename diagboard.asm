@@ -336,58 +336,33 @@ issue_dandanator_command
 	push bc
 	push af
 
-	ld a, 80
-	ld e, a
-	pop af
-	push af
-	ld d, a
-	ld hl, 0
+;	Issuing Dandanator command, always set HL to 1
 
-	ld c, a; Save A, 4 ts
-	ld b, 100 ; First number of pulses : Command, 7 ts (pulse @50us -> PIC Window = ~5ms)
+	ld hl, 0x0001
 
 dandanator_cmdloop ; Add extra 110 t-states for ~50us pulse cycle (109 for 48k, 111,34 for 128k)
 
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
-	inc iy ; 10 t-states
+	ex (sp), hl
+	ex (sp), hl
+	ld (hl), a
+	djnz dandanator_cmdloop
 
-; Branch Send NZ = 4+4+12+(7+6)+4+4+12+13=66 ts
-; Branch NoSend Z = 4+4+7+13+13+12+13=66 ts
+	ld b, 40
 
-	ld a, c 	; Restore A, 4 ts
-	or a			; Get when A=0  , 4 ts
-	jr nz, dandanator_sppulse ; Jump if pulses left to send 12ts if jumps, 7 otherwise
+dandanator_waitxcmd
 
-	ld a, (1) ; Load Dummy Value to A, 13 ts
-	ld a, (1) ; Load Dummy Value to A, 13 ts
-	jr dandanator_afterpul ; Jump to end pulse cycle, 12 ts
+	djnz dandanator_waitxcmd
 
-dandanator_sppulse
+;	Need to waste about 300ms here to allow paging to settle down
 
-	ld (hl), d ; Send Pulse 7 ts (ZESARUX)
-	dec de ; Dummy instruction 6 t-states
-	dec c ; Countdown pulses 4ts
-	inc e ; 4ts Dummy instruction that restores E to previous value
-	jr dandanator_afterpul ; Jump to end pulse cycle, 12 ts
+	ld hl, 0x100
 
-dandanator_afterpul
+dandanator_waitforpaging
 
-	djnz dandanator_cmdloop ; Cycle all pulses: 13ts if cycle 8 if no cycle
-	nop ; 4ts Last cycle takes 1ts less
-	ld b, 28 ; Drift ~100us actual measured drift=~160us)
-
-dandanator_drift
-
-	djnz dandanator_drift ; Drift will allow for variances in PIC clock Speed and Spectrum type.
+	dec hl
+	ld a, h
+	or l
+	jr nz, dandanator_waitforpaging
 
 	pop af
 	pop bc

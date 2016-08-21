@@ -25,6 +25,8 @@
 ;	v0.2 modifications and 128K testing by Brendan Alford.
 ;
 
+	define TESTROM
+
 	include "defines.asm"
 	include "version.asm"
 
@@ -119,6 +121,8 @@ start
 
 	ld a, 0xff
 	out (LED_PORT), a		; Light all LED's on startup
+	ld a, 1
+	out (ULA_PORT), a
 
 	IFNDEF SLAMTEST
 
@@ -170,6 +174,28 @@ splash_check_upper
 	BLANKMEM 0x5940, 64, 7
 
 	ENDIF
+
+; Insert delay here
+
+	ld d, 127
+	ld b, 8
+
+start_loop_outer
+
+	ld hl, 0xf000
+
+start_loop_inner
+
+	dec hl
+	ld a, h
+	or l
+	jr nz, start_loop_inner
+
+	ld a, d
+	out (LED_PORT), a
+	and a
+	rr d
+	djnz start_loop_outer
 
 ;	Sound a brief tone to indicate tests are starting.
 ;	This also verifies that the CPU and ULA are working.
@@ -1421,6 +1447,11 @@ decstr_init
 ;	Reset the AY chip if present.
 
 	call ay_reset
+
+; Detect presence/absence of Kempston I/F.
+
+	call detect_kempston
+
 	ret
 
 ;

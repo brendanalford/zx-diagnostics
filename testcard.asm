@@ -145,8 +145,14 @@ check_testcard_keys_2
 	ld bc, 0xfdfe
 	in a, (c)
 	bit 0, a
-	jr nz, tone_start
+	jr z, start_ay_testing
 
+	ld bc, 0xeffe
+	in a, (c)
+	bit 0, a
+	jr z, start_ay_testing
+
+	jr tone_start
 ;
 ;	Start reading and outputting AY tone data. Exit if BREAK is pressed.
 ;
