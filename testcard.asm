@@ -142,7 +142,6 @@ check_testcard_keys
 	bit 3, a
 	jr z, stop_beeper_tone
 
-check_testcard_keys_2
 
 ;	Don't check for A being pressed if there's no AY present
 
@@ -174,7 +173,7 @@ check_testcard_keys_2
 
 stop_beeper_tone
 
-	ld hl, (v_testcard_flags)
+	ld hl, v_testcard_flags
 	set 1, (hl)
 	jp tone_start
 
