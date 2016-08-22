@@ -38,7 +38,9 @@ rom_signature_table
 	defw 0x7a1f, str_rom128espv2, test_128k, rom_table_rom128espv2
 	defw 0xc563, str_romplus2esp, test_plus2, rom_table_romplus2esp
 	defw 0xda64, str_romplus2fra, test_plus2, rom_table_romplus2fra
-	defw 0x29c0, str_romplus3esp, test_plus3, rom_table_romplus3esp
+
+	defw 0x95b8, str_romplus3espv40, test_plus3, rom_table_romplus3espv40
+	defw 0x29c0, str_romplus3espv41, test_plus3, rom_table_romplus3espv41
 
 	IFNDEF SAVEMEM
 
@@ -115,7 +117,11 @@ rom_table_romplus2fra
 
 	defw	0x9a23, str_romplus2_fail, 0x0000
 
-rom_table_romplus3esp
+rom_table_romplus3espv40
+
+	defw	0xba48, str_romplus3_a_fail, 0x05c5, str_romplus3_b_fail, 0xd49d, str_romplus3_b_fail, 0x0000
+
+rom_table_romplus3espv41
 
 	defw	0x89c8, str_romplus3_a_fail, 0xf579, str_romplus3_b_fail, 0x8a84, str_romplus3_b_fail, 0x0000
 
@@ -204,9 +210,13 @@ str_romplus2fra
 
 	defb	"Spectrum +2 (French) ROM...    ", 0
 
-str_romplus3esp
+str_romplus3espv40
 
-	defb	"Spectrum +2A/+3 (Spanish) ROM... ", 0
+	defb	"Spectrum +2A/+3 (Spanish v4.0) ROM... ", 0
+
+str_romplus3espv41
+
+	defb	"Spectrum +2A/+3 (Spanish v4.1) ROM... ", 0
 
 	IFNDEF SAVEMEM
 
