@@ -83,8 +83,11 @@ romhw_pagein_zxc
 
 romhw_pagein_dand
 
+	push hl
+	ld hl, 1
 	ld a, 32
 	call issue_dandanator_command
+	pop hl
 	ret
 
 ;	Command 2: Page out external ROM
@@ -169,9 +172,11 @@ romhw_pageout_dand_2
 
 romhw_pageout_dand_3
 
+	push hl
 	ld hl, 1
 	call issue_dandanator_command
-
+	pop hl
+	
 	cp 34		; Was this a page out with further commands locked?
 	ret nz
 	ld a, b		; If so, does BC=0x1234?
