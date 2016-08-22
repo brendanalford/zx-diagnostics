@@ -297,6 +297,11 @@ romhw_test_dandanator
 	call issue_dandanator_command
 
 	ld (0), a
+	ld b, 0
+
+romhw_test_dandanator_loop
+
+	djnz romhw_test_dandanator_loop
 
 ;	Set up for disable of test ROM
 
