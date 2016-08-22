@@ -1375,7 +1375,7 @@ initialize_no_ram_check
 	ld (v_fail_rom), a
 	ld (v_testcard_flags), a
 	ld (v_column), a
-    	ld (v_row), a
+  ld (v_row), a
 	ld (v_pr_ops), a
 	ld a, 56
 	ld (v_attr), a

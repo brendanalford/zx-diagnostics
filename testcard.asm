@@ -111,6 +111,7 @@ print_pageout_msg
 tone_start
 
 	call brk_check
+	call read_kempston
 
 	ld hl, v_testcard_flags
 	bit 1, (hl)
@@ -126,11 +127,20 @@ check_testcard_keys
 	ld bc, 0xfbfe
 	in a, (c)
 	bit 0, a
-	jr nz, check_testcard_keys_2
+	jr z, stop_beeper_tone
 
-	ld hl, v_testcard_flags
-	set 1, (hl)
-	jp tone_start
+; Kempston stick right will do the same
+
+	ld a, (v_kempston)
+	bit 0, a
+	jr nz, stop_beeper_tone
+
+; As will right on Sinclair 1
+
+	ld bc, 0xeffe
+	in a, (c)
+	bit 3, a
+	jr z, stop_beeper_tone
 
 check_testcard_keys_2
 
@@ -147,12 +157,27 @@ check_testcard_keys_2
 	bit 0, a
 	jr z, start_ay_testing
 
+; Kempston stick fire will do the same
+
+	ld a, (v_kempston)
+	bit 4, a
+	jr nz, start_ay_testing
+
+; As will fire on Sinclair 1
+
 	ld bc, 0xeffe
 	in a, (c)
 	bit 0, a
 	jr z, start_ay_testing
 
 	jr tone_start
+
+stop_beeper_tone
+
+	ld hl, (v_testcard_flags)
+	set 1, (hl)
+	jp tone_start
+
 ;
 ;	Start reading and outputting AY tone data. Exit if BREAK is pressed.
 ;
