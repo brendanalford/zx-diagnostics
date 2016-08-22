@@ -186,6 +186,13 @@ start_loop_outer
 
 start_loop_inner
 
+; Terminate the 5 sec wait if a key is pressed
+
+	in a, (0xfe)
+	and 0x1f
+	cp 0x1f
+	jr nz, start_loop_end
+
 	dec hl
 	ld a, h
 	or l
@@ -196,6 +203,13 @@ start_loop_inner
 	and a
 	rr d
 	djnz start_loop_outer
+
+start_loop_end
+
+; Extinguish the LED's if any are still lit
+
+	xor a
+	out (LED_PORT), a
 
 ;	Sound a brief tone to indicate tests are starting.
 ;	This also verifies that the CPU and ULA are working.
