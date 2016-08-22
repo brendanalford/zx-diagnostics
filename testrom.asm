@@ -182,7 +182,7 @@ splash_check_upper
 
 start_loop_outer
 
-	ld hl, 0xf000
+	ld hl, 0x8000
 
 start_loop_inner
 
