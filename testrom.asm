@@ -845,6 +845,11 @@ additional_rom_fail
 	call print
 	call newline
 
+; TODO: Identify failed ROM?
+
+;	ld hl, str_rom_checksum_fail
+;	call print
+;	ld hl, str_rom_checksum_fail_2
 	ld hl, str_check_rom
 	call print
 	ld de, (ix + 2)
@@ -1569,7 +1574,7 @@ str_48ktestsfail
 str_isthis16k
 
 	defb	"This appears to be a 16K Spectrum\n"
-	defb    "If 48K, check IC23-IC26 (74LS157, 32, 00)",0
+	defb  "If 48K, check IC23-IC26 (74LS157, 32, 00)",0
 
 str_128ktestsfail
 
@@ -1644,6 +1649,10 @@ str_testingpaging
 
 	defb	"Testing paging    ", 0
 
+str_stresspaging
+
+	defb 	"Stress test paging...", 0
+
 str_bankm
 
 	defb	"x ", 0
@@ -1699,6 +1708,10 @@ str_check_plus2_hal
 str_check_plus3_ula
 
 	defb	"Check IC1 (ULA 40077)", 0
+
+str_paging_stress_fail
+
+	defb "If Issue 1 Z70830 PCB, check RAM\n(must be AMS or MT4067 type)", 0
 
 str_check_ic
 

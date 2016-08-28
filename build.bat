@@ -12,13 +12,13 @@ git rev-parse --abbrev-ref HEAD > branch.txt
 git rev-parse --short HEAD > commit.txt
 call buildmain.bat
 if %errorlevel% neq 0 goto :error
-echo.
-echo *****************
-echo Building SLAM ROM
-echo *****************
-echo.
-call buildslam.bat
-if %errorlevel% neq 0 goto :error
+rem echo.
+rem echo *****************
+rem echo Building SLAM ROM
+rem echo *****************
+rem echo.
+rem call buildslam.bat
+rem if %errorlevel% neq 0 goto :error
 cd FlashUtils
 echo.
 echo **********************
