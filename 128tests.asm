@@ -457,8 +457,7 @@ paging_stress_loop
 	call pagein
 	ld a, (hl)
 	cp 0xaa
-;	jp nz, paging_stress_error
-	jp paging_stress_error
+	jp nz, paging_stress_error
 
 	ld a, 1
 	call pagein
