@@ -31,13 +31,16 @@ rom_signature_table
 	defw 0x5eb1, str_rom48kesp, test_48k, 0x0000
 	defw 0x62c7, str_rom128k, test_128k, rom_table_rom128k
 	defw 0xdbaa, str_romplus2, test_plus2, rom_table_romplus2
-	defw 0x26f5, str_romplus2a, test_plus3,	rom_table_romplus2a
-	defw 0x1f83, str_romplus3, test_plus3, rom_table_romplus3
 
 	defw 0xe157, str_rom128espv1, test_128k, rom_table_rom128espv1
 	defw 0x7a1f, str_rom128espv2, test_128k, rom_table_rom128espv2
 	defw 0xc563, str_romplus2esp, test_plus2, rom_table_romplus2esp
 	defw 0xda64, str_romplus2fra, test_plus2, rom_table_romplus2fra
+
+	IFNDEF SLAMTEST
+
+	defw 0x26f5, str_romplus2a, test_plus3,	rom_table_romplus2a
+	defw 0x1f83, str_romplus3, test_plus3, rom_table_romplus3
 
 	defw 0x95b8, str_romplus3espv40, test_plus3, rom_table_romplus3espv40
 	defw 0x29c0, str_romplus3espv41, test_plus3, rom_table_romplus3espv41
@@ -75,6 +78,8 @@ rom_signature_table
 
 	ENDIF
 
+	ENDIF
+	
 ;	End of ROM table
 	defw 0x0000
 
@@ -93,14 +98,6 @@ rom_table_romplus2
 
 	defw	0x27f9, str_romplus2_fail, 0x0000
 
-rom_table_romplus2a
-
-	defw	0x4d5b, str_romplus3_a_fail, 0xb3e4, str_romplus3_b_fail, 0x5d75, str_romplus3_b_fail, 0x0000
-
-rom_table_romplus3
-
-	defw	0x4e7b, str_romplus3_a_fail, 0x3388, str_romplus3_b_fail, 0x4f34, str_romplus3_b_fail, 0x0000
-
 rom_table_rom128espv1
 
 	defw	0x8413, str_rom128_fail, 0x0000
@@ -117,6 +114,8 @@ rom_table_romplus2fra
 
 	defw	0x9a23, str_romplus2_fail, 0x0000
 
+	IFNDEF SLAMTEST
+
 rom_table_romplus3espv40
 
 	defw	0xba48, str_romplus3_a_fail, 0x05c5, str_romplus3_b_fail, 0xd49d, str_romplus3_b_fail, 0x0000
@@ -124,6 +123,14 @@ rom_table_romplus3espv40
 rom_table_romplus3espv41
 
 	defw	0x89c8, str_romplus3_a_fail, 0xf579, str_romplus3_b_fail, 0x8a84, str_romplus3_b_fail, 0x0000
+
+rom_table_romplus2a
+
+	defw	0x4d5b, str_romplus3_a_fail, 0xb3e4, str_romplus3_b_fail, 0x5d75, str_romplus3_b_fail, 0x0000
+
+rom_table_romplus3
+
+	defw	0x4e7b, str_romplus3_a_fail, 0x3388, str_romplus3_b_fail, 0x4f34, str_romplus3_b_fail, 0x0000
 
 	IFNDEF SAVEMEM
 
@@ -142,6 +149,8 @@ rom_table_romplus3e_v1_38esp
 rom_table_js128
 
 	defw	0x8616, str_romjs128_fail, 0x0000
+
+	ENDIF
 
 	ENDIF
 
@@ -185,14 +194,6 @@ str_romplus2
 
 	defb	"Spectrum +2 (Grey) ROM...   ", 0
 
-str_romplus3
-
-	defb	"Spectrum +3 (v4.0) ROM...   ", 0
-
-str_romplus2a
-
-	defb    "Spectrum +2A (v4.1) ROM...  ", 0
-
 str_rom128espv1
 
 	defb	"Spectrum 128K (Spanish v1) ROM...  ", 0
@@ -209,6 +210,16 @@ str_romplus2esp
 str_romplus2fra
 
 	defb	"Spectrum +2 (French) ROM...    ", 0
+
+	IFNDEF SLAMTEST
+
+str_romplus3
+
+	defb	"Spectrum +3 (v4.0) ROM...   ", 0
+
+str_romplus2a
+
+	defb    "Spectrum +2A (v4.1) ROM...  ", 0
 
 str_romplus3espv40
 
@@ -251,5 +262,7 @@ str_rom48kbeckman
 str_rom48gw03
 
 	defb	"Gosh Wonderful 48K ROM...   ", 0
+
+	ENDIF
 
 	ENDIF

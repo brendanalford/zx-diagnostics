@@ -845,11 +845,6 @@ additional_rom_fail
 	call print
 	call newline
 
-; TODO: Identify failed ROM?
-
-;	ld hl, str_rom_checksum_fail
-;	call print
-;	ld hl, str_rom_checksum_fail_2
 	ld hl, str_check_rom
 	call print
 	ld de, (ix + 2)

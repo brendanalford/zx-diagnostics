@@ -188,7 +188,7 @@ debounce_key
 	pop bc
 	ret
 
-	ifdef TESTROM
+	IFDEF TESTROM
 
 ;	Check to see if the upper three bits of the Kempston port are
 ; at any time non-zero - this would indicate a faulty interface or
@@ -233,4 +233,4 @@ read_kempston
 	ld (hl), a
 	ret
 
-	endif
+	ENDIF
