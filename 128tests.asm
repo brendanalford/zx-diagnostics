@@ -428,52 +428,6 @@ skip_read_page5
 	cp 8
 	jr nz, test_read_paging
 
-; Stress test paging.
-
-	ld hl, str_testpass
-	call print
-	call newline
-	ld hl, str_stresspaging
-	call print
-
-	ld de, 0x3fff
-	ld hl, 0xc000
-
-paging_stress_loop
-
-	ld a, 0
-	call pagein
-	ld a, 0xaa
-	ld (hl), a
-	ld a, 1
-	call pagein
-	ld a, (hl)
-	cp 0xaa
-	jp z, paging_stress_error
-
-	ld a, 0x55
-	ld (hl), a
-	ld a, 0
-	call pagein
-	ld a, (hl)
-	cp 0xaa
-	jp nz, paging_stress_error
-
-	ld a, 1
-	call pagein
-	ld (hl), a
-	ld a, 0
-	call pagein
-	ld (hl), a
-
-	dec de
-	ld a, d
-	or e
-	jr nz, paging_stress_loop
-
-	ld hl, str_testpass
-	call print
-
 ;	All tests pass, we're all good. Nothing else to test so return.
 
 	call newline
@@ -568,52 +522,4 @@ set_page_success_status
 	pop af
 	ld (hl), a
 	pop hl
-	ret
-
-paging_stress_error
-
-	ld a, 2
-	out (ULA_PORT), a
-	ld hl, str_testfail
-	call print
-	call newline
-
-	ld a, (v_128type)
-	cp 1
-	jr z, stress_plus2_pal_msg
-	cp 2
-	jr z, stress_plus3_ula_msg
-	cp 3
-	jr z, stress_js128_pal_msg
-
-	ld hl, str_check_128_hal
-	call print
-	jr paging_stress_error_end
-
-stress_js128_pal_msg
-
-	ld hl, str_check_js128_hal
-	call print
-	jr paging_stress_error_end
-
-stress_plus2_pal_msg
-
-	ld hl, str_check_plus2_hal
-	call print
-	jr paging_stress_error_end
-
-stress_plus3_ula_msg
-
-	ld hl, str_check_plus3_ula
-	call print
-	call newline
-	ld hl, str_paging_stress_fail
-	call print
-	jr paging_stress_error_end
-
-paging_stress_error_end
-
-	call newline
-	ld hl, str_128kpagingfail
-	call print
 	ret

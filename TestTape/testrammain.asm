@@ -679,7 +679,7 @@ prt_scroll
 
 test_vector_table
 
-	defw str_select48k, test_48k
+	defw str_select48k, test_48kgeneric
 	defw str_select128k, test_128k
 	defw str_selectplus2, test_plus2
 	defw str_selectplus3, test_plus3
