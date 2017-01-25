@@ -48,7 +48,7 @@
 
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
 	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
-	sj.insert_define("HOSTNAME", '"' .. os.getenv("USERDOMAIN") .. '"');
+	sj.insert_define("HOSTNAME", '"' .. os.getenv("USERDOMAIN"):lower() .. '"');
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
 
 	ENDLUA
@@ -1539,7 +1539,7 @@ str_banner
 
 str_lowerrampass
 
-	defb	AT, 2, 0, "Lower 16K RAM tests...      ", TAB, 38 * 6, TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
+	defb	AT, 2, 0, "Lower 16K RAM tests...", TAB, 38 * 6, TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
 
 str_soaktest
 
@@ -1547,7 +1547,7 @@ str_soaktest
 
 str_test4
 
-	defb	"\nUpper RAM Walk test...      ", 0
+	defb	"\nUpper RAM Walk test...", TAB, 168, 0
 
 str_test5
 
@@ -1555,11 +1555,11 @@ str_test5
 
 str_test6
 
-	defb	"Upper RAM March test...     ", 0
+	defb	"Upper RAM March test...", TAB, 168, 0
 
 str_test7
 
-	defb	"Upper RAM Random test...    ", 0
+	defb	"Upper RAM Random test...",TAB, 168, 0
 
 
 str_48ktestsfail
@@ -1644,10 +1644,6 @@ str_testingpaging
 
 	defb	"Testing paging    ", 0
 
-str_stresspaging
-
-	defb 	"Stress test paging...", 0
-
 str_bankm
 
 	defb	"x ", 0
@@ -1670,15 +1666,15 @@ str_interrupt_tab
 
 str_soakcomplete
 
-	defb	"\n       Soak test iteration complete  ", 0
+	defb	"\n", TAB, 42, "Soak test iteration complete", 0
 
 str_halted
 
-	defb	TEXTBOLD, "\n\n        *** Testing Completed ***", TEXTNORM, 0
+	defb	TEXTBOLD, "\n\n", TAB, 48, "*** Testing Completed ***", TEXTNORM, 0
 
 str_halted_fail
 
-	defb	TEXTBOLD, "\n      Failures found, system halted ", TEXTNORM, 0
+	defb	TEXTBOLD, "\n", TAB, 36,"Failures found, system halted", TEXTNORM, 0
 
 str_pagingin
 
@@ -1711,6 +1707,7 @@ str_check_ic
 str_ic
 
 	defb "IC", 0
+
 str_u
 
 	defb "U", 0

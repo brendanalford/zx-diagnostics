@@ -52,10 +52,17 @@ write_shadow_screen
 	ld a, 7
 	call pagein
 
-	BLANKMEM 0xc000, 0x1800, 0x00
-	BLANKMEM 0xd800, 0x300, 0x20
+	ld hl, 0xc000
+	ld bc, 0x1800
+	xor a
+	call blankmem
 
-	ld a, 0
+	ld hl, 0xd800
+	ld bc, 0x300
+	ld a, 0x20
+	call blankmem
+
+	xor a 
 	call pagein
 
 ;	Detect frame length. Once HALT is issued, we start counting until the

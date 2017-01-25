@@ -176,7 +176,7 @@ romhw_pageout_dand_3
 	ld hl, 1
 	call issue_dandanator_command
 	pop hl
-	
+
 	cp 34		; Was this a page out with further commands locked?
 	ret nz
 	ld a, b		; If so, does BC=0x1234?
@@ -205,7 +205,7 @@ romhw_found_diagboard
 
 	ld a, 1
 	ld (v_testhwtype), a
-	ld a, 0
+	xor a
 	out (ROMPAGE_PORT), a
 	ret
 

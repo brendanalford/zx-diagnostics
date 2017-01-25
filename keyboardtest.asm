@@ -16,32 +16,34 @@
 ;	Lesser General Public License for more details.
 ;
 ;	keyboardtest.asm
-;	
+;
 
 	define	KBROW 	5
-	
+
 keyboard_test
-    	
+
     ld sp, sys_stack
-	
+
 	ld iy, 0
 
 	ld a, h
 	cp 190
-	jr nz, keyb_test_init	
+	jr nz, keyb_test_init
 	ld a, l
 	cp 238
-	jr nz, keyb_test_init	
+	jr nz, keyb_test_init
 
 	ld l, 7
-	BEEP 0x23, 0x0150
+	ld bc, 0x0023
+	ld de, 0x0150
+	call beep
 
 keyb_test_init
 
 	call initialize
 
-    	ld a, BORDERWHT
-    	out (ULA_PORT), a
+  ld a, BORDERWHT
+  out (ULA_PORT), a
 
 	call cls
 
@@ -50,16 +52,16 @@ keyb_test_init
 	call print_footer
 	ld hl, str_exit
 	call print
-	
+
 ;	Paint keyboard
 
-	xor a 
+	xor a
 	ld hl, 0x5800 + (KBROW * 32)
 	ld (hl), a
 	ld de, 0x5801 + (KBROW * 32)
 	ld bc, 0x1df
 	ldir
-	
+
 	ld hl, str_keyboard
 	call print
 
@@ -72,7 +74,7 @@ keyb_test_init
 	ld (v_pr_ops), a
 	ld a, 8
 	ld (v_width), a
-	
+
 	ld hl, (ix)
 
 key_print
@@ -87,21 +89,21 @@ key_print
 
 	ld a, 0x4f
 	ld (v_attr), a
-	
+
 ;	Store 'key read' flags in H'
-	
+
 	exx
 	ld h, 00
 	exx
-		
+
 keyb_loop
-	
+
 	ld b, 8
 	ld d, 0xfe
 	ld ix, keyboard_vect
-	
+
 keyb_loop_row
-	
+
 	ld a, d
 	in a, (0xfe)
 	ld e, a
@@ -111,16 +113,16 @@ keyb_loop_col
 
 	bit 0, e
 	jr nz, keyb_next_col
-	
+
 	ld hl, (ix)
 	call print
 	exx
-	
+
 ;	Set bit 0 of H' - key pressed
-	
+
 	set 0, h
 	exx
-	
+
 keyb_next_col
 
 	inc ix
@@ -130,7 +132,7 @@ keyb_next_col
 	ld a, c
 	cp 0
 	jr nz, keyb_loop_col
-	
+
 	rlc d
 	djnz keyb_loop_row
 
@@ -142,15 +144,17 @@ check_key_press
 
 ;	Bit 1 of H' is set if a key was pressed or held during the last scan
 
-	bit 0, a 
+	bit 0, a
 	jr z, check_key_release
-	
+
 ; 	Beep only if bit 1 of H' is reset, otherwise we've already beeped without key release
 
 	bit 1, a
 	jr nz, check_key_release
 	ld l, 7
-	BEEP 0x23, 0x0015
+	ld bc, 0x0023
+	ld de, 0x0015
+	call beep
 	exx
 	set 1, h
 	exx
@@ -162,12 +166,12 @@ check_key_release
 	and 0x1f
 	cp 0x1f
 	jr nz, check_break
-	
+
 ;	No keys now pressed, set H' to 0
 	exx
 	ld h, 0
 	exx
-	
+
 check_break
 
 	ld a, 0x7f
@@ -178,11 +182,11 @@ check_break
 	in a, (0xfe)
 	rra
 	jr c, no_break					; Caps shift not pressed
-	
-;	BREAK pressed, don't exit until its been held for 
+
+;	BREAK pressed, don't exit until its been held for
 ;	a certain amount of time (IY=0x3f)
 
-	inc iy	
+	inc iy
 	ld a, iyl
 	cp 0x3f
 	jr nz, keyb_loop
@@ -190,13 +194,13 @@ check_break
 ;	OK, now exit
 
 	call diagrom_exit
-	
+
 no_break
 
 	ld iy, 0
 	jp keyb_loop
-	
-	
+
+
 str_keyb_header
 
 	defb TEXTBOLD, "Keyboard Test", TEXTNORM, 0
@@ -204,7 +208,7 @@ str_keyb_header
 str_exit
 
 	defb AT, 2, 0, "Press all keys to test, hold BREAK to exit", 0
-	
+
 str_keyboard
 
 	defb AT, KBROW, 0, WIDTH, 8, ATTR, 7
@@ -224,12 +228,12 @@ str_keyboard
 	defb 0x8d, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f
 	defb 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f
 	defb 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8e
-	
+
 	defb 0x90, TAB, 248, 0x91
-	
+
 	defb WIDTH, 6
 	defb AT, KBROW + 1, 6, TEXTBOLD, BRIGHT, 1, "ZX Spectrum", TEXTNORM, ATTR, 56, 0
-	
+
 keyboard_vect
 
 	defw tk_cs, tk_z, tk_x, tk_c, tk_v
@@ -240,7 +244,7 @@ keyboard_vect
 	defw tk_p, tk_o, tk_i, tk_u, tk_y
 	defw tk_ent, tk_l, tk_k, tk_j, tk_h
 	defw tk_spc, tk_ss, tk_m, tk_n, tk_b, 0, 0
-	
+
 tk_1
 	defb AT, KBROW + 5, 8, "1", 0
 tk_2

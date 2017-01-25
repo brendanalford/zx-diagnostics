@@ -90,19 +90,6 @@ walkloop
 ;	B:  Pattern to fill with
 ;
 
-blankmem
-
-.blankloop
-
-	ld (hl), b
-	inc hl
-	dec de
-	ld a, d
-	or e
-	jr nz, .blankloop
-
-	ret
-
 ;
 ;	Inversion testing - pattern A.
 ;	Inputs:
@@ -811,3 +798,15 @@ ldhl4times
 	ld (hl), a
 
 	ret
+;
+;	Routine to blank (or fill) an area of memory
+; HL=start, BC=length, A=pattern
+;
+
+blankmem
+
+		ld de, hl
+		inc de
+		ld (hl), a
+		ldir
+		ret

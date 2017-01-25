@@ -362,7 +362,7 @@ skip_write_page5
 ;	Pages all written, now page each one back in turn
 ;	and verify that the expected pattern is in each one.
 
-	ld a, 0
+	xor a
 	ld b, a
 
 test_read_paging

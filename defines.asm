@@ -124,16 +124,11 @@
 	MACRO BLANKMEM start, len, pattern
 
 	ld hl, start
-	ld de, len
-
-.blankloop
-
-	ld (hl), pattern
-	inc hl
-	dec de
-	ld a, d
-	or e
-	jr nz, .blankloop
+	ld de, start+1
+	ld bc, len
+	ld a, pattern
+	ld (hl), a
+	ldir
 
 	ENDM
 
@@ -703,7 +698,7 @@
 	MACRO PREPAREHREG
 
 	exx
-	ld a, 0
+	xor a
 	ld h, a
 	exx
 

@@ -253,7 +253,9 @@ brk_check
 testcard_tone
 ;	L register contains border colour to use
 	ld l, 7
-	BEEP 0x98, 0x380
+	ld bc, 0x0098
+	ld de, 0x0380
+	call beep
 	ld a, 0xff
 	ld b, a
 	xor a
@@ -376,11 +378,6 @@ str_testcardattr
 str_year
 
 	defb	BRIGHT, 0, 0x83, 0x81, BRIGHT, 1, 0x82, 0x87, 0
-
-str_testcard
-
-	defb	PAPER, 0, "    ", PAPER, 1, "    ", PAPER, 2, "    ", PAPER, 3, "    "
-	defb	PAPER, 4, "    ", PAPER, 5, "    ", PAPER, 6, "    ", PAPER, 7, "    ", 0
 
 str_pageout_msg
 
