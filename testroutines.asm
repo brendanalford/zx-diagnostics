@@ -385,6 +385,13 @@ marchborked
 	ld a, ixh
 	or b
 	ld ixh, a
+
+	ld a, 4			; Set bit 4 of IXL - march test fail
+	ld c, a
+	ld a, ixl
+	or c
+	ld ixl, a
+
 	ld a, BORDERRED
 	out (ULA_PORT), a
 	exx
@@ -531,7 +538,7 @@ randfillup
 	or b
 
 	ld b, a
-	ld a, 4	; Bit 0 of l': random test fail
+	ld a, 8	; Bit 3 IXL': random test fail
 	or c
 	ld c, a
 	ld ix, bc

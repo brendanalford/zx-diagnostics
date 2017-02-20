@@ -184,6 +184,11 @@ start_loop_outer
 
 	ld hl, 0x8000
 
+	exx
+	ld l, 1
+	BEEP 0x10, 0x0150
+	exx
+
 start_loop_inner
 
 ; Terminate the 5 sec wait if a key is pressed

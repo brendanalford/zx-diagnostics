@@ -242,6 +242,12 @@ test_ram_page_skip
 	ld hl, str_128ktestsfail
 	call print
 
+; 	XXX Todo - check for PCF/ASIC failures by checking low nybble of ixl
+
+	ld a, ixl
+	cp 0x0c
+	jr z, print_pcf_asic_fail
+
 ; 	If possible, output the failing IC's to the screen
 
 	ld hl, str_check_ic
@@ -310,6 +316,12 @@ ic_fail_plus3
 	ld d, a
 	ld ix, str_plus3_ic_uncontend
 	call print_fail_ic_4bit
+	jr test_ram_fail_end
+
+print_pcf_asic_fail
+
+	ld hl, str_pcf_asic_fail
+	call print
 
 ;	Abandon test at this point
 
@@ -523,3 +535,7 @@ set_page_success_status
 	ld (hl), a
 	pop hl
 	ret
+
+str_pcf_asic_fail
+
+	defb "PCF/ASIC Failure\n", 0

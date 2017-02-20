@@ -35,8 +35,8 @@ test_48k
 
 	ld b, 0xff
 	ld hl, 0x8000
-	ld (hl), 0
 	xor a
+	ld (hl), a
 
 is_upper_ram_present
 
@@ -82,9 +82,9 @@ print_upperresult
 
 print_upper_ic
 
-	ld a, (v_fail_ic)
-	cp 255
-	jr z, print_upper_ic_all_fail
+	ld a, ixl
+	cp 0x0c
+	jr z, print_multiplexer_fail
 
 	ld hl, str_check_ic
 	call print
@@ -96,9 +96,9 @@ print_upper_ic
 	call print_fail_ic
 	jr print_upper_ic_2
 
-print_upper_ic_all_fail
+print_multiplexer_fail
 
-	ld hl, str_allupperram_fail
+	ld hl, str_multiplexer_fail
 	call print
 
 print_upper_ic_2
@@ -321,6 +321,6 @@ str_bit
 
 	defb 	"Bit ", 0
 
-str_allupperram_fail
+str_multiplexer_fail
 
-	defb "All upper RAM (IC15-IC22) failed.\nCheck IC23-IC26 (74LS157, 32, 00)",0
+	defb "Upper RAM multiplexers faulty. Check IC25 and IC26", 0
