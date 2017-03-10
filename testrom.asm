@@ -846,6 +846,14 @@ additional_rom_check_loop
 
 additional_rom_fail
 
+;
+;	When adding new ROM signatures, uncomment this line. ROM checksum
+; to add will be in HL.
+
+	di
+	halt
+
+;
 	ld hl, str_testfail
 	call print
 	call newline

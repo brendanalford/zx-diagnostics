@@ -35,15 +35,6 @@ echo *************************
 echo.
 call build.bat
 if %errorlevel% neq 0 goto :cderror
-cd ..\Spectranet
-echo.
-echo ********************************
-echo Building Spectranet test modules
-echo ********************************
-echo.
-call build.bat
-if %errorlevel% neq 0 goto :cderror
-cd ..
 echo All builds complete.
 goto :done
 

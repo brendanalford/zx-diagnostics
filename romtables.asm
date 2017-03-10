@@ -56,6 +56,9 @@ rom_signature_table
 	defw 0xdba9, str_romplus3e_v1_38, test_plus3, rom_table_romplus3e_v1_38
 	defw 0x3710, str_romplus3e_v1_38esp, test_plus3, rom_table_romplus3e_v1_38esp
 
+	defw 0x1d79, str_romplus3e_v1_43, test_plus3, rom_table_romplus3e_v1_43
+	defw 0xf1c0, str_romplus3e_v1_43esp, test_plus3, rom_table_romplus3e_v1_43esp
+
 ;	Soviet clones that some people are inexplicably fond of :)
 
 	defw 0x26f0, str_orelbk08, test_48kgeneric, 0x0000
@@ -79,7 +82,7 @@ rom_signature_table
 	ENDIF
 
 	ENDIF
-	
+
 ;	End of ROM table
 	defw 0x0000
 
@@ -145,6 +148,15 @@ rom_table_romplus3e_v1_38
 rom_table_romplus3e_v1_38esp
 
 	defw	0xa6d0, str_romplus3_a_fail, 0xff63, str_romplus3_b_fail, 0x8a84, str_romplus3_b_fail, 0x0000
+
+rom_table_romplus3e_v1_43
+
+	defw	0x7899, str_romplus3_a_fail, 0x8571, str_romplus3_b_fail, 0x4f34, str_romplus3_b_fail, 0x0000
+
+rom_table_romplus3e_v1_43esp
+
+	defw	0x9035, str_romplus3_a_fail, 0x2876, str_romplus3_b_fail, 0x8a84, str_romplus3_b_fail, 0x0000
+
 
 rom_table_js128
 
@@ -242,6 +254,14 @@ str_romplus3e_v1_38
 str_romplus3e_v1_38esp
 
 	defb	"Spectrum +3E v1.38 (Spanish) ROM... ", 0
+
+str_romplus3e_v1_43
+
+	defb 	"Spectrum +3E v1.43 ROM...   ", 0
+
+str_romplus3e_v1_43esp
+
+	defb 	"Spectrum +3E v1.43 (Spanish) ROM...   ", 0
 
 str_orelbk08
 
