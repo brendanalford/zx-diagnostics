@@ -34,6 +34,7 @@ echo Building tape based tests
 echo *************************
 echo.
 call build.bat
+cd ..
 if %errorlevel% neq 0 goto :cderror
 echo All builds complete.
 goto :done
