@@ -394,7 +394,7 @@ lowerram_random
 ;	Conveniently, if there's some lower RAM, then this'll give us
 ;	a pattern to lock onto with the floating bus sync test.
 
-    	BLANKMEM 16384, 6144, 0
+    BLANKMEM 16384, 6144, 0
 
 ;	Attributes - white screen, blank ink.
 
@@ -504,6 +504,8 @@ fail_bits_next
 	cp 0
 	jr nz, fail_bits_outer_loop
 
+	; Use L as a frame counter
+	ld l, 0
 
 ;
 ;	Lower RAM failure detected, default ISR with I=0
@@ -589,7 +591,8 @@ fail_border_4
 
 ; Change back to black for gap between stripes
 
-	ld a, 0
+	ld a, l
+	and 0xf8
 	out (ULA_PORT), a
 	ld a, 0xa8
 	ld b, a
@@ -642,6 +645,7 @@ fail_border_8
 fail_border_end
 
 	ld de, ix
+	inc l
 	ei
 	halt
 
@@ -1093,7 +1097,7 @@ tests_complete
 	ld a, (v_fail_rom)
 	cp 0
 	jr z, soak_test_check
-
+	
 ;	Yes we did - say so and halt
 
 tests_failed_halt
@@ -1102,7 +1106,25 @@ tests_failed_halt
 	ld hl, str_halted_fail
 	call print
 	di
-	halt
+
+test_failed_halt_loop
+
+	di
+	ld l, 2
+	ld bc, 0x00a8
+	ld de, 0x0080
+	call beep
+
+	ld bc, 0x4000
+
+test_failed_halt_loop_2
+
+	dec bc
+	ld a, b
+	or c
+	jr nz, test_failed_halt_loop_2
+
+	jr test_failed_halt_loop
 
 soak_test_check
 
