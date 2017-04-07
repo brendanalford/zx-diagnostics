@@ -1157,9 +1157,21 @@ soak_test_ffff
 
 soak_test_ffff_2
 
-	ld a, (hl)
+	ld e, l
+	ld a, 40
+	ld d, a
+	ld a, (de)
 	out (0xfe), a
+	ld b, h
+
+soak_test_ffff_3
+
+	djnz soak_test_ffff_3
 	inc hl
+	ld a, h
+	and 0x3f
+	or 0x01
+	ld h, a
 	jr soak_test_ffff_2
 
 ;	Check if we have diagboard hardware - if not, we're done here
