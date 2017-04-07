@@ -1113,6 +1113,15 @@ soak_test_check
 	or iyl
 	jr z, diaghw_present
 
+;	Yes, bump soak test iteration count
+
+	inc iy
+
+; Have we rolled over to 00000 (> 65535 iterations complete)?
+	ld a, iyh
+	or iyl
+	jr z, soak_test_ffff
+
 	call newline
 	ld hl, str_soakcomplete
 	call print
@@ -1133,12 +1142,25 @@ innerdelay_2
 	or l
 	jr nz, innerdelay_1
 
-; 	Bump soak test iteration count and restart
+; 	Start next soak test iteration
 
-	inc iy
 	im 0
 	jp start_testing
 
+soak_test_ffff
+
+	call newline
+	ld hl, str_soak_test_ffff
+	call print
+
+	ld hl, 0
+
+soak_test_ffff_2
+
+	ld a, (hl)
+	out (0xfe), a
+	inc hl
+	jr soak_test_ffff_2
 
 ;	Check if we have diagboard hardware - if not, we're done here
 
@@ -1680,6 +1702,10 @@ str_interrupt_tab
 str_soakcomplete
 
 	defb	"\n", TAB, 42, "Soak test iteration complete", 0
+
+str_soak_test_ffff
+
+	defb	"\n", TAB, 33, "Soak testing complete. You win!", 0
 
 str_halted
 
