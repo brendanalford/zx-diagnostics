@@ -22,7 +22,7 @@
 
 keyboard_test
 
-    ld sp, sys_stack
+  ld sp, sys_stack
 
 	ld iy, 0
 

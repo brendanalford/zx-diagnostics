@@ -596,6 +596,8 @@ test_ula_addr_next
 	cp 0x1f
 	jr nz, test_ula_addr_loop
 
+	xor a
+	out (0xff), a
 	ei
 	jp ulatest_loop
 
@@ -730,7 +732,7 @@ str_ulaselecttest
 	defb AT, 15, 0, "4) Test screen switching (128K)"
 	defb AT, 16, 0, "5) Test ULA port addressing"
 	defb AT, 17, 18, "(Flashing green border: pass,"
-	defb AT, 18, 18, "flashing red border: fail)", 0
+	defb AT, 18, 18, "anything else: fail)", 0
 
 str_ulaexit
 
