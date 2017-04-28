@@ -22,7 +22,7 @@
 
 mem_browser
 
-    ld sp, sys_stack
+  ld sp, sys_stack
 
 	call initialize
 
@@ -129,22 +129,23 @@ check_keys
 
 ;	Movement keys.
 
-	cp 'W'
+	cp 'Z'
 	jp z, page_up
 	cp 'X'
 	jp z, page_down
-	cp 'Q'
+	cp KEY_UP
 	jp z, cur_up
-	cp 'Z'
+	cp KEY_DOWN
 	jp z, cur_down
-	cp 'O'
+	cp KEY_LEFT
 	jp z, cur_left
-	cp 'P'
+	cp KEY_RIGHT
 	jp z, cur_right
+
 
 ;	Option keys
 
-	cp 'T'
+	cp 'P'
 	jp z, ram_page
 	cp 'R'
 	jp z, rom_page
@@ -971,8 +972,8 @@ str_mem_browser_header
 
 str_mem_browser_footer
 
-	defb	AT, 21, 0, "Q,Z,O,P: cursor, 0-9,A-F: enter data\n"
-	defb	"W: PgUp X: PgDown R: Page ROM, T: Page RAM\n"
+	defb	AT, 21, 0, "Arrow keys move cursor,0-9,A-F: enter data\n"
+	defb	"Z: PgUp X: PgDown R: Page ROM, P: Page RAM\n"
 
 str_goto_addr_default
 
