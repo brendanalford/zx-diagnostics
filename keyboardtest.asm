@@ -79,6 +79,12 @@ keyb_test_init
 
 key_print
 
+	ld a, (hl)
+	ld (v_row), a
+	inc hl
+	ld a, (hl)
+	ld (v_column), a
+	inc hl
 	call print
 	inc ix
 	inc ix
@@ -115,6 +121,13 @@ keyb_loop_col
 	jr nz, keyb_next_col
 
 	ld hl, (ix)
+	ld a, (hl)
+	ld (v_row), a
+	inc hl
+	ld a, (hl)
+	ld (v_column), a
+	inc hl
+
 	call print
 	exx
 
@@ -246,85 +259,85 @@ keyboard_vect
 	defw tk_spc, tk_ss, tk_m, tk_n, tk_b, 0, 0
 
 tk_1
-	defb AT, KBROW + 5, 8, "1", 0
+	defb KBROW + 5, 8, "1", 0
 tk_2
-	defb AT, KBROW + 5, 32, "2", 0
+	defb KBROW + 5, 32, "2", 0
 tk_3
-	defb AT, KBROW + 5, 56, "3", 0
+	defb KBROW + 5, 56, "3", 0
 tk_4
-	defb AT, KBROW + 5, 80, "4", 0
+	defb KBROW + 5, 80, "4", 0
 tk_5
-	defb AT, KBROW + 5, 104, "5", 0
+	defb KBROW + 5, 104, "5", 0
 tk_6
-	defb AT, KBROW + 5, 128, "6", 0
+	defb KBROW + 5, 128, "6", 0
 tk_7
-	defb AT, KBROW + 5, 152, "7", 0
+	defb KBROW + 5, 152, "7", 0
 tk_8
-	defb AT, KBROW + 5, 176, "8", 0
+	defb KBROW + 5, 176, "8", 0
 tk_9
-	defb AT, KBROW + 5, 200, "9", 0
+	defb KBROW + 5, 200, "9", 0
 tk_0
-	defb AT, KBROW + 5, 224, "0", 0
+	defb KBROW + 5, 224, "0", 0
 
 tk_q
-	defb AT, KBROW + 7, 16, "Q", 0
+	defb KBROW + 7, 16, "Q", 0
 tk_w
-	defb AT, KBROW + 7, 40, "W", 0
+	defb KBROW + 7, 40, "W", 0
 tk_e
-	defb AT, KBROW + 7, 64, "E", 0
+	defb KBROW + 7, 64, "E", 0
 tk_r
-	defb AT, KBROW + 7, 88, "R", 0
+	defb KBROW + 7, 88, "R", 0
 tk_t
-	defb AT, KBROW + 7, 112, "T", 0
+	defb KBROW + 7, 112, "T", 0
 tk_y
-	defb AT, KBROW + 7, 136, "Y", 0
+	defb KBROW + 7, 136, "Y", 0
 tk_u
-	defb AT, KBROW + 7, 160, "U", 0
+	defb KBROW + 7, 160, "U", 0
 tk_i
-	defb AT, KBROW + 7, 184, "I", 0
+	defb KBROW + 7, 184, "I", 0
 tk_o
-	defb AT, KBROW + 7, 208, "O", 0
+	defb KBROW + 7, 208, "O", 0
 tk_p
-	defb AT, KBROW + 7, 232, "P", 0
+	defb KBROW + 7, 232, "P", 0
 
 tk_a
-	defb AT, KBROW + 9, 24, "A", 0
+	defb KBROW + 9, 24, "A", 0
 tk_s
-	defb AT, KBROW + 9, 48, "S", 0
+	defb KBROW + 9, 48, "S", 0
 tk_d
-	defb AT, KBROW + 9, 72, "D", 0
+	defb KBROW + 9, 72, "D", 0
 tk_f
-	defb AT, KBROW + 9, 96, "F", 0
+	defb KBROW + 9, 96, "F", 0
 tk_g
-	defb AT, KBROW + 9, 120, "G", 0
+	defb KBROW + 9, 120, "G", 0
 tk_h
-	defb AT, KBROW + 9, 144, "H", 0
+	defb KBROW + 9, 144, "H", 0
 tk_j
-	defb AT, KBROW + 9, 168, "J", 0
+	defb KBROW + 9, 168, "J", 0
 tk_k
-	defb AT, KBROW + 9, 192, "K", 0
+	defb KBROW + 9, 192, "K", 0
 tk_l
-	defb AT, KBROW + 9, 216, "L", 0
+	defb KBROW + 9, 216, "L", 0
 tk_ent
-	defb AT, KBROW + 9, 240, "e", 0
+	defb KBROW + 9, 240, "e", 0
 
 tk_cs
-	defb AT, KBROW + 11, 8, "cs", 0
+	defb KBROW + 11, 8, "cs", 0
 tk_z
-	defb AT, KBROW + 11, 40, "Z", 0
+	defb KBROW + 11, 40, "Z", 0
 tk_x
-	defb AT, KBROW + 11, 64, "X", 0
+	defb KBROW + 11, 64, "X", 0
 tk_c
-	defb AT, KBROW + 11, 88, "C", 0
+	defb KBROW + 11, 88, "C", 0
 tk_v
-	defb AT, KBROW + 11, 112, "V", 0
+	defb KBROW + 11, 112, "V", 0
 tk_b
-	defb AT, KBROW + 11, 136, "B", 0
+	defb KBROW + 11, 136, "B", 0
 tk_n
-	defb AT, KBROW + 11, 160, "N", 0
+	defb KBROW + 11, 160, "N", 0
 tk_m
-	defb AT, KBROW + 11, 184, "M", 0
+	defb KBROW + 11, 184, "M", 0
 tk_ss
-	defb AT, KBROW + 11, 208, "s", 0
+	defb KBROW + 11, 208, "s", 0
 tk_spc
-	defb AT, KBROW + 11, 232, "sp", 0
+	defb KBROW + 11, 232, "sp", 0
