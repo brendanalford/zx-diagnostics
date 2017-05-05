@@ -654,6 +654,8 @@ init_mem_loop
 ;
 set_mem_line_colour
 
+	ld a, 57
+	ld (v_attr), a
 	ld a, h
 	cp 0x40
 	ret nc
@@ -972,7 +974,7 @@ str_mem_browser_header
 
 str_mem_browser_footer
 
-	defb	AT, 21, 0, "Arrow keys move cursor,0-9,A-F: enter data\n"
+	defb	AT, 21, 0, "Arrow keys to move, 0-9, A-F: enter data\n"
 	defb	"Z: PgUp X: PgDown R: Page ROM, P: Page RAM\n"
 
 str_goto_addr_default

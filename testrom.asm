@@ -1097,7 +1097,7 @@ tests_complete
 	ld a, (v_fail_rom)
 	cp 0
 	jr z, soak_test_check
-	
+
 ;	Yes we did - say so and halt
 
 tests_failed_halt
@@ -1400,6 +1400,14 @@ check_spc_key
 
 initialize
 
+	ld a, 0
+	ld hl, 0x5800
+	ld de, 0x5801
+	ld bc, 0x300
+	ld (hl), a
+	ldir
+	out (ULA_PORT), a
+
 ;	Quick RAM integrity check from 5B00-7FFF.
 ;	This isn't as exhaustive as the main RAM
 ;	tests but aims to make sure the RAM is
@@ -1577,7 +1585,6 @@ rompage_reloc
 	incbin "diagboard.bin"
 
 end_rompage_reloc
-
 
 
 str_romdiagboard

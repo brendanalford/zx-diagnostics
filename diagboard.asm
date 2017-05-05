@@ -410,7 +410,3 @@ check_magic_string
 ;	Match all the way, zero flag will be set
 
 	ret
-
-;	Magic string to tell if we can page out our ROM (so that we can
-;	tell the difference between Diagboard hardware and generic external
-;	ROM boards)

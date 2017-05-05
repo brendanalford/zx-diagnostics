@@ -359,6 +359,8 @@ do_proportional
 	ld e, b
 	ld d, 0
 	add hl, de
+	ld e, 32
+	add hl, de
 	ld b, (hl)
 	pop hl
 
@@ -957,10 +959,6 @@ stripe_attr
 
 proportional_data
 
-	defb 0,0,0,0,0,0,0,0
-	defb 0,0,0,0,0,0,0,0
-	defb 0,0,0,0,0,0,0,0
-	defb 0,0,0,0,0,0,0,0
 	defb 4, 2, 4, 6, 6, 6, 6, 2	; Space - '
 	defb 4, 4, 6, 6, 3, 6, 2, 6	; ( - /
 	defb 6, 4, 6, 6, 6, 6, 6, 6	; 0 - 7
