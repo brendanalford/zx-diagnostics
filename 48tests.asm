@@ -323,4 +323,4 @@ str_bit
 
 str_multiplexer_fail
 
-	defb "Upper RAM multiplexers faulty. Check IC25 and IC26", 0
+	defb "Upper RAM multiplexer(s) faulty.\nCheck IC25 and IC26", 0

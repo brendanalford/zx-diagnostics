@@ -45,6 +45,8 @@ mem_browser
 	call print_header
 	ld hl, str_mem_browser_footer
 	call print
+	ld hl, str_break_to_exit
+	call print
 
 ;	Paint initial memory locations
 ;	HL is our starting address.
@@ -979,11 +981,15 @@ str_mem_browser_footer
 
 str_goto_addr_default
 
-	defb	AT, 23, 0, "G: Goto address. BREAK to exit. ",0
+	defb	AT, 23, 0, "G: Goto address       ", 0
+
+str_break_to_exit
+
+	defb TAB, 168, TEXTBOLD, "BREAK to exit.", TEXTNORM, 0
 
 str_goto_addr_prompt
 
-	defb  AT, 23, 15 * 6, ":               ", AT,23, 17 * 6, 0
+	defb  AT, 23, 15 * 6, ":  ", AT,23, 17 * 6, 0
 
 str_cursor
 

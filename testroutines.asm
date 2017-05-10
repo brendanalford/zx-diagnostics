@@ -164,7 +164,7 @@ altpata
 	or b
 
 	ld b, a
-	ld a, 2	; Bit 0 of ixl: inversion test fail
+	ld a, 2	; Bit 1 of ixl: inversion test fail
 	or c
 	ld c, a
 	ld ix, bc
@@ -252,7 +252,7 @@ altpatb
 	or b
 
 	ld b, a
-	ld a, 2	; Bit 0 of l': inversion test fail
+	ld a, 2	; Bit 1 of l': inversion test fail
 	or c
 	ld c, a
 	ld ix, bc
@@ -386,7 +386,7 @@ marchborked
 	or b
 	ld ixh, a
 
-	ld a, 4			; Set bit 4 of IXL - march test fail
+	ld a, 4			; Set bit 2 of IXL - march test fail
 	ld c, a
 	ld a, ixl
 	or c

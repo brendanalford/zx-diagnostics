@@ -63,14 +63,6 @@ rom_signature_table
 
 	defw 0x26f0, str_orelbk08, test_48kgeneric, 0x0000
 
-;	Just Speccy 128 clone
-
-	defw 0xee67, str_js128, test_js128, rom_table_js128
-
-;	Harlequin Rev F
-
-	defw 0xe56c, str_harlequin_f, test_48kgeneric, 0x0000
-
 ;	Beckman 48K
 
 	defw 0x870c, str_rom48kbeckman, test_48k, 0x0000
@@ -157,11 +149,6 @@ rom_table_romplus3e_v1_43esp
 
 	defw	0x9035, str_romplus3_a_fail, 0x2876, str_romplus3_b_fail, 0x8a84, str_romplus3_b_fail, 0x0000
 
-
-rom_table_js128
-
-	defw	0x8616, str_romjs128_fail, 0x0000
-
 	ENDIF
 
 	ENDIF
@@ -231,7 +218,7 @@ str_romplus3
 
 str_romplus2a
 
-	defb    "Spectrum +2A (v4.1) ROM...  ", 0
+	defb  "Spectrum +2A (v4.1) ROM...  ", 0
 
 str_romplus3espv40
 
@@ -245,7 +232,7 @@ str_romplus3espv41
 
 str_rom128derby14
 
-  defb "Spectrum 128 Dev, Derby 1.4 ROM... ", 0
+  defb	"Spectrum 128 Dev, Derby 1.4 ROM... ", 0
 
 str_romplus3e_v1_38
 
@@ -266,14 +253,6 @@ str_romplus3e_v1_43esp
 str_orelbk08
 
 	defb	"Orel BK-08 ROM...           ", 0
-
-str_harlequin_f
-
-	defb	"Harlequin Rev. F...         ", 0
-
-str_js128
-
-	defb	"Just Speccy 128 ROM...          ", 0
 
 str_rom48kbeckman
 

@@ -736,7 +736,7 @@ str_ulaselecttest
 
 str_ulaexit
 
-	defb AT, 20, 12 * 6, "Hold BREAK to exit", 0
+	defb AT, 20, 12 * 6, TEXTBOLD, "Hold BREAK to exit", TEXTNORM, 0
 
 str_ulatype
 

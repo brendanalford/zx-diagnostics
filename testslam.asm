@@ -17,10 +17,12 @@
 ;
 ;	testslam.asm
 ;
-;	Defines SLAMTEST to size the main test ROM build to 6912 x 2 
+;	Defines SLAMTEST to size the main test ROM build to 6912 x 2
 ;
 
 
 	define SLAMTEST
 
 	include "testrom.asm"
+
+	BLOCK 0x3600-$, 0xFF
