@@ -624,7 +624,7 @@ fail_border_7
 ;
 	ld a, iyh
 	or iyl
-	jr z, fail_border_end
+	jr z, fail_border_end_no_soak
 ;
 ;	Yes, output an additional yellow stripe to signify this
 ;
@@ -638,14 +638,14 @@ fail_border_8
 	djnz fail_border_8
 	ld a, 0
 	out (ULA_PORT), a
+	inc l
 
 ; And repeat for next frame - enable ints and wait for and interrupt
 ; to carry us back
 
-fail_border_end
+fail_border_end_no_soak
 
 	ld de, ix
-	inc l
 	ei
 	halt
 
@@ -1106,6 +1106,13 @@ tests_failed_halt
 	ld hl, str_halted_fail
 	call print
 	di
+	ld a, iyl
+	or iyh
+	jr nz, test_failed_halt_loop
+
+; No beeps if not in soak test mode, just halt
+
+	halt
 
 test_failed_halt_loop
 
