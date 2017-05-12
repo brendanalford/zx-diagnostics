@@ -291,21 +291,22 @@ romhw_test_dandanator
 ; we need to issue a special command sequence to the
 ; Dandanator board: 46 16 16 1.
 
-	ld hl, 1
+	ld hl,$81	; h>0 means short wait
 	ld a, 46
 	call issue_dandanator_command
-	inc hl
-
+	
+	ld hl,$82
 	ld a, 16
 	call issue_dandanator_command
-	inc hl
+	
+	ld hl,$83
+	;ld a,16 ; a already contains 16
 	call issue_dandanator_command
 
 	ld (0), a
 	ld b, 0
 
 romhw_test_dandanator_loop
-
 	djnz romhw_test_dandanator_loop
 
 ;	Set up for disable of test ROM
@@ -349,35 +350,43 @@ issue_dandanator_command
 
 	push bc
 	push af
+	
+	ld c,h	
+	ld h,0
 
 ;	Issue Dandanator command/data exchange
 
 	ld b, a
 
-dandanator_cmdloop ; Add extra 110 t-states for ~50us pulse cycle (109 for 48k, 111,34 for 128k)
+dandanator_cmdloop ; Add extra t-states for ~8us pulse cycle
 
-	ex (sp), hl
-	ex (sp), hl
+	nop
+	nop
+	nop
+	nop 
 	ld (hl), a
 	djnz dandanator_cmdloop
 
-	ld b, 40
+	ld a,c
+	or a
+	jr nz, ddntr_waitlong
+	
+	ld b, $40
 
-dandanator_waitxcmd
+dandanator_waitxcmd ; Wait command detection timeout and Command execution 
 
 	djnz dandanator_waitxcmd
+	jr exit_ddntr_cmd
 
-;	Need to waste about 300ms here to allow paging to settle down
-
-	ld bc, 0x100
-
-dandanator_waitforpaging
-
+ddntr_waitlong ; This longer wait is to support older dandanator PIC firmwares
+	ld bc,$300
+ddntr_waitlong_loop
 	dec bc
-	ld a, b
+	ld a,b
 	or c
-	jr nz, dandanator_waitforpaging
-
+	jr nz, ddntr_waitlong_loop
+	
+exit_ddntr_cmd
 	pop af
 	pop bc
 	ret
