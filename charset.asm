@@ -951,12 +951,12 @@ charset
 ; $74 - Character: 't'          CHR$(116)
 
         DEFB    %00000000
-        DEFB    %00010000
-        DEFB    %00111000
-        DEFB    %00010000
-        DEFB    %00010000
-        DEFB    %00010000
-        DEFB    %00001100
+        DEFB    %00100000
+        DEFB    %01110000
+        DEFB    %00100000
+        DEFB    %00100000
+        DEFB    %00100000
+        DEFB    %00011000
         DEFB    %00000000
 
 ; $75 - Character: 'u'          CHR$(117)
