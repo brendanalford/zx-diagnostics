@@ -255,9 +255,11 @@ exit
 
 hard_copy
 
+	push hl
 	call lprint_screen
+	pop hl
 	jp mem_loop
-	
+
 ;	Routine to allow the user to enter a 4 digit
 ;	hexadecimal memory address to go to
 goto_addr
