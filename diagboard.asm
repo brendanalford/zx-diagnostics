@@ -291,15 +291,15 @@ romhw_test_dandanator
 ; we need to issue a special command sequence to the
 ; Dandanator board: 46 16 16 1.
 
-	ld hl,$81	; h>0 means short wait
+	ld hl,1
 	ld a, 46
 	call issue_dandanator_command
 	
-	ld hl,$82
+	inc hl
 	ld a, 16
 	call issue_dandanator_command
 	
-	ld hl,$83
+	inc hl
 	;ld a,16 ; a already contains 16
 	call issue_dandanator_command
 
@@ -350,9 +350,6 @@ issue_dandanator_command
 
 	push bc
 	push af
-	
-	ld c,h	
-	ld h,0
 
 ;	Issue Dandanator command/data exchange
 
@@ -367,24 +364,12 @@ dandanator_cmdloop ; Add extra t-states for ~8us pulse cycle
 	ld (hl), a
 	djnz dandanator_cmdloop
 
-	ld a,c
-	or a
-	jr nz, ddntr_waitlong
 	
-	ld b, $40
+	ld b, 40
 
 dandanator_waitxcmd ; Wait command detection timeout and Command execution 
 
 	djnz dandanator_waitxcmd
-	jr exit_ddntr_cmd
-
-ddntr_waitlong ; This longer wait is to support older dandanator PIC firmwares
-	ld bc,$300
-ddntr_waitlong_loop
-	dec bc
-	ld a,b
-	or c
-	jr nz, ddntr_waitlong_loop
 	
 exit_ddntr_cmd
 	pop af
