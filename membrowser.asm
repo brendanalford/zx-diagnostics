@@ -155,6 +155,8 @@ check_keys
 	jp z, goto_addr
 	cp BREAK
 	jr z, exit
+	cp 'H'
+	jr z, hard_copy
 
 ;	Test for Hex characters
 
@@ -251,7 +253,11 @@ exit
 
 	call diagrom_exit
 
+hard_copy
 
+	call lprint_screen
+	jp mem_loop
+	
 ;	Routine to allow the user to enter a 4 digit
 ;	hexadecimal memory address to go to
 goto_addr

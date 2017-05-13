@@ -1112,7 +1112,15 @@ tests_failed_halt
 
 ; No beeps if not in soak test mode, just halt
 
-	halt
+test_failed_halt_2
+
+	call scan_keys
+	cp 'H'
+	jr nz, test_failed_halt_2
+	call lprint_screen
+	ld a, 2
+	out (ULA_PORT), a
+	jr test_failed_halt_2
 
 test_failed_halt_loop
 
@@ -1130,6 +1138,11 @@ test_failed_halt_loop_2
 	ld a, b
 	or c
 	jr nz, test_failed_halt_loop_2
+
+	call scan_keys
+	cp 'H'
+	jr nz, test_failed_halt_loop
+	call lprint_screen
 
 	jr test_failed_halt_loop
 
@@ -1589,7 +1602,9 @@ diagrom_exit
 	ENDIF
 
 	include "romtables.asm"
+	include "printer.asm"
 	include "about.asm"
+
 	;	Relocatable routines for diag board detection/paging
 
 rompage_reloc
