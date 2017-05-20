@@ -1575,6 +1575,15 @@ decstr_init
 ;
 diagrom_exit
 
+; First make sure ROM 0 is paged in.
+; These won't have any effect on 48K machines.
+
+	xor a
+	ld bc, 0x1ffd
+	out (c), a
+	ld bc, 0x7ffd
+	out (c), a
+	
 ;	Just do a simple reset if diagboard hardware isn't detected
 
 	ld a, (v_testhwtype)
