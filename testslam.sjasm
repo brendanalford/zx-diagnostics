@@ -1,0 +1,7 @@
+; SjASMPlus source file for SLAM48/128 Diagnostics
+
+  define ORG 0
+  define LENGTH 13824
+  device zxspectrum48
+  include testslam.asm
+  savebin "testslam.bin",ORG,LENGTH

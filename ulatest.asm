@@ -26,23 +26,7 @@ ulatest
 	ld sp, sys_stack
 	call initialize
 
-;	Keypress check
-
-	exx
-	ld l, 0
-	ld bc, 0xbffe
-	in a, (c)
-	bit 1, a
-	jr nz, write_shadow_screen
-	ld bc, 0xfdfe
-	in a, (c)
-	bit 0, a
-	jr nz, write_shadow_screen
-	ld l, 0xff
-
 write_shadow_screen
-
-	exx
 
 ;	Write some data to Screen 1.
 ;	This'll just write to the C000 area on a 48K machine,
@@ -52,10 +36,17 @@ write_shadow_screen
 	ld a, 7
 	call pagein
 
-	BLANKMEM 0xc000, 0x1800, 0x00
-	BLANKMEM 0xd800, 0x300, 0x20
+	ld hl, 0xc000
+	ld bc, 0x1800
+	xor a
+	call blankmem
 
-	ld a, 0
+	ld hl, 0xd800
+	ld bc, 0x300
+	ld a, 0x20
+	call blankmem
+
+	xor a
 	call pagein
 
 ;	Detect frame length. Once HALT is issued, we start counting until the
@@ -212,35 +203,6 @@ ula_print_floatbus_type
 	call print
 	ld hl, str_ulaexit
 	call print
-
-	exx
-	ld a, l
-	exx
-
-	cp 0xff
-	jr nz, do_footer
-
-	ld hl, str_message
-	ld de, 0x7a00
-
-.loop_1
-
-	ld a, (hl)
-	dec a
-	ld (de), a
-	inc de
-	inc hl
-	cp 0xff
-	jr nz, .loop_1
-
-	dec de
-	xor a
-	ld (de), a
-	ld hl, 0x7a00
-	call print
-
-do_footer
-
 	call print_footer
 	exx
 
@@ -634,6 +596,8 @@ test_ula_addr_next
 	cp 0x1f
 	jr nz, test_ula_addr_loop
 
+	xor a
+	out (0xff), a
 	ei
 	jp ulatest_loop
 
@@ -768,11 +732,11 @@ str_ulaselecttest
 	defb AT, 15, 0, "4) Test screen switching (128K)"
 	defb AT, 16, 0, "5) Test ULA port addressing"
 	defb AT, 17, 18, "(Flashing green border: pass,"
-	defb AT, 18, 18, "flashing red border: fail)", 0
+	defb AT, 18, 18, "anything else: fail)", 0
 
 str_ulaexit
 
-	defb AT, 20, 12 * 6, "Hold BREAK to exit", 0
+	defb AT, 20, 12 * 6, TEXTBOLD, "Hold BREAK to exit", TEXTNORM, 0
 
 str_ulatype
 
@@ -834,7 +798,3 @@ str_fb_detected
 str_fb_absent
 
 	defb "absent", 0
-
-str_message
-
-	defb 24, 21, 17, "VVVVVVVVVVVVMMMMMMMMMMBBBBBBBBBBB\"\"\"\"\"", 0

@@ -22,7 +22,7 @@
 
 mem_browser
 
-    ld sp, sys_stack
+  ld sp, sys_stack
 
 	call initialize
 
@@ -44,6 +44,8 @@ mem_browser
 	ld hl, str_mem_browser_header
 	call print_header
 	ld hl, str_mem_browser_footer
+	call print
+	ld hl, str_break_to_exit
 	call print
 
 ;	Paint initial memory locations
@@ -129,22 +131,23 @@ check_keys
 
 ;	Movement keys.
 
-	cp 'W'
+	cp 'Z'
 	jp z, page_up
 	cp 'X'
 	jp z, page_down
-	cp 'Q'
+	cp KEY_UP
 	jp z, cur_up
-	cp 'Z'
+	cp KEY_DOWN
 	jp z, cur_down
-	cp 'O'
+	cp KEY_LEFT
 	jp z, cur_left
-	cp 'P'
+	cp KEY_RIGHT
 	jp z, cur_right
+
 
 ;	Option keys
 
-	cp 'T'
+	cp 'P'
 	jp z, ram_page
 	cp 'R'
 	jp z, rom_page
@@ -152,6 +155,8 @@ check_keys
 	jp z, goto_addr
 	cp BREAK
 	jr z, exit
+	cp 'H'
+	jr z, hard_copy
 
 ;	Test for Hex characters
 
@@ -248,6 +253,12 @@ exit
 
 	call diagrom_exit
 
+hard_copy
+
+	push hl
+	call lprint_screen
+	pop hl
+	jp mem_loop
 
 ;	Routine to allow the user to enter a 4 digit
 ;	hexadecimal memory address to go to
@@ -653,6 +664,8 @@ init_mem_loop
 ;
 set_mem_line_colour
 
+	ld a, 57
+	ld (v_attr), a
 	ld a, h
 	cp 0x40
 	ret nc
@@ -971,16 +984,20 @@ str_mem_browser_header
 
 str_mem_browser_footer
 
-	defb	AT, 21, 0, "Q,Z,O,P: cursor, 0-9,A-F: enter data\n"
-	defb	"W: PgUp X: PgDown R: Page ROM, T: Page RAM\n"
+	defb	AT, 21, 0, "Arrow keys to move, 0-9, A-F: enter data\n"
+	defb	"Z: PgUp X: PgDown R: Page ROM, P: Page RAM\n"
 
 str_goto_addr_default
 
-	defb	AT, 23, 0, "G: Goto address. BREAK to exit. ",0
+	defb	AT, 23, 0, "G: Goto address       ", 0
+
+str_break_to_exit
+
+	defb TAB, 168, TEXTBOLD, "BREAK to exit.", TEXTNORM, 0
 
 str_goto_addr_prompt
 
-	defb  AT, 23, 15 * 6, ":               ", AT,23, 17 * 6, 0
+	defb  AT, 23, 15 * 6, ":  ", AT,23, 17 * 6, 0
 
 str_cursor
 

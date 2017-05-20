@@ -16,13 +16,11 @@
 ;	Lesser General Public License for more details.
 ;
 ;	version.asm
-;	
+;
 
 ; 	Define the central version string used throughout the test ROM
 ;	and tape test variants.
 
-	define VERSION	"v0.33"
-	
-	define VERSION_STRING "        ", VERSION, " D. Smith, B. Alford          "
-	
-	
+	define VERSION	"v0.35"
+
+	define VERSION_STRING TAB, 48, VERSION, " D. Smith, B. Alford"

@@ -679,7 +679,7 @@ prt_scroll
 
 test_vector_table
 
-	defw str_select48k, test_48k
+	defw str_select48k, test_48kgeneric
 	defw str_select128k, test_128k
 	defw str_selectplus2, test_plus2
 	defw str_selectplus3, test_plus3
@@ -802,6 +802,10 @@ str_testingpaging
 
 	defb	"Testing paging    ", 0
 
+str_stresspaging
+
+	defb 	"Stress test paging...", 0
+
 str_bankm
 
 	defb	"x ", 0
@@ -837,6 +841,10 @@ str_check_js128_hal
 str_check_plus3_ula
 
 	defb	"Check IC1 (ULA 40077)", 0
+
+str_paging_stress_fail
+
+	defb "If Issue 1 Z70830 PCB, check RAM\n(must be AMS or MT4067 type)", 0
 
 str_check_ic
 

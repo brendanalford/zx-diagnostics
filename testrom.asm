@@ -25,6 +25,8 @@
 ;	v0.2 modifications and 128K testing by Brendan Alford.
 ;
 
+	define TESTROM
+
 	include "defines.asm"
 	include "version.asm"
 
@@ -46,7 +48,7 @@
 
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
 	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
-	sj.insert_define("HOSTNAME", '"' .. os.getenv("USERDOMAIN") .. '"');
+	sj.insert_define("HOSTNAME", '"' .. os.getenv("USERDOMAIN"):lower() .. '"');
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
 
 	ENDLUA
@@ -97,6 +99,12 @@ str_buildmachine
 
 	defb  "Host:   ", HOSTNAME, 0
 
+	BLOCK 0x00f0-$, 0xff
+
+str_rommagicstring
+
+	defb "TROM"
+
 	BLOCK 0x0100-$, 0xff
 
 start
@@ -113,6 +121,8 @@ start
 
 	ld a, 0xff
 	out (LED_PORT), a		; Light all LED's on startup
+	ld a, 1
+	out (ULA_PORT), a
 
 	IFNDEF SLAMTEST
 
@@ -161,9 +171,50 @@ splash_check_upper
 	cp 0x4a
 	jr nz, splash_loop
 
-	BLANKMEM 0x5940, 64, 7
+	BLANKMEM 0x5940, 63, 7
 
 	ENDIF
+
+; Insert delay here
+
+	ld d, 127
+	ld b, 8
+
+start_loop_outer
+
+	ld hl, 0x8000
+
+	exx
+	ld l, 1
+	BEEP 0x10, 0x0150
+	exx
+
+start_loop_inner
+
+; Terminate the 5 sec wait if a key is pressed
+
+	in a, (0xfe)
+	and 0x1f
+	cp 0x1f
+	jr nz, start_loop_end
+
+	dec hl
+	ld a, h
+	or l
+	jr nz, start_loop_inner
+
+	ld a, d
+	out (LED_PORT), a
+	and a
+	rr d
+	djnz start_loop_outer
+
+start_loop_end
+
+; Extinguish the LED's if any are still lit
+
+	xor a
+	out (LED_PORT), a
 
 ;	Sound a brief tone to indicate tests are starting.
 ;	This also verifies that the CPU and ULA are working.
@@ -343,7 +394,7 @@ lowerram_random
 ;	Conveniently, if there's some lower RAM, then this'll give us
 ;	a pattern to lock onto with the floating bus sync test.
 
-    	BLANKMEM 16384, 6144, 0
+    BLANKMEM 16384, 6144, 0
 
 ;	Attributes - white screen, blank ink.
 
@@ -453,6 +504,8 @@ fail_bits_next
 	cp 0
 	jr nz, fail_bits_outer_loop
 
+	; Use L as a frame counter
+	ld l, 0
 
 ;
 ;	Lower RAM failure detected, default ISR with I=0
@@ -538,7 +591,8 @@ fail_border_4
 
 ; Change back to black for gap between stripes
 
-	ld a, 0
+	ld a, l
+	and 0xf8
 	out (ULA_PORT), a
 	ld a, 0xa8
 	ld b, a
@@ -570,7 +624,7 @@ fail_border_7
 ;
 	ld a, iyh
 	or iyl
-	jr z, fail_border_end
+	jr z, fail_border_end_no_soak
 ;
 ;	Yes, output an additional yellow stripe to signify this
 ;
@@ -584,11 +638,12 @@ fail_border_8
 	djnz fail_border_8
 	ld a, 0
 	out (ULA_PORT), a
+	inc l
 
 ; And repeat for next frame - enable ints and wait for and interrupt
 ; to carry us back
 
-fail_border_end
+fail_border_end_no_soak
 
 	ld de, ix
 	ei
@@ -743,7 +798,7 @@ rom_check_found
 	ld hl, str_testpending
 	call print
 	pop hl
-	
+
 ;	HL points to the ROM check table address
 ;	Pop it into IX for handiness sake
 
@@ -794,6 +849,14 @@ additional_rom_check_loop
 	jr rom_test_pass
 
 additional_rom_fail
+
+;
+;	When adding new ROM signatures, uncomment di/halt below. ROM checksum
+; to add will be in HL.
+;
+;	di
+;	halt
+;
 
 	ld hl, str_testfail
 	call print
@@ -869,7 +932,7 @@ rom_unknown_2
 	ld hl, str_assume48k
 	call print
 	call newline
-	call test_48k
+	call test_48kgeneric
 	jr testinterrupts
 
 rom_unknown_3
@@ -1043,7 +1106,45 @@ tests_failed_halt
 	ld hl, str_halted_fail
 	call print
 	di
-	halt
+	ld a, iyl
+	or iyh
+	jr nz, test_failed_halt_loop
+
+; No beeps if not in soak test mode, just halt
+
+test_failed_halt_2
+
+	call scan_keys
+	cp 'H'
+	jr nz, test_failed_halt_2
+	call lprint_screen
+	ld a, 2
+	out (ULA_PORT), a
+	jr test_failed_halt_2
+
+test_failed_halt_loop
+
+	di
+	ld l, 2
+	ld bc, 0x00a8
+	ld de, 0x0080
+	call beep
+
+	ld bc, 0x4000
+
+test_failed_halt_loop_2
+
+	dec bc
+	ld a, b
+	or c
+	jr nz, test_failed_halt_loop_2
+
+	call scan_keys
+	cp 'H'
+	jr nz, test_failed_halt_loop
+	call lprint_screen
+
+	jr test_failed_halt_loop
 
 soak_test_check
 
@@ -1053,6 +1154,15 @@ soak_test_check
 	ld a, iyh
 	or iyl
 	jr z, diaghw_present
+
+;	Yes, bump soak test iteration count
+
+	inc iy
+
+; Have we rolled over to 00000 (> 65535 iterations complete)?
+	ld a, iyh
+	or iyl
+	jr z, soak_test_ffff
 
 	call newline
 	ld hl, str_soakcomplete
@@ -1074,12 +1184,37 @@ innerdelay_2
 	or l
 	jr nz, innerdelay_1
 
-; 	Bump soak test iteration count and restart
+; 	Start next soak test iteration
 
-	inc iy
 	im 0
 	jp start_testing
 
+soak_test_ffff
+
+	call newline
+	ld hl, str_soak_test_ffff
+	call print
+
+	ld hl, 0
+
+soak_test_ffff_2
+
+	ld e, l
+	ld a, 40
+	ld d, a
+	ld a, (de)
+	out (0xfe), a
+	ld b, h
+
+soak_test_ffff_3
+
+	djnz soak_test_ffff_3
+	inc hl
+	ld a, h
+	and 0x3f
+	or 0x01
+	ld h, a
+	jr soak_test_ffff_2
 
 ;	Check if we have diagboard hardware - if not, we're done here
 
@@ -1285,6 +1420,19 @@ check_spc_key
 
 initialize
 
+	ld a, 0
+	ld hl, 0x5800
+	ld de, 0x5801
+	ld bc, 0x2ff
+	ld (hl), a
+	ldir
+	ld hl, 0x4000
+	ld de, 0x4001
+	ld bc, 0x17ff
+	ld (hl), a
+	ldir
+	out (ULA_PORT), a
+
 ;	Quick RAM integrity check from 5B00-7FFF.
 ;	This isn't as exhaustive as the main RAM
 ;	tests but aims to make sure the RAM is
@@ -1329,7 +1477,7 @@ initialize_no_ram_check
 	ld (v_fail_rom), a
 	ld (v_testcard_flags), a
 	ld (v_column), a
-    	ld (v_row), a
+  ld (v_row), a
 	ld (v_pr_ops), a
 	ld a, 56
 	ld (v_attr), a
@@ -1415,6 +1563,11 @@ decstr_init
 ;	Reset the AY chip if present.
 
 	call ay_reset
+
+; Detect presence/absence of Kempston I/F.
+
+	call detect_kempston
+
 	ret
 
 ;
@@ -1422,6 +1575,15 @@ decstr_init
 ;
 diagrom_exit
 
+; First make sure ROM 0 is paged in.
+; These won't have any effect on 48K machines.
+
+	xor a
+	ld bc, 0x1ffd
+	out (c), a
+	ld bc, 0x7ffd
+	out (c), a
+	
 ;	Just do a simple reset if diagboard hardware isn't detected
 
 	ld a, (v_testhwtype)
@@ -1440,7 +1602,6 @@ diagrom_exit
 	include "print.asm"
 	include "scroll.asm"
 	include "paging.asm"
-	include "diagboard.asm"
 	include "testcard.asm"
 	include "ulatest.asm"
 	include "keyboardtest.asm"
@@ -1450,7 +1611,17 @@ diagrom_exit
 	ENDIF
 
 	include "romtables.asm"
+	include "printer.asm"
 	include "about.asm"
+
+	;	Relocatable routines for diag board detection/paging
+
+rompage_reloc
+
+	incbin "diagboard.bin"
+
+end_rompage_reloc
+
 
 str_romdiagboard
 
@@ -1462,7 +1633,7 @@ str_romdiagboard
 
 test_vector_table
 
-	defw str_select48k, test_48k
+	defw str_select48k, test_48kgeneric
 	defw str_select128k, test_128k
 	defw str_selectplus2, test_plus2
 	defw str_selectplus3, test_plus3
@@ -1480,7 +1651,7 @@ str_banner
 
 str_lowerrampass
 
-	defb	AT, 2, 0, "Lower 16K RAM tests...      ", TAB, 38 * 6, TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
+	defb	AT, 2, 0, "Lower 16K RAM tests...", TAB, 38 * 6, TEXTBOLD, INK, 4, "PASS", TEXTNORM, INK, 0, 0
 
 str_soaktest
 
@@ -1488,7 +1659,7 @@ str_soaktest
 
 str_test4
 
-	defb	"\nUpper RAM Walk test...      ", 0
+	defb	"\nUpper RAM Walk test...", TAB, 168, 0
 
 str_test5
 
@@ -1496,11 +1667,11 @@ str_test5
 
 str_test6
 
-	defb	"Upper RAM March test...     ", 0
+	defb	"Upper RAM March test...", TAB, 168, 0
 
 str_test7
 
-	defb	"Upper RAM Random test...    ", 0
+	defb	"Upper RAM Random test...",TAB, 168, 0
 
 
 str_48ktestsfail
@@ -1510,7 +1681,7 @@ str_48ktestsfail
 str_isthis16k
 
 	defb	"This appears to be a 16K Spectrum\n"
-	defb    "If 48K, check IC23-IC26 (74LS157, 32, 00)",0
+	defb  "If 48K, check IC23-IC26 (74LS157, 32, 00)",0
 
 str_128ktestsfail
 
@@ -1607,15 +1778,19 @@ str_interrupt_tab
 
 str_soakcomplete
 
-	defb	"\n       Soak test iteration complete  ", 0
+	defb	"\n", TAB, 42, "Soak test iteration complete", 0
+
+str_soak_test_ffff
+
+	defb	"\n", TAB, 33, "Soak testing complete. You win!", 0
 
 str_halted
 
-	defb	TEXTBOLD, "\n\n        *** Testing Completed ***", TEXTNORM, 0
+	defb	TEXTBOLD, "\n\n", TAB, 48, "*** Testing Completed ***", TEXTNORM, 0
 
 str_halted_fail
 
-	defb	TEXTBOLD, "\n      Failures found, system halted ", TEXTNORM, 0
+	defb	TEXTBOLD, "\n", TAB, 36,"Failures found, system halted", TEXTNORM, 0
 
 str_pagingin
 
@@ -1648,6 +1823,7 @@ str_check_ic
 str_ic
 
 	defb "IC", 0
+
 str_u
 
 	defb "U", 0
@@ -1721,14 +1897,6 @@ intservice_exit
 	ei
 	reti
 
-;	Magic string to tell if we can page out our ROM (so that we can
-;	tell the difference between Diagboard hardware and generic external
-;	ROM boards)
-
-str_rommagicstring
-
-	defb "TROM"
-
 ;
 ;	Bitmap used to display RAM FAIL in attributes
 ;	if lower RAM tests fail
@@ -1757,11 +1925,11 @@ fail_ram_bitmap
 
 splash_screen
 
-	defb %01100000, %01100100, %01001010, %00000000, %10100000, %10101000, %01000000, %00001010, %00001010, %11101010, %00000000, %01101100, %01100000, %11101110, %01101110, %01100100, %11001100, %00000000, %10100000, %10101110, %10101100, %01000100, %11001100, %00000000, %00000110, %10101010, %01101010, %11101110, %11100000, %01001100, %01001010, %11100000
-	defb %10000100, %10001010, %10101010, %00000000, %10100100, %10101000, %10100000, %00001110, %01001110, %10001110, %00000000, %10001010, %10000100, %01001000, %10000100, %10001010, %10101010, %00000000, %10100100, %10101000, %10101010, %10101010, %10101010, %00000000, %00001000, %10101110, %10001010, %01001000, %01000100, %10101010, %10101010, %01000000
-	defb %01000000, %01001010, %11101100, %00000000, %10100000, %10101000, %11100000, %00001110, %00001110, %11001110, %00000000, %01001100, %10000000, %01001100, %01000100, %10001110, %11001010, %00000000, %11000000, %11001100, %01001100, %10101110, %11001010, %00000000, %00000100, %01001110, %01001110, %01001100, %01000000, %11101100, %10101010, %01000000
-	defb %00100100, %00101010, %10101010, %00000000, %10100100, %10101000, %10100000, %00001010, %01001010, %10001010, %00000000, %00101000, %10000100, %01001000, %00100100, %10001010, %10101010, %00000000, %10100100, %10101000, %01001010, %10101010, %10101010, %00000000, %00000010, %01001010, %00101010, %01001000, %01000100, %10101010, %10101010, %01000000
-	defb %11000000, %11000100, %10101010, %00000000, %01100000, %01101110, %10100000, %00001010, %00001010, %11101010, %00000000, %11001000, %01100000, %01001110, %11000100, %01101010, %10101100, %00000000, %10100000, %10101110, %01001100, %01001010, %10101100, %00000000, %00001100, %01001010, %11001010, %11101000, %01000000, %10101100, %01000110, %01000000
+	defb %00000110, %00000110, %01000100, %10100000, %00001010, %00001010, %10000100, %00000000, %10100000, %10101110, %10100000, %00000110, %11000110, %00001110, %11100110, %11100110, %01001100, %11000000, %00001010, %00001010, %11101010, %11000100, %01001100, %11000000, %00000110, %10101010, %01101010, %11101110, %11100000, %01001100, %01001010, %11100000
+	defb %00001000, %01001000, %10101010, %10100000, %00001010, %01001010, %10001010, %00000000, %11100100, %11101000, %11100000, %00001000, %10101000, %01000100, %10001000, %01001000, %10101010, %10100000, %00001010, %01001010, %10001010, %10101010, %10101010, %10100000, %00001000, %10101110, %10001010, %01001000, %01000100, %10101010, %10101010, %01000000
+	defb %00000100, %00000100, %10101110, %11000000, %00001010, %00001010, %10001110, %00000000, %11100000, %11101100, %11100000, %00000100, %11001000, %00000100, %11000100, %01001000, %11101100, %10100000, %00001100, %00001100, %11000100, %11001010, %11101100, %10100000, %00000100, %01001110, %01001110, %01001100, %01000000, %11101100, %10101010, %01000000
+	defb %00000010, %01000010, %10101010, %10100000, %00001010, %01001010, %10001010, %00000000, %10100100, %10101000, %10100000, %00000010, %10001000, %01000100, %10000010, %01001000, %10101010, %10100000, %00001010, %01001010, %10000100, %10101010, %10101010, %10100000, %00000010, %01001010, %00101010, %01001000, %01000100, %10101010, %10101010, %01000000
+	defb %00001100, %00001100, %01001010, %10100000, %00000110, %00000110, %11101010, %00000000, %10100000, %10101110, %10100000, %00001100, %10000110, %00000100, %11101100, %01000110, %10101010, %11000000, %00001010, %00001010, %11100100, %11000100, %10101010, %11000000, %00001100, %01001010, %11001010, %11101000, %01000000, %10101100, %01000110, %01000000
 
 	ENDIF
 
@@ -1775,7 +1943,7 @@ free_space
 	ENDIF
 
 	IFDEF SLAMTEST
-	BLOCK 0x3000-$, 0xff
+	BLOCK 0x3100-$, 0xff
 	ENDIF
 
 free_space_end
@@ -1825,7 +1993,7 @@ str_plus3_ic_uncontend
 	BLOCK 0x3c00-$, 0xff
 	ENDIF
 	IFDEF SLAMTEST
-	BLOCK 0x3200-$, 0xff
+	BLOCK 0x3300-$, 0xff
 	ENDIF
 ;	Character set at 0x3C00
 

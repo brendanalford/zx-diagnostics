@@ -202,7 +202,7 @@ print_chk_cr
 
 	cp CR
 	jr nz, print_chk_bright
-	ld a, 0
+	xor a
 	ld (v_column), a
 	jp print_nextchar
 
@@ -258,7 +258,7 @@ print_chk_at
 	inc hl
 	cp 24
 	jr c, print_chk_at_2
-	ld a, 0
+	xor a
 
 print_chk_at_2
 
@@ -267,7 +267,7 @@ print_chk_at_2
 	inc hl
 	cp 249
 	jr c, print_chk_at_3
-	ld a, 0
+	xor a
 
 print_chk_at_3
 
@@ -359,6 +359,8 @@ do_proportional
 	ld e, b
 	ld d, 0
 	add hl, de
+	ld e, 32
+	add hl, de
 	ld b, (hl)
 	pop hl
 
@@ -369,7 +371,7 @@ print_wrap
 	ld (v_column), a
 	cp 0
 	jp nz, print_nextchar
-	ld a, 0
+	xor a
 	ld (v_column), a
 	ld a, (v_row)
 	inc a
@@ -382,7 +384,7 @@ print_wrap
 ;	Wrap text from bottom to top
 	cp 24
 	jp nz, print_nextchar
-	ld a, 0
+	xor a
 	ld (v_row), a
 	jp print_nextchar
 
@@ -806,7 +808,7 @@ cls
 
 ;	Clear the bitmap locations
 
-	ld a, 0
+	xor a
 	ld hl, 16384
 	ld (hl), a
 	ld de, 16385
@@ -849,7 +851,7 @@ newline
 ;	Wrap text from bottom to top
 	cp 24
 	jr nz, newline_done
-	ld a, 0
+	xor a
 	ld (v_row), a
 	jr newline_done
 
@@ -957,10 +959,6 @@ stripe_attr
 
 proportional_data
 
-	defb 0,0,0,0,0,0,0,0
-	defb 0,0,0,0,0,0,0,0
-	defb 0,0,0,0,0,0,0,0
-	defb 0,0,0,0,0,0,0,0
 	defb 4, 2, 4, 6, 6, 6, 6, 2	; Space - '
 	defb 4, 4, 6, 6, 3, 6, 2, 6	; ( - /
 	defb 6, 4, 6, 6, 6, 6, 6, 6	; 0 - 7

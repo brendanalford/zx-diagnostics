@@ -90,19 +90,6 @@ walkloop
 ;	B:  Pattern to fill with
 ;
 
-blankmem
-
-.blankloop
-
-	ld (hl), b
-	inc hl
-	dec de
-	ld a, d
-	or e
-	jr nz, .blankloop
-
-	ret
-
 ;
 ;	Inversion testing - pattern A.
 ;	Inputs:
@@ -177,7 +164,7 @@ altpata
 	or b
 
 	ld b, a
-	ld a, 2	; Bit 0 of ixl: inversion test fail
+	ld a, 2	; Bit 1 of ixl: inversion test fail
 	or c
 	ld c, a
 	ld ix, bc
@@ -265,7 +252,7 @@ altpatb
 	or b
 
 	ld b, a
-	ld a, 2	; Bit 0 of l': inversion test fail
+	ld a, 2	; Bit 1 of l': inversion test fail
 	or c
 	ld c, a
 	ld ix, bc
@@ -398,6 +385,13 @@ marchborked
 	ld a, ixh
 	or b
 	ld ixh, a
+
+	ld a, 4			; Set bit 2 of IXL - march test fail
+	ld c, a
+	ld a, ixl
+	or c
+	ld ixl, a
+
 	ld a, BORDERRED
 	out (ULA_PORT), a
 	exx
@@ -544,7 +538,7 @@ randfillup
 	or b
 
 	ld b, a
-	ld a, 4	; Bit 0 of l': random test fail
+	ld a, 8	; Bit 3 IXL': random test fail
 	or c
 	ld c, a
 	ld ix, bc
@@ -811,3 +805,15 @@ ldhl4times
 	ld (hl), a
 
 	ret
+;
+;	Routine to blank (or fill) an area of memory
+; HL=start, BC=length, A=pattern
+;
+
+blankmem
+
+		ld de, hl
+		inc de
+		ld (hl), a
+		ldir
+		ret

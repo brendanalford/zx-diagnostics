@@ -18,30 +18,29 @@
 ;	diagboard.asm
 ;
 
+	include "defines.asm"
+	include "vars.asm"
 
-
+	org sys_rompaging
 ;
 ;	Handler for diagboard paging operations.
 ;	Inputs; A=command type, BC=operands.
 ;
 
-rompage_reloc
-
-;	Funny ordering here as we're right on the edge of relative jump range
-
+	cp 0
+	jp z, romhw_test
 	cp 1
 	jr z, romhw_pagein
 	cp 2
 	jr z, romhw_pageout
-	cp 0
-	jr z, romhw_test
+
 
 ;	Command not understood, return with error in A
 
 	ld a, 0xff
 	ret
 
-; 	Command 1: Page in external ROM
+; Command 1: Page in external ROM
 
 romhw_pagein
 
@@ -52,6 +51,8 @@ romhw_pagein
 	jr z, romhw_pagein_smart
 	cp 3
 	jr z, romhw_pagein_zxc
+	cp 4
+	jr z, romhw_pagein_dand
 	ld a, 0xff
 	ret
 
@@ -80,6 +81,15 @@ romhw_pagein_zxc
 	pop hl
 	ret
 
+romhw_pagein_dand
+
+	push hl
+	ld hl, 1
+	ld a, 32
+	call issue_dandanator_command
+	pop hl
+	ret
+
 ;	Command 2: Page out external ROM
 ;	BC = 0x1234: Jump to start of internal ROM
 
@@ -92,6 +102,8 @@ romhw_pageout
 	jr z, romhw_pageout_smart
 	cp 3
 	jr z, romhw_pageout_zxc
+	cp 4
+	jr z, romhw_pageout_dand
 	ld a, 0xff
 	ret
 
@@ -108,6 +120,7 @@ romhw_pageout_diagboard
 	jp 0
 
 romhw_pageout_smart
+
 	push bc
 	ld bc, SMART_ROM_PORT
 	ld a, (v_hw_page)
@@ -128,7 +141,7 @@ romhw_pageout_zxc
 	ld hl, 0x3fd0
 	ld a, (hl)
 	pop hl
-	
+
 	ld a, b
 	cp 0x12
 	ret nz
@@ -136,6 +149,44 @@ romhw_pageout_zxc
 	cp 0x34
 	ret nz
 	jp 0
+
+romhw_pageout_dand
+
+; Are we jumping to ROM at the end of this routine?
+
+	ld a, b
+	cp 0x12
+	jr nz, romhw_pageout_dand_2
+	ld a, c
+	cp 0x34
+	jr nz, romhw_pageout_dand_2
+
+; Yes, issue command 34 instead of 33 to page out and lock further commands
+
+	ld a, 34
+	jr romhw_pageout_dand_3
+
+romhw_pageout_dand_2
+
+	ld a, 33
+
+romhw_pageout_dand_3
+
+	push hl
+	ld hl, 1
+	call issue_dandanator_command
+	pop hl
+
+	cp 34		; Was this a page out with further commands locked?
+	ret nz
+	ld a, b		; If so, does BC=0x1234?
+	cp 0x12
+	ret nz
+	ld a, c
+	cp 0x34
+	ret nz
+	jp 0			; Yes - restart the machine
+
 
 ;	Command 3: Test for diagnostic devices
 ;	Stores result in system variable v_testhwtype
@@ -146,28 +197,15 @@ romhw_test
 
 	ld a, %00100000
 	out (ROMPAGE_PORT), a
-	ld hl, str_rommagicstring
-	ld a, (hl)
-	cp 'T'
-	jr nz, romhw_found_diagboard
-	inc hl
-	ld a, (hl)
-	cp 'R'
-	jr nz, romhw_found_diagboard
-	inc hl
-	ld a, (hl)
-	cp 'O'
-	jr nz, romhw_found_diagboard
-	inc hl
-	ld a, (hl)
-	cp 'M'
+
+	call check_magic_string
 	jr z, romhw_test_smart
 
 romhw_found_diagboard
 
 	ld a, 1
 	ld (v_testhwtype), a
-	ld a, 0
+	xor a
 	out (ROMPAGE_PORT), a
 	ret
 
@@ -184,21 +222,7 @@ romhw_test_smart
 
 	ld a, %10000001
 	out (c), a
-	ld hl, str_rommagicstring
-	ld a, (hl)
-	cp 'T'
-	jr nz, romhw_found_smart
-	inc hl
-	ld a, (hl)
-	cp 'R'
-	jr nz, romhw_found_smart
-	inc hl
-	ld a, (hl)
-	cp 'O'
-	jr nz, romhw_found_smart
-	inc hl
-	ld a, (hl)
-	cp 'M'
+	call check_magic_string
 	jr z, romhw_test_zxc
 
 romhw_found_smart
@@ -217,25 +241,11 @@ romhw_test_zxc
 	ld hl, 0x3fd0
 	ld a, (hl)
 
-	ld hl, str_rommagicstring
-	ld a, (hl)
-	cp 'T'
-	jr nz, romhw_found_zxc
-	inc hl
-	ld a, (hl)
-	cp 'R'
-	jr nz, romhw_found_zxc
-	inc hl
-	ld a, (hl)
-	cp 'O'
-	jr nz, romhw_found_zxc
-	inc hl
-	ld a, (hl)
-	cp 'M'
-	jr z, romhw_not_found
+	call check_magic_string
+	jr z, romhw_test_dandanator
 
 ;	Paged out successfully. Now we need to page each bank
-; 	back in turn to find our diags rom again.
+; back in turn to find our diags rom again.
 
 romhw_found_zxc
 
@@ -243,24 +253,7 @@ romhw_found_zxc
 
 test_zxc_loop
 
-	ld hl, de
-	ld a, (hl)
-
-	ld hl, str_rommagicstring
-	ld a, (hl)
-	cp 'T'
-	jr nz, test_zxc_next
-	inc hl
-	ld a, (hl)
-	cp 'R'
-	jr nz, test_zxc_next
-	inc hl
-	ld a, (hl)
-	cp 'O'
-	jr nz, test_zxc_next
-	inc hl
-	ld a, (hl)
-	cp 'M'
+	call check_magic_string
 	jr nz, test_zxc_next
 
 	jr zxc_paged_in
@@ -292,6 +285,57 @@ zxc_paged_in
 
 	ret
 
+romhw_test_dandanator
+
+; Before testing for the Dandanator hardware,
+; we need to issue a special command sequence to the
+; Dandanator board: 46 16 16 1.
+
+	ld hl,1
+	ld a, 46
+	call issue_dandanator_command
+	
+	inc hl
+	ld a, 16
+	call issue_dandanator_command
+	
+	inc hl
+	;ld a,16 ; a already contains 16
+	call issue_dandanator_command
+
+	ld (0), a
+	ld b, 0
+
+romhw_test_dandanator_loop
+	djnz romhw_test_dandanator_loop
+
+;	Set up for disable of test ROM
+
+	ld hl, 1
+	ld a, 33
+	call issue_dandanator_command
+
+;	Now check for the TROM magic string
+
+	ld hl, de
+	ld a, (hl)
+
+	call check_magic_string
+	jr z, romhw_not_found
+
+dandanator_paging_test_success
+
+;	Successfully paged out the test ROM, set flags and page ourselves
+; back in.
+
+	ld a, 4
+	ld (v_testhwtype), a
+
+	ld hl, 1
+	ld a, 32
+	call issue_dandanator_command
+	ret
+
 romhw_not_found
 
 	xor a
@@ -299,4 +343,64 @@ romhw_not_found
 	ld (v_hw_page), a
 	ret
 
-end_rompage_reloc
+;	Issues a command held in the A register to the
+; Dandanator board. Preserves all registers used.
+;
+issue_dandanator_command
+
+	push bc
+	push af
+
+;	Issue Dandanator command/data exchange
+
+	ld b, a
+
+dandanator_cmdloop ; Add extra t-states for ~8us pulse cycle
+
+	nop
+	nop
+	nop
+	nop 
+	ld (hl), a
+	djnz dandanator_cmdloop
+
+	
+	ld b, 40
+
+dandanator_waitxcmd ; Wait command detection timeout and Command execution 
+
+	djnz dandanator_waitxcmd
+	
+exit_ddntr_cmd
+	pop af
+	pop bc
+	ret
+
+;	Checks to see if the magic string is present in ROM
+;
+
+check_magic_string
+
+	ld hl, de
+	ld a, (hl)
+
+	ld hl, v_rom_magic_loc
+	ld a, (hl)
+	cp 'T'
+	ret nz
+	inc hl
+	ld a, (hl)
+	cp 'R'
+	ret nz
+	inc hl
+	ld a, (hl)
+	cp 'O'
+	ret nz
+	inc hl
+	ld a, (hl)
+	cp 'M'
+	ret nz
+
+;	Match all the way, zero flag will be set
+
+	ret

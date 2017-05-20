@@ -65,12 +65,18 @@ v_testcard					equ #7d50; Workspace for testcard string
 v_rand_addr					equ #7d60;	Random fill test base addr
 v_rand_seed					equ #7d62;	Random fill test rand seed
 v_rand_reps					equ #7d64;	Random fill test repetitions
+v_kempston					equ #7d70; Bit 7 - Kempston I/F present
+														 ; Bits 5-0: Kempston values after call to read_kempston
 
 ;	Relocation addresses for routines that need the original ROM paged
 
 sys_romcrc					equ #7d80
-sys_ld_a_hl					equ #7e00
-sys_rompaging				equ #7e40
+sys_ld_a_hl					equ #7db0
+sys_rompaging				equ #7e00
+
+; Location of magic string for testing Diag ROM presence
+
+v_rom_magic_loc			equ #00f0
 
 ;	Default stack location
 

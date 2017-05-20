@@ -16,7 +16,7 @@
 ;	Lesser General Public License for more details.
 ;
 ;	48tests.asm
-;	
+;
 
 ;
 ;	48K Specific Tests
@@ -24,9 +24,9 @@
 ;	Perform the standard inversion, fill and random tests
 ;   on the top 32K of RAM.
 ;
-	
+
 ;	Start the Upper RAM walk test.
-		
+
 test_48k
 
 ;	Test if we can read/write 0x00 to the lowest byte
@@ -35,9 +35,9 @@ test_48k
 
 	ld b, 0xff
 	ld hl, 0x8000
-	ld (hl), 0
 	xor a
-	
+	ld (hl), a
+
 is_upper_ram_present
 
 	ld c, (hl)
@@ -48,17 +48,17 @@ is_upper_ram_present
 	jr nz, upper_ram_present
 
 ;	No upper ram, reset the error bitmap in ix
-	
+
 	xor a
 	ld ixh, 0
-	
+
 	call newline
 	ld hl, str_isthis16k
 	call print
-	
+
 ;	Don't flag errors if all upper RAM failed
 
-	xor a 
+	xor a
 	ld (v_fail_ic), a
 	ret
 
@@ -66,20 +66,25 @@ upper_ram_present
 
 	call upperram_test
 
-;	Contents of v_fail_ic system variable will be 
+;	Contents of v_fail_ic system variable will be
 ;	non-zero if we have any failures.
-	  
+
 print_upperresult
 
 	ld a, (v_fail_ic)
-   	cp 0
+  cp 0
 	jr z, print_upperpass
+
 	ld hl, str_48ktestsfail
 	call print
-	
+
 ; If possible, output the failing IC's to the screen
 
 print_upper_ic
+
+	ld a, ixl
+	cp 0x0c
+	jr z, print_multiplexer_fail
 
 	ld hl, str_check_ic
 	call print
@@ -89,10 +94,18 @@ print_upper_ic
 	ld ix, str_48_ic
 
 	call print_fail_ic
+	jr print_upper_ic_2
+
+print_multiplexer_fail
+
+	ld hl, str_multiplexer_fail
+	call print
+
+print_upper_ic_2
 
 	ld hl, str_newline
 	call print
-	ret 
+	ret
 
 ;	Upper RAM tests passed, give the user the good news
 
@@ -100,31 +113,31 @@ print_upperpass
 
 	ld hl, str_48ktestspass
 	call print
-	
+
 ;	48K tests passed at this point
 
-	ret	
-	
-	
+	ret
+
+
 ;
 ;	48K Specific Tests
 ;
 ;	Perform the standard inversion, fill and random tests
 ;   	on the top 32K of RAM.
 ;
-	
+
 ;	Start the Upper RAM walk test for generic machines
-		
+
 test_48kgeneric
 
 	call upperram_test
 
-;	Contents of v_fail_ic system variable will be 
+;	Contents of v_fail_ic system variable will be
 ;	non-zero if we have any failures.
-	  
+
 
 	ld a, (v_fail_ic)
-    	cp 0
+  cp 0
 	jr z, print_upperpass_gen
 	ld hl, str_48ktestsfail
 	call print
@@ -136,19 +149,19 @@ test_48kgeneric
 	jr nz, print_upper_ic_gen
 
 ;	Reset the error bitmap in ix
-	
+
 	xor a
 	ld ixh, 0
-	
+
 	ld hl, str_isthis16k
 	call print
-	
+
 ;	Don't flag errors if all upper RAM failed
 
-	xor a 
+	xor a
 	ld (v_fail_ic), a
 	ret
-	
+
 ; If possible, output the failing IC's to the screen
 
 print_upper_ic_gen
@@ -198,9 +211,9 @@ bit_ok
 	ld a, b
 	cp 8
 	jr nz, fail_print_bit_loop
-	
+
 	call newline
-	ret 
+	ret
 
 ;	Upper RAM tests passed, give the user the good news
 
@@ -208,21 +221,21 @@ print_upperpass_gen
 
 	ld hl, str_48ktestspass
 	call print
-	
+
 ;	48K tests passed at this point
 
-	ret	
-	
-	
-	
+	ret
+
+
+
 upperram_test
 
-;	Called to test upper 32K of ram for both 48K spectrums 
+;	Called to test upper 32K of ram for both 48K spectrums
 ;   and related clones.
 
 	xor a
 	ld (v_fail_ic), a
-	
+
 	ld hl, str_test4
 	call print
 
@@ -231,9 +244,9 @@ upperram_test
 	ld de, 32768
 	call walkloop
 	call testresult
-	
+
 ;	Do the upper RAM inversion test
-	    
+
 upperram_inversion
 
 	ld hl, str_test5
@@ -242,22 +255,22 @@ upperram_inversion
 	call preparehreg
 
 	ld hl, 32768
-	ld bc, 32768
+	ld bc, 32766
 	ld d, 0
 	call altpata
 
 	ld hl, 32768
-	ld bc, 32768
+	ld bc, 32766
 	ld d, 255
 	call altpata
 
 	ld hl, 32768
-	ld bc, 32768
+	ld bc, 32766
 	ld d, 0
 	call altpatb
 
 	ld hl, 32768
-	ld bc, 32768
+	ld bc, 32766
 	ld d, 255
 	call altpatb
 
@@ -276,30 +289,30 @@ upperram_march
 	ld bc, 32768
 	call marchtest
 	call testresult
-	
+
 ;	And lastly the upper RAM Random fill test.
-	  
+
 upperram_random
 
 	ld hl, str_test7
 	call print
-	  
+
 	call preparehreg
 
 	ld hl, 32768
 	ld de, 16384
 	ld bc, 11
 	call randfillup
-	
+
 	ld hl, 65534
 	ld de, 16383
 	ld bc, 17
 	call randfilldown
-	
+
 	call testresult
-	
+
 	ret
-	
+
 str_check_bits
 
 	defb	"Failures found in bits:\n", 0
@@ -307,3 +320,7 @@ str_check_bits
 str_bit
 
 	defb 	"Bit ", 0
+
+str_multiplexer_fail
+
+	defb "Upper RAM multiplexer(s) faulty.\nCheck IC25 and IC26", 0

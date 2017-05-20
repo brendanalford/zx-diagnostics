@@ -103,24 +103,25 @@ test_ram_page
 	call testresult128
 
 	ld hl, 49152
-	ld bc, 16384
+	ld bc, 16382
 	ld d, 0
 	call altpata
 
 	ld hl, 49152
-	ld bc, 16384
+	ld bc, 16382
 	ld d, 255
 	call altpata
 
 	ld hl, 49152
-	ld bc, 16384
+	ld bc, 16382
 	ld d, 0
 	call altpatb
 
 	ld hl, 49152
-	ld bc, 16384
+	ld bc, 16382
 	ld d, 255
 	call altpatb
+
 	call testresult128
 
 	ld hl, 49152
@@ -229,15 +230,23 @@ test_ram_page_skip
 	ld b, a
 	ld a, (v_fail_ic_uncontend)
 	or b
-	jr z, test_ram_bank_pass
+	jp z, test_ram_bank_pass
 
 ; 	Test failed - say so and abort 128K tests.
 ; 	No point in testing paging if we don't have
 ; 	reliable RAM to do so.
 
+	ld hl, str_testfail
+	call print
 	call newline
 	ld hl, str_128ktestsfail
 	call print
+
+; 	XXX Todo - check for PCF/ASIC failures by checking low nybble of ixl
+
+	ld a, ixl
+	cp 0x0c
+	jr z, print_pcf_asic_fail
 
 ; 	If possible, output the failing IC's to the screen
 
@@ -307,6 +316,12 @@ ic_fail_plus3
 	ld d, a
 	ld ix, str_plus3_ic_uncontend
 	call print_fail_ic_4bit
+	jr test_ram_fail_end
+
+print_pcf_asic_fail
+
+	ld hl, str_pcf_asic_fail
+	call print
 
 ;	Abandon test at this point
 
@@ -318,15 +333,14 @@ test_ram_fail_end
 
 test_ram_bank_pass
 
+	ld hl, str_testpass
+	call print
 	call newline
 	ld hl, str_testingpaging
 	call print
 
 ;	Fill all RAM pages (except page 5) with a pattern
 ;	that uniquely identifies the page
-
-	;ld a, 64
-	;FLASH
 
 	ld b, 0
 
@@ -360,10 +374,7 @@ skip_write_page5
 ;	Pages all written, now page each one back in turn
 ;	and verify that the expected pattern is in each one.
 
-	;ld a, 128
-	;FLASH
-
-	ld a, 0
+	xor a
 	ld b, a
 
 test_read_paging
@@ -450,6 +461,8 @@ test_paging_fail
 
 	ld a, 2
 	out (ULA_PORT), a
+	ld hl, str_testfail
+	call print
 	call newline
 	ld hl, str_128kpagingfail
 	call print
@@ -522,3 +535,7 @@ set_page_success_status
 	ld (hl), a
 	pop hl
 	ret
+
+str_pcf_asic_fail
+
+	defb "PCF/ASIC Failure\n", 0
