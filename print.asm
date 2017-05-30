@@ -809,10 +809,10 @@ cls
 ;	Clear the bitmap locations
 
 	xor a
-	ld hl, 16384
+	ld hl, 0x4000
 	ld (hl), a
-	ld de, 16385
-	ld bc, 6144
+	ld de, 0x4001
+	ld bc, 0x1800
 	ldir
 
 ;	Clear the attribute area. Use the attribute
@@ -820,7 +820,7 @@ cls
 
 	ld a, (v_attr)
 	ld (hl), a
-	ld bc, 768
+	ld bc, 0x2ff
 	ldir
 	pop af
 	pop bc
