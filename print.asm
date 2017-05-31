@@ -41,7 +41,28 @@
 	define  TEXTNORM	22
 	define	AT		23
 	define	WIDTH		24
-	define  ATTR_TRANS	0xff
+
+; Tokens (C0-FE)
+
+	define TKN_SPECTRUM		0xc0
+	define TKN_ROM				0xc1
+	define TKN_SPANISH		0xc2
+
+; Token expansions
+
+tkn_spectrum
+
+	defb "Spectrum", 0
+
+tkn_rom
+
+	defb "ROM...", 0
+
+tkn_spanish
+
+	defb "Spanish", 0
+
+	define ATTR_TRANS	0xff
 
 ;	define PROPORTIONAL_PRINT_SUPPORT
 
@@ -102,20 +123,52 @@ print_nextchar
 	cp 0
 	jp z, print_done
 
-;	Jump straight to character printing if obviously not
-;	a control character
-
-	cp 31
-	jp nc, print_char
-
 ;	Check for carriage return
 
 	cp '\n'
-	jr nz, print_chk_left
+	jr nz, print_chk_tok_spectrum
 	call newline
 	jr print_nextchar
 
+print_chk_tok_spectrum
+
+	cp TKN_SPECTRUM
+	jr nz, print_chk_tok_rom
+	push hl
+	ld hl, tkn_spectrum
+	call print
+	pop hl
+	jr print_nextchar
+
+print_chk_tok_rom
+
+	cp TKN_ROM
+	jr nz, print_chk_tok_spanish
+	push hl
+	ld hl, tkn_rom
+	call print
+	pop hl
+	jr print_nextchar
+
+print_chk_tok_spanish
+
+	cp TKN_SPANISH
+	jr nz, print_chk_ctrl_chr
+	push hl
+	ld hl, tkn_spanish
+	call print
+	pop hl
+	jr print_nextchar
+
+print_chk_ctrl_chr
+
 ;	Check for Cursor Left control code
+
+; From here, jump straight to character printing if obviously not
+;	a control character
+
+	cp 0x1f
+	jp nc, print_char
 
 print_chk_left
 
@@ -164,7 +217,7 @@ print_chk_ink
 	and 0xf8
 	or d
 	ld (v_attr), a
-	jr print_nextchar
+	jp print_nextchar
 
 ;	Check for TAB control code
 
@@ -175,7 +228,7 @@ print_chk_tab
 	ld a, (hl)
 	inc hl
 	ld (v_column), a
-	jr print_nextchar
+	jp print_nextchar
 
 ;	Check for PAPER control code
 

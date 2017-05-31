@@ -437,10 +437,6 @@ str_romdetected
 
 	defb AT, 6, 0, "ROM type detected:\n", 0
 
-str_bollocks
-
-	defb TEXTBOLD, INK, 2, "BOLLOCKS.", 0
-
 str_rom_no
 
 	defb "ROM 0: ", 0

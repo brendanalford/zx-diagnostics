@@ -1583,7 +1583,7 @@ diagrom_exit
 	out (c), a
 	ld bc, 0x7ffd
 	out (c), a
-	
+
 ;	Just do a simple reset if diagboard hardware isn't detected
 
 	ld a, (v_testhwtype)
@@ -1647,7 +1647,7 @@ test_vector_table
 
 str_banner
 
-	defb	TEXTBOLD, "ZX Spectrum Diagnostics", TEXTNORM, 0
+	defb	TEXTBOLD, "ZX ", TKN_SPECTRUM, " Diagnostics", TEXTNORM, 0
 
 str_lowerrampass
 
@@ -1680,7 +1680,7 @@ str_48ktestsfail
 
 str_isthis16k
 
-	defb	"This appears to be a 16K Spectrum\n"
+	defb	"This appears to be a 16K ", TKN_SPECTRUM, "\n"
 	defb  "If 48K, check IC23-IC26 (74LS157, 32, 00)",0
 
 str_128ktestsfail
@@ -1794,7 +1794,7 @@ str_halted_fail
 
 str_pagingin
 
-	defb	"\n\nPaging in Spectrum ROM...", 0
+	defb	"\n\nPaging in ", TKN_SPECTRUM, " ROM...", 0
 
 str_pagingtab
 
