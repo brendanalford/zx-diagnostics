@@ -1,7 +1,7 @@
 ; SjASMPlus source file for standalone ROM checksum program
 
-  define ORG 32768
-  define LENGTH 16384
+  define ORG 25000
+  define LENGTH 5000
   device zxspectrum48
   include romcheck.asm
   savebin "romcheck.bin",ORG,LENGTH

@@ -36,7 +36,7 @@
 	define E_LINE			0x5c59
 	define WORKSP			0x5c61
 
-	org 32768
+	org 25000
 
 start
 
@@ -448,3 +448,5 @@ str_rom_no
 str_completed
 
 	defb "\n\nTesting complete.", 0
+
+	BLOCK (32768+5000)-$, 0x00
