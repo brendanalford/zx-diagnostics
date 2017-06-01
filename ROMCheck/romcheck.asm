@@ -235,7 +235,20 @@ exit
 	ld hl, str_completed
 	call print
 
+; Check if we're in 48K mode and paging's unlocked (DivMMC mode)
+
+	bit 4, (iy+1)
+	jr nz, exit_2
+
+; We are in USR 0/DivMMC mode, force ROM 1/ROM3 mode (128 / +3 mode)
+	ld hl, v_bankm
+	set 4, (hl)
+	ld hl, v_bank678
+	set 2, (hl)
+
 ;	Restore paging registers from system variables
+
+exit_2
 
 	ld a, (v_bank678)
 	ld bc, 0x1ffd
