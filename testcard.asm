@@ -409,4 +409,4 @@ str_testcard_banner
 str_testcard_message
 
 	defb	AT, 19, 10, TEXTBOLD, BRIGHT, 1, INK, 7, PAPER, 0
-	defb    "ZX Spectrum Diagnostics ", VERSION , ATTR, 56, 0
+	defb    "ZX ", TKN_SPECTRUM, " Diagnostics ", VERSION , ATTR, 56, 0
