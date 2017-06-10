@@ -51,6 +51,10 @@ rom_signature_table
 
   defw 0x5129, str_rom128derby14, test_128k, rom_table_rom128derby14
 
+; Spectrum 128 Derby 4.02 ROM (Development machine)
+
+	defw 0xe9f5, str_rom128derby402, test_128k, rom_table_rom128derby402
+
 ;	Some +3E ROM sets that might be out there
 
 	defw 0xdba9, str_romplus3e_v1_38, test_plus3, rom_table_romplus3e_v1_38
@@ -132,6 +136,10 @@ rom_table_romplus3
 rom_table_rom128derby14
 
   defw 0x8c11, str_rom128_fail, 0x0000
+
+rom_table_rom128derby402
+
+  defw 0xbe09, str_rom128_fail, 0x0000
 
 rom_table_romplus3e_v1_38
 
@@ -234,6 +242,10 @@ str_romplus3espv41
 str_rom128derby14
 
   defb	TKN_SPECTRUM, " 128 Dev, Derby 1.4 ", TKN_ROM, " ", 0
+
+str_rom128derby402
+
+  defb	TKN_SPECTRUM, " 128 Dev, Derby 4.02 ", TKN_ROM, " ", 0
 
 str_romplus3e_v1_38
 
