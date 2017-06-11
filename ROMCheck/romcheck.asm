@@ -269,6 +269,27 @@ exit_2
 	ret
 
 ;
+;	External dependencies.
+;
+
+;	Defines to keep romtables.asm happy.
+
+	define test_48k 				0x0000
+	define test_128k				0x0000
+	define test_plus2 			0x0000
+	define test_plus3 			0x0000
+	define test_48kgeneric	0x0000
+
+	include "vars.asm"
+	include "..\version.asm"
+	include "..\print.asm"
+	include "..\charset.asm"
+	include "..\scroll.asm"
+	include "..\romtables.asm"
+	include "..\crc16.asm"
+	include "..\paging.asm"
+
+;
 ;	The standard strings from romtables.asm include trailing dots and spaces.
 ; This routine takes such a string and truncates these, then prints the string.
 ;
@@ -287,14 +308,11 @@ print_rom_type_2
 
 	dec hl
 	ld a, (hl)
-	cp ' '
-	jr z, print_rom_type_2
-	cp '.'
-	jr z, print_rom_type_2
+	cp TKN_ROM
+	jr nz, print_rom_type_2
 
-; Found last non-space or dot, move one forward and null-terminate from there
+; Found the 'ROM...' token, null-terminate from there
 
-	inc hl
 	xor a
 	ld (hl), a
 
@@ -397,24 +415,6 @@ decstr_init
 sys_rompaging
 
 	ret
-
-
-;	Defines to keep romtables.asm happy.
-
-	define test_48k 				0x0000
-	define test_128k				0x0000
-	define test_plus2 			0x0000
-	define test_plus3 			0x0000
-	define test_48kgeneric	0x0000
-
-	include "vars.asm"
-	include "..\version.asm"
-	include "..\print.asm"
-	include "..\charset.asm"
-	include "..\scroll.asm"
-	include "..\romtables.asm"
-	include "..\crc16.asm"
-	include "..\paging.asm"
 
 str_romcheckbanner
 
