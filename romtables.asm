@@ -188,7 +188,7 @@ str_romjs128_fail
 
 str_rom48k
 
-	defb	TKN_SPECTRUM, " 16/48K ", TKN_ROM, "      ", 0
+	defb	TKN_SPECTRUM, " 16/48K ", TKN_ROM, 0
 
 str_rom48kesp
 
@@ -196,84 +196,84 @@ str_rom48kesp
 
 str_rom128k
 
-	defb	TKN_SPECTRUM, " 128K ", TKN_ROM, "        ", 0
+	defb	TKN_SPECTRUM, " 128K ", TKN_ROM, 0
 
 str_romplus2
 
-	defb	TKN_SPECTRUM, " +2 (Grey) ", TKN_ROM, "   ", 0
+	defb	TKN_SPECTRUM, " +2 (Grey) ", TKN_ROM, 0
 
 str_rom128espv1
 
-	defb	TKN_SPECTRUM, " 128K (", TKN_SPANISH, " v1) ", TKN_ROM, "  ", 0
+	defb	TKN_SPECTRUM, " 128K (", TKN_SPANISH, " v1) ", TKN_ROM, 0
 
 str_rom128espv2
 
-	defb	TKN_SPECTRUM, " 128K (", TKN_SPANISH, " v2) ", TKN_ROM, "  ", 0
+	defb	TKN_SPECTRUM, " 128K (", TKN_SPANISH, " v2) ", TKN_ROM, 0
 
 
 str_romplus2esp
 
-	defb	TKN_SPECTRUM, " +2 (", TKN_SPANISH, ") ", TKN_ROM, "    ", 0
+	defb	TKN_SPECTRUM, " +2 (", TKN_SPANISH, ") ", TKN_ROM, 0
 
 str_romplus2fra
 
-	defb	TKN_SPECTRUM, " +2 (French) ", TKN_ROM, "    ", 0
+	defb	TKN_SPECTRUM, " +2 (French) ", TKN_ROM, 0
 
 	IFNDEF SLAMTEST
 
 str_romplus3
 
-	defb	TKN_SPECTRUM, " +3 (v4.0) ", TKN_ROM, "   ", 0
+	defb	TKN_SPECTRUM, " +3 (v4.0) ", TKN_ROM, 0
 
 str_romplus2a
 
-	defb  TKN_SPECTRUM, " +2A (v4.1) ", TKN_ROM, "  ", 0
+	defb  TKN_SPECTRUM, " +2A (v4.1) ", TKN_ROM, 0
 
 str_romplus3espv40
 
-	defb	TKN_SPECTRUM, " +2A/+3 (", TKN_SPANISH, " v4.0) ", TKN_ROM, " ", 0
+	defb	TKN_SPECTRUM, " +2A/+3 (", TKN_SPANISH, " v4.0) ", TKN_ROM, 0
 
 str_romplus3espv41
 
-	defb	TKN_SPECTRUM, " +2A/+3 (", TKN_SPANISH, " v4.1) ", TKN_ROM, " ", 0
+	defb	TKN_SPECTRUM, " +2A/+3 (", TKN_SPANISH, " v4.1) ", TKN_ROM, 0
 
 	IFNDEF SAVEMEM
 
 str_rom128derby14
 
-  defb	TKN_SPECTRUM, " 128 Dev, Derby 1.4 ", TKN_ROM, " ", 0
+  defb	TKN_SPECTRUM, " 128 Dev, Derby 1.4 ", TKN_ROM, 0
 
 str_rom128derby402
 
-  defb	TKN_SPECTRUM, " 128 Dev, Derby 4.02 ", TKN_ROM, " ", 0
+  defb	TKN_SPECTRUM, " 128 Dev, Derby 4.02 ", TKN_ROM, 0
 
 str_romplus3e_v1_38
 
-	defb 	TKN_SPECTRUM, " +3E v1.38 ", TKN_ROM, "   ", 0
+	defb 	TKN_SPECTRUM, " +3E v1.38 ", TKN_ROM, 0
 
 str_romplus3e_v1_38esp
 
-	defb	TKN_SPECTRUM, " +3E v1.38 (", TKN_SPANISH, ") ", TKN_ROM, " ", 0
+	defb	TKN_SPECTRUM, " +3E v1.38 (", TKN_SPANISH, ") ", TKN_ROM, 0
 
 str_romplus3e_v1_43
 
-	defb 	TKN_SPECTRUM, " +3E v1.43 ", TKN_ROM, "   ", 0
+	defb 	TKN_SPECTRUM, " +3E v1.43 ", TKN_ROM, 0
 
 str_romplus3e_v1_43esp
 
-	defb 	TKN_SPECTRUM, " +3E v1.43 (", TKN_SPANISH, ") ", TKN_ROM, "   ", 0
+	defb 	TKN_SPECTRUM, " +3E v1.43 (", TKN_SPANISH, ") ", TKN_ROM, 0
 
 str_orelbk08
 
-	defb	"Orel BK-08 ", TKN_ROM, "           ", 0
+	defb	"Orel BK-08 ", TKN_ROM, 0
 
 str_rom48kbeckman
 
-	defb 	"Beckman ", TKN_SPECTRUM, " 48K ", TKN_ROM, " ", 0
+	defb 	"Beckman ", TKN_SPECTRUM, " 48K ", TKN_ROM, 0
 
 str_rom48gw03
 
-	defb	"Gosh Wonderful 48K ", TKN_ROM, "   ", 0
+	defb	"Gosh Wonderful 48K ", TKN_ROM, 0
 
 	ENDIF
 

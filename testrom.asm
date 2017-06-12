@@ -1694,7 +1694,7 @@ str_128kpagingfail
 
 str_romcrc
 
-	defb	AT, 4, 0, "Checking ROM version...     ", 0
+	defb	AT, 4, 0, "Checking ROM...", 0
 
 str_romunknown
 
