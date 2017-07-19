@@ -71,6 +71,10 @@ rom_signature_table
 
 	defw 0x870c, str_rom48kbeckman, test_48k, 0x0000
 
+; Microdigital clones
+
+	defw 0x55b9, str_romtk90x, test_48kgeneric, 0x0000
+
 ; 	Gosh Wonderful ROM (assume 48K)
 
 	defw 0x8116, str_rom48gw03, test_48k, 0x0000
@@ -210,7 +214,6 @@ str_rom128espv2
 
 	defb	TKN_SPECTRUM, " 128K (", TKN_SPANISH, " v2) ", TKN_ROM, 0
 
-
 str_romplus2esp
 
 	defb	TKN_SPECTRUM, " +2 (", TKN_SPANISH, ") ", TKN_ROM, 0
@@ -270,6 +273,11 @@ str_orelbk08
 str_rom48kbeckman
 
 	defb 	"Beckman ", TKN_SPECTRUM, " 48K ", TKN_ROM, 0
+
+str_romtk90x
+
+	defb "Microdigital TK90X/TK95 ", TKN_ROM, 0
+
 
 str_rom48gw03
 
