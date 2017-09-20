@@ -393,12 +393,39 @@ rom_unknown
       	ld hl, v_hexstr
       	call print
 
-; 	Allow user to choose model if ROM version can't be determined
+;; 	Allow user to choose model if ROM version can't be determined
 
 	ld hl, str_testselect
 	call print
 
+;	Load HL with 15 secs * 50 frames = 750
+;	Enable interrupts so we can count accurately.
+
+	ld hl, 750
+	ei		
+
 select_test
+
+;	If more than 30 seconds elapses without input, assume
+;	48K mode.
+
+	halt
+	dec hl
+	ld a, h
+	or l
+	jp nz, select_test_1
+
+;	Timer expired, print message assuming 48K mode and continue
+;	testing as such
+
+	ld hl, str_test_select_expired
+	call print
+	ld de, test_48kgeneric
+	jp select_test_3
+
+select_test_1
+
+;	Read key row 1-5
 
 	ld bc, 0xf7fe
 	in a, (c)
@@ -407,14 +434,14 @@ select_test
 
 	and 0xf
 	cp 0xf
-	jr z, select_test
+	jp z, select_test
 
 ;	Scan the test vector table and call the appropriate routine
 
 	ld hl, test_vector_table
 	ld b, a
 
-select_test_1
+select_test_2
 
 	ld de, (hl)
 	ld a, d
@@ -422,7 +449,7 @@ select_test_1
 	jr z, select_test
 
 	bit 0, b
-	jr nz, select_test_2
+	jr nz, select_test_4
 
 	push hl
 	ld de, (hl)
@@ -433,17 +460,24 @@ select_test_1
 	inc hl
 	inc hl
 	ld de, (hl)
+
+select_test_3
+
+;	Jump to the testing routine held in HL, with return address
+;	being the tests_complete routine. Disable interrupts first though.
+
+	di
 	ld hl, de
 	ld de, tests_complete
 	push de
 	jp hl
 
-select_test_2
+select_test_4
 
 	ld de, 4
 	add hl, de
 	rr b
-	jr select_test_1
+	jr select_test_2
 
 
 tests_complete
@@ -753,6 +787,10 @@ str_romunknown
 str_testselect
 
 		defb	AT, 8, 0, "Press: 1..48K  2..128K  3..+2  4..+2A/+3", 0
+
+str_test_select_expired
+	
+		defb 	AT, 9, 0, "No selection made, assuming 48K mode.   \n", 0
 
 str_assume48k
 
