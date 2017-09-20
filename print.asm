@@ -25,27 +25,27 @@
 
 ;	Defines for in-string control codes
 
-	define LEFT		8
+	define LEFT			8
 	;define	RIGHT		9
 	;define	DOWN		10
-	;define	UP		11
-	define	CR		13
-	define	TAB		14
+	;define	UP			11
+	define	CR			13
+	define	TAB			14
 	define	ATTR		15
-	define	INK		16
+	define	INK			16
 	define	PAPER		17
 	define	FLASH		18
 	define	BRIGHT		19
 	define	INVERSE		20
 	define	TEXTBOLD	21
 	define  TEXTNORM	22
-	define	AT		23
+	define	AT			23
 	define	WIDTH		24
 
 ; Tokens (C0-FE)
 
 	define TKN_SPECTRUM		0xc0
-	define TKN_ROM				0xc1
+	define TKN_ROM			0xc1
 	define TKN_SPANISH		0xc2
 
 ; Token expansions
@@ -384,7 +384,6 @@ print_chk_width
 print_char
 
 	ld b, a
-
 	call putchar
 
 ;	Update the print position, wrapping around
@@ -761,19 +760,19 @@ set_print_pos
 
 Num2Hex
 
-	ld	a,h
-	call	Num1
-	ld	a,h
-	call	Num2
+	ld a,h
+	call Num1
+	ld a,h
+	call Num2
 
 ;	Call here for a single byte conversion to hex
 
 Byte2Hex
 
-	ld	a,l
-	call	Num1
-	ld	a,l
-	jr	Num2
+	ld a,l
+	call Num1
+	ld a,l
+	jr Num2
 
 Num1
 
@@ -784,12 +783,12 @@ Num1
 
 Num2
 
-	or	0xF0
+	or 0xF0
 	daa
 	add	a,#A0
 	adc	a,#40
 
-	ld	(de),a
+	ld (de),a
 	inc	de
 	ret
 
@@ -799,28 +798,28 @@ Num2
 ;
 Num2Dec
 
-	ld	bc, -10000
-	call	Num1D
-	ld	bc, -1000
-	call	Num1D
-	ld	bc, -100
-	call	Num1D
-	ld	c, -10
-	call	Num1D
-	ld	c, b
+	ld bc, -10000
+	call Num1D
+	ld bc, -1000
+	call Num1D
+	ld bc, -100
+	call Num1D
+	ld c, -10
+	call Num1D
+	ld c, b
 
 Num1D
 
-	ld	a, '0'-1
+	ld a, '0'-1
 
 Num2D
 
 	inc	a
 	add	hl,bc
-	jr	c, Num2D
+	jr c, Num2D
 	sbc	hl,bc
 
-	ld	(de),a
+	ld (de),a
 	inc	de
 	ret
 
@@ -923,6 +922,7 @@ nl_scroll
 	call prt_scroll
 
 newline_done
+
 	pop bc
 	pop af
 	ret
@@ -1002,11 +1002,11 @@ str_footer
 
 mask_bits
 
-	defb 0, 128, 192, 224, 240, 248, 252, 254
+	defb 	0, 128, 192, 224, 240, 248, 252, 254
 
 stripe_attr
 
-	defb 0x42, 0x56, 0x74, 0x65, 0x68, 0x40
+	defb 	0x42, 0x56, 0x74, 0x65, 0x68, 0x40
 
 	IFDEF PROPORTIONAL_PRINT_SUPPORT
 

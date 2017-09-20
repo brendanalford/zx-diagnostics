@@ -172,13 +172,17 @@ no_key
 ;
 
 get_key
+
 	push bc
+
 get_key_scan
+
 	call scan_keys
 	jr nc, get_key_scan
 	ld b, a
 
 debounce_key
+
 	xor a
 	in a, (0xfe)
 	and 0x1f
@@ -212,6 +216,7 @@ detect_kemp_loop
 	ret nz
 
 ; Loop a bit to make sure
+
 	djnz detect_kemp_loop
 
 ; Kempston appears to be present

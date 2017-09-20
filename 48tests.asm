@@ -72,7 +72,7 @@ upper_ram_present
 print_upperresult
 
 	ld a, (v_fail_ic)
-  cp 0
+  	cp 0
 	jr z, print_upperpass
 
 	ld hl, str_48ktestsfail
@@ -137,7 +137,7 @@ test_48kgeneric
 
 
 	ld a, (v_fail_ic)
-  cp 0
+  	cp 0
 	jr z, print_upperpass_gen
 	ld hl, str_48ktestsfail
 	call print

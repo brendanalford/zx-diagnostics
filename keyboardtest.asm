@@ -42,8 +42,8 @@ keyb_test_init
 
 	call initialize
 
-  ld a, BORDERWHT
-  out (ULA_PORT), a
+	ld a, BORDERWHT
+	out (ULA_PORT), a
 
 	call cls
 

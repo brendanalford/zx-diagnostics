@@ -22,10 +22,10 @@
 ;	128K Specific Tests
 ;
 ;	Page 5 has already been tested lower RAM), so just do pages 0,1,2,3,4,6 and 7.
-;   	Page each one into the top 16K of RAM and perform the standard fill, inversion
-;   	and random tests.
-;   	Finally, do a paging test (only if the RAM checks pass, otherwise it
-;   	can't be reliable).
+;   Page each one into the top 16K of RAM and perform the standard fill, inversion
+;   and random tests.
+;   Finally, do a paging test (only if the RAM checks pass, otherwise it
+;   can't be reliable).
 ;
 
 test_128k

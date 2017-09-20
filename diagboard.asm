@@ -326,7 +326,7 @@ romhw_test_dandanator_loop
 dandanator_paging_test_success
 
 ;	Successfully paged out the test ROM, set flags and page ourselves
-; back in.
+; 	back in.
 
 	ld a, 4
 	ld (v_testhwtype), a

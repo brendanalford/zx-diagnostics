@@ -22,7 +22,7 @@
 
 mem_browser
 
-  ld sp, sys_stack
+ 	ld sp, sys_stack
 
 	call initialize
 
@@ -36,8 +36,8 @@ mem_browser
 	ld hl, membrowser_isr
 	ld (v_userint), hl
 
-    	ld a, BORDERWHT
-    	out (ULA_PORT), a
+	ld a, BORDERWHT
+	out (ULA_PORT), a
 
 	call cls
 
@@ -265,7 +265,7 @@ hard_copy
 goto_addr
 
 ;	We're replacing the value of HL (memory pointer)
-; so it's okay to trash it
+;	so it's okay to trash it
 
 	ld hl, str_goto_addr_prompt
 	call print
@@ -787,7 +787,6 @@ print_cursor
 	add e
 	ld h, a
 
-
 ;	IXL = cursor position (8 bytes * 2 nibbles)
 
 	ld a, ixl
@@ -926,7 +925,9 @@ num_2_hex
 ;	so it returns to the caller's caller.
 ;
 release_key
+
 	push af
+
 rel_key_loop
 	xor a
 	in a, (0xfe)

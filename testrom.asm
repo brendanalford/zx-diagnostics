@@ -22,7 +22,7 @@
 ;	Spectrum Diagnostics ROM
 ;
 ;	v0.1 by Dylan 'Winston' Smith
-;	v0.2 modifications and 128K testing by Brendan Alford.
+;	v0.2+ modifications and 128K testing by Brendan Alford.
 ;
 
 	define TESTROM
@@ -268,12 +268,12 @@ start_loop_end
 
 	xor a
 	ld b, a		; using ixh to store a flag to tell us whether upper
-                	; ram is good (if it is we continue testing)
+                ; ram is good (if it is we continue testing)
 	ld c, a
 	ld ix, bc
 	ld iy, bc 	; iy is our soak test status register
-			; 0 - no soak test being performed; else
-			; holds the current iteration of the test
+				; 0 - no soak test being performed; else
+				; holds the current iteration of the test
 
 ;	Test if the S key is being pressed, if true then go into soaktest mode
 
@@ -282,11 +282,11 @@ start_loop_end
 	bit 1, a
 	jr z, enable_soak_test
 
-; IF2 inputs
-; These are actioned on port 2 (67890)
-; FIRE - activate soak test
-; LEFT - activate test card
-; RIGHT - activate ULA test
+; 	IF2 inputs
+; 	These are actioned on port 2 (67890)
+; 	FIRE - activate soak test
+; 	LEFT - activate test card
+; 	RIGHT - activate ULA test
 ;	Test if FIRE on Sinclair IF2 Port 1 is being pressed (or 0), if true launch soaktest mode
 
 	ld bc, 0xeffe
@@ -305,25 +305,27 @@ start_loop_end
 kemp_interface_test
 
 ;	Check to see if the upper three bits of the Kempston port are
-; at any time non-zero - this would indicate a faulty interface or
-; one that's not present.
+; 	at any time non-zero - this would indicate a faulty interface or
+; 	one that's not present.
 
 	in a, (0x1f)
 	ld c, a
 	and 0xe0
 
 ;	Are amy of the top bits set?
+
 	cp 0
 	jr nz, start_testing
 
 ; Loop a bit to make sure
+
 	djnz kemp_interface_test
 
 ;	Interface is present.
-; Perform actions based on the same controls as the IF2:
-; FIRE - activate soak test
-; LEFT - activate test card
-; RIGHT - activate ULA test
+; 	Perform actions based on the same controls as the IF2:
+; 	FIRE - activate soak test
+; 	LEFT - activate test card
+; 	RIGHT - activate ULA test
 
 	bit 0, c
 	jp nz, ulatest
@@ -334,6 +336,7 @@ kemp_interface_test
 
 
 ;	No options selected, start normal testing
+
 	jr start_testing
 
 enable_soak_test
@@ -367,16 +370,16 @@ start_testing
 
 lowerram_walk
 
-    	WALKLOOP 16384,16384
+	WALKLOOP 16384,16384
 
 ;	Then the inversion test
 
 lowerram_inversion
 
-    	ALTPATA 16384, 16384, 0
-    	ALTPATA 16384, 16384, 255
-    	ALTPATB 16384, 16384, 0
-    	ALTPATB 16384, 16384, 255
+	ALTPATA 16384, 16384, 0
+	ALTPATA 16384, 16384, 255
+	ALTPATB 16384, 16384, 0
+	ALTPATB 16384, 16384, 255
 
 lowerram_march
 
@@ -386,8 +389,8 @@ lowerram_march
 
 lowerram_random
 
-    	RANDFILLUP 16384, 8192, 0
-    	RANDFILLDOWN 32766, 8191, 255
+	RANDFILLUP 16384, 8192, 0
+	RANDFILLDOWN 32766, 8191, 255
 
 ;	This gives the opportunity to visually see what's happening in
 ;	lower memory in case there is a problem with it.
@@ -402,9 +405,9 @@ lowerram_random
 
 ;	Check if lower ram tests passed
 
-    	ld a, ixh
-    	cp 0
-    	jp z, use_uppermem
+	ld a, ixh
+	cp 0
+	jp z, use_uppermem
 
 ;	Lower memory is no good, give up now.
 ;	We won't be able to test anything else effectively.
