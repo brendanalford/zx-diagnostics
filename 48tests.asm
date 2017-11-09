@@ -88,7 +88,7 @@ print_upper_ic
 
 	ld a, ixl
 	cp 0x0c
-	jr nz, print_multiplexer_fail
+	jr nz, print_upper_ic_2
 
 	ld a, (v_fail_ic)
 	cp 0xff
