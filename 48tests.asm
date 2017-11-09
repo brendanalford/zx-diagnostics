@@ -82,9 +82,19 @@ print_upperresult
 
 print_upper_ic
 
+; Check for a multiplexer failure first. This is characterised by:
+; a) Walk and inversion tests passing, but march and random failing
+; b) All IC's failing for the above failed tests
+
 	ld a, ixl
 	cp 0x0c
+	jr nz, print_multiplexer_fail
+
+	ld a, (v_fail_ic)
+	cp 0xff
 	jr z, print_multiplexer_fail
+
+print_upper_ic_2
 
 	ld hl, str_check_ic
 	call print
@@ -94,14 +104,14 @@ print_upper_ic
 	ld ix, str_48_ic
 
 	call print_fail_ic
-	jr print_upper_ic_2
+	jr print_upper_ic_3
 
 print_multiplexer_fail
 
 	ld hl, str_multiplexer_fail
 	call print
 
-print_upper_ic_2
+print_upper_ic_3
 
 	ld hl, str_newline
 	call print
@@ -120,10 +130,12 @@ print_upperpass
 
 
 ;
-;	48K Specific Tests
+;	Generic 48K Specific Tests
 ;
 ;	Perform the standard inversion, fill and random tests
-;   	on the top 32K of RAM.
+;   on the top 32K of RAM.
+; 	Note that we don't attempt to detect failex multiplexers etc. as
+;	we're probably running on a clone with different upper memory logic.
 ;
 
 ;	Start the Upper RAM walk test for generic machines
