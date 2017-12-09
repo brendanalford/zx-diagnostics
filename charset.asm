@@ -1260,3 +1260,59 @@ charset
         DEFB	%00001111
         DEFB	%00111111
         DEFB	%11111111
+
+; $92 - Full clock face
+
+        DEFB	%00111100
+        DEFB	%01111110
+        DEFB	%11111111
+        DEFB	%11111111
+        DEFB	%11111111
+        DEFB	%11111111
+        DEFB	%01111110
+        DEFB	%00111100
+
+ ; $93 - Three quarter clock face
+
+        DEFB	%00111100
+        DEFB	%01001110
+        DEFB	%10001111
+        DEFB	%10001111
+        DEFB	%11111111
+        DEFB	%11111111
+        DEFB	%01111110
+        DEFB	%00111100         
+                 
+ ; $94 - Half clock face
+
+        DEFB	%00111100
+        DEFB	%01001110
+        DEFB	%10001111
+        DEFB	%10001111
+        DEFB	%10001111
+        DEFB	%10001111
+        DEFB	%01001110
+        DEFB	%00111100
+            
+ ; $95 - Quarter clock face
+
+        DEFB	%00111100
+        DEFB	%01001110
+        DEFB	%10001111
+        DEFB	%10001111
+        DEFB	%10000001
+        DEFB	%10000001
+        DEFB	%01000010
+        DEFB	%00111100
+              
+ ; $96 - Empty clock face
+
+        DEFB	%00111100
+        DEFB	%01000010
+        DEFB	%10000001
+        DEFB	%10000001
+        DEFB	%10000001
+        DEFB	%10000001
+        DEFB	%01000010
+        DEFB	%00111100
+            

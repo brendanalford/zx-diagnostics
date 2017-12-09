@@ -192,7 +192,7 @@ start_loop_outer
 start_loop_inner
 
 ; Terminate the 5 sec wait if a key is pressed
-
+	
 	in a, (0xfe)
 	and 0x1f
 	cp 0x1f
@@ -220,8 +220,8 @@ start_loop_end
 ;	This also verifies that the CPU and ULA are working.
 
 	ld l, 1				; Border colour to preserve
-	BEEP 0x48, 0x0450
-	BEEP 0x23, 0x0150
+	COLORBEEP 0x48, 0x0450
+	COLORBEEP 0x23, 0x0150
 
 	xor a
 	out (LED_PORT), a		; Extinguish the LED's
@@ -954,7 +954,7 @@ rom_unknown_3
 ;	Load HL with 15 secs * 50 frames = 750
 ;	Enable interrupts so we can count accurately.
 
-	ld hl, 750
+	ld hl, 0x401
 	ei		
 
 select_test
@@ -963,6 +963,31 @@ select_test
 ;	48K mode.
 
 	halt
+
+	ld a, l
+	cp 1
+	jr nz, select_test_pause
+
+;	Paint our countdown timer every 200 cycles
+
+	push hl
+	ld a, h
+	ld l, a
+	ld a, 0x96
+	sub l
+	push af
+	ld a, 248
+	ld (v_column), a
+	ld a, 8
+	ld (v_width), a
+	pop af
+	call putchar
+	ld a, 6
+	ld (v_width), a
+	pop hl
+
+select_test_pause
+
 	dec hl
 	ld a, h
 	or l
