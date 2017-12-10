@@ -817,10 +817,6 @@ str_test_select_expired
 	
 		defb 	AT, 9, 0, "No selection made, assuming 48K mode.   \n", 0
 
-str_assume48k
-
-		defb 	AT, 8, 0, "Assuming 48K mode...", 0
-
 str_select48k
 
 		defb	AT, 8, 7 * 6, TEXTBOLD, INK, 4, "1..48K\n", TEXTNORM, ATTR, 56, 0
