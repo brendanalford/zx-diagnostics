@@ -82,7 +82,7 @@ lowermem_test
 
 ;	Establish a stack
 
-	ld sp, 0x7bff
+	ld sp, stack_start
 
 ;	Check if lower ram tests passed
 
@@ -307,11 +307,11 @@ rom_test
 	ld (v_128type), a
 
 	ld hl, str_romcrc
-    	call print
+    call print
 
 ;	Checksum the ROM
 
-    	call romcrc
+    call romcrc
 
 ;	Save it in DE temporarily
 
@@ -401,15 +401,40 @@ rom_unknown
 ;	Load HL with 15 secs * 50 frames = 750
 ;	Enable interrupts so we can count accurately.
 
-	ld hl, 750
+	ld hl, 0x401
 	ei		
 
 select_test
 
-;	If more than 30 seconds elapses without input, assume
+;	If more than 20 seconds elapses without input, assume
 ;	48K mode.
 
 	halt
+
+	ld a, l
+	cp 1
+	jr nz, select_test_pause
+
+;	Paint our countdown timer every 200 cycles
+
+	push hl
+	ld a, h
+	ld l, a
+	ld a, 0x96
+	sub l
+	push af
+	ld a, 248
+	ld (v_column), a
+	ld a, 8
+	ld (v_width), a
+	pop af
+	call putchar
+	ld a, 6
+	ld (v_width), a
+	pop hl
+
+select_test_pause
+
 	dec hl
 	ld a, h
 	or l
@@ -895,7 +920,11 @@ str_ic
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
-	BLOCK #7A80-$, #FF
+	BLOCK #797F-$, #FF
+
+stack_start
+
+	defb 0xff
 
 str_bit_ref
 
@@ -937,9 +966,9 @@ str_plus3_ic_uncontend
 
 	defb "5  ", 0, "6  ", 0
 
-	BLOCK #7C00-$, #FF
+	BLOCK #7B00-$, #FF
 
-;	Character set at 0x7C00
+;	Character set at 0x7B00
 
 	include "..\charset.asm"
 
