@@ -519,7 +519,7 @@ tests_complete
 	ld b, a
 	ld a, (v_fail_ic_uncontend)
 	or b
-;	jr z, tests_passed
+	jr z, tests_passed
 
 ;	Yes we did - say so and halt
 
