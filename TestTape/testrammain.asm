@@ -519,15 +519,23 @@ tests_complete
 	ld b, a
 	ld a, (v_fail_ic_uncontend)
 	or b
-	jr z, tests_passed
+;	jr z, tests_passed
 
 ;	Yes we did - say so and halt
 
 	ld hl, str_halted_fail
 	call print
 
-	di
-	halt
+; Loop and test for H key held, output screen to printer if so
+
+test_failed_loop
+
+	call scan_keys
+	cp 'H'
+	jr nz, test_failed_loop
+	call lprint_screen
+
+	jr test_failed_loop
 
 tests_passed
 
@@ -726,6 +734,51 @@ Next
 prt_scroll
 
  	ret
+
+;
+;	Printer support
+;
+    define PRINTER_PORT		0xfb
+	define COPY_ROM			0x0eaf
+
+lprint_screen
+
+    di
+    in a, (PRINTER_PORT)
+
+; Check for printer present
+
+    bit 6, a
+    jp nz, lpcopy_error
+
+    bit 7, a
+    jp nz, lpcopy_error
+
+;	Printer is present, prepare to copy. First
+;	ensure that ROM 0 is paged in.
+;	Don't worry about handling +2A/+3 paging as the 
+;	ZX Printer/Timex/Alphacom printers aren't supported on 
+;	these machines.
+
+	ld bc, 0x7ffd
+	ld a, 0x10
+	out (c), a
+
+;	Call COPY routine in ROM
+
+	ld b, 192
+	call COPY_ROM
+	ei
+	ret
+
+lpcopy_error
+
+    ld l, 7
+    ld bc, 0x0100
+    ld de, 0x0100
+    call beep
+    ei
+    ret
 
 	include "..\print.asm"
 	include "..\paging.asm"

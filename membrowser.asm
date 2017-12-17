@@ -990,7 +990,7 @@ str_mem_browser_footer
 
 str_goto_addr_default
 
-	defb	AT, 23, 0, "G: Goto address       ", 0
+	defb	AT, 23, 0, "G: Goto address H: Copy  ", 0
 
 str_break_to_exit
 
@@ -998,7 +998,7 @@ str_break_to_exit
 
 str_goto_addr_prompt
 
-	defb  AT, 23, 15 * 6, ":  ", AT,23, 17 * 6, 0
+	defb  AT, 23, 15 * 6, ":       ", AT,23, 17 * 6, 0
 
 str_cursor
 

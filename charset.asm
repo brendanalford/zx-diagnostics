@@ -1082,14 +1082,14 @@ charset
 
 ; $80 - Spectrum stripe
 
-  DEFB    %00000001
-  DEFB    %00000011
-  DEFB    %00000111
-  DEFB    %00001111
-  DEFB    %00011111
-  DEFB    %00111111
-  DEFB    %01111111
-  DEFB    %11111111
+        DEFB    %00000001
+        DEFB    %00000011
+        DEFB    %00000111
+        DEFB    %00001111
+        DEFB    %00011111
+        DEFB    %00111111
+        DEFB    %01111111
+        DEFB    %11111111
 
 
 ; $81 - $8A Characters '0' to '9' in wide font
@@ -1169,7 +1169,7 @@ charset
         DEFB    %00000000
         DEFB    %00111100
         DEFB    %01000010
-        DEFB    %01111100
+        DEFB    %00111100
         DEFB	%01000010
         DEFB	%01000010
         DEFB    %00111100
