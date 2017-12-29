@@ -22,7 +22,7 @@
 ;	Spectrum Diagnostics ROM
 ;
 ;	v0.1 by Dylan 'Winston' Smith
-;	v0.2 modifications and 128K testing by Brendan Alford.
+;	v0.2+ modifications and 128K testing by Brendan Alford.
 ;
 
 	define TESTROM
@@ -192,7 +192,7 @@ start_loop_outer
 start_loop_inner
 
 ; Terminate the 5 sec wait if a key is pressed
-
+	
 	in a, (0xfe)
 	and 0x1f
 	cp 0x1f
@@ -220,8 +220,8 @@ start_loop_end
 ;	This also verifies that the CPU and ULA are working.
 
 	ld l, 1				; Border colour to preserve
-	BEEP 0x48, 0x0450
-	BEEP 0x23, 0x0150
+	COLORBEEP 0x48, 0x0450
+	COLORBEEP 0x23, 0x0150
 
 	xor a
 	out (LED_PORT), a		; Extinguish the LED's
@@ -268,12 +268,12 @@ start_loop_end
 
 	xor a
 	ld b, a		; using ixh to store a flag to tell us whether upper
-                	; ram is good (if it is we continue testing)
+                ; ram is good (if it is we continue testing)
 	ld c, a
 	ld ix, bc
 	ld iy, bc 	; iy is our soak test status register
-			; 0 - no soak test being performed; else
-			; holds the current iteration of the test
+				; 0 - no soak test being performed; else
+				; holds the current iteration of the test
 
 ;	Test if the S key is being pressed, if true then go into soaktest mode
 
@@ -282,11 +282,11 @@ start_loop_end
 	bit 1, a
 	jr z, enable_soak_test
 
-; IF2 inputs
-; These are actioned on port 2 (67890)
-; FIRE - activate soak test
-; LEFT - activate test card
-; RIGHT - activate ULA test
+; 	IF2 inputs
+; 	These are actioned on port 2 (67890)
+; 	FIRE - activate soak test
+; 	LEFT - activate test card
+; 	RIGHT - activate ULA test
 ;	Test if FIRE on Sinclair IF2 Port 1 is being pressed (or 0), if true launch soaktest mode
 
 	ld bc, 0xeffe
@@ -305,25 +305,27 @@ start_loop_end
 kemp_interface_test
 
 ;	Check to see if the upper three bits of the Kempston port are
-; at any time non-zero - this would indicate a faulty interface or
-; one that's not present.
+; 	at any time non-zero - this would indicate a faulty interface or
+; 	one that's not present.
 
 	in a, (0x1f)
 	ld c, a
 	and 0xe0
 
 ;	Are amy of the top bits set?
+
 	cp 0
 	jr nz, start_testing
 
 ; Loop a bit to make sure
+
 	djnz kemp_interface_test
 
 ;	Interface is present.
-; Perform actions based on the same controls as the IF2:
-; FIRE - activate soak test
-; LEFT - activate test card
-; RIGHT - activate ULA test
+; 	Perform actions based on the same controls as the IF2:
+; 	FIRE - activate soak test
+; 	LEFT - activate test card
+; 	RIGHT - activate ULA test
 
 	bit 0, c
 	jp nz, ulatest
@@ -334,6 +336,7 @@ kemp_interface_test
 
 
 ;	No options selected, start normal testing
+
 	jr start_testing
 
 enable_soak_test
@@ -367,16 +370,16 @@ start_testing
 
 lowerram_walk
 
-    	WALKLOOP 16384,16384
+	WALKLOOP 16384,16384
 
 ;	Then the inversion test
 
 lowerram_inversion
 
-    	ALTPATA 16384, 16384, 0
-    	ALTPATA 16384, 16384, 255
-    	ALTPATB 16384, 16384, 0
-    	ALTPATB 16384, 16384, 255
+	ALTPATA 16384, 16384, 0
+	ALTPATA 16384, 16384, 255
+	ALTPATB 16384, 16384, 0
+	ALTPATB 16384, 16384, 255
 
 lowerram_march
 
@@ -386,8 +389,8 @@ lowerram_march
 
 lowerram_random
 
-    	RANDFILLUP 16384, 8192, 0
-    	RANDFILLDOWN 32766, 8191, 255
+	RANDFILLUP 16384, 8192, 0
+	RANDFILLDOWN 32766, 8191, 255
 
 ;	This gives the opportunity to visually see what's happening in
 ;	lower memory in case there is a problem with it.
@@ -402,9 +405,9 @@ lowerram_random
 
 ;	Check if lower ram tests passed
 
-    	ld a, ixh
-    	cp 0
-    	jp z, use_uppermem
+	ld a, ixh
+	cp 0
+	jp z, use_uppermem
 
 ;	Lower memory is no good, give up now.
 ;	We won't be able to test anything else effectively.
@@ -565,7 +568,6 @@ fail_border_1
 
 	xor a
 	ld c, a
-
 
 ; Change border to green or red depending on whether the current
 ; bit has been determined bad or not
@@ -912,12 +914,12 @@ rom_unknown
 	ld (v_column), a
 	call print
 	pop hl
-    	ld de, v_hexstr
-    	call Num2Hex
-    	xor a
-    	ld (v_hexstr+4), a
-    	ld hl, v_hexstr
-    	call print
+	ld de, v_hexstr
+	call Num2Hex
+	xor a
+	ld (v_hexstr+4), a
+	ld hl, v_hexstr
+	call print
 
 rom_unknown_2
 
@@ -949,7 +951,59 @@ rom_unknown_3
 	ld hl, str_testselect
 	call print
 
+;	Load HL with 15 secs * 50 frames = 750
+;	Enable interrupts so we can count accurately.
+
+	ld hl, 0x401
+	ei		
+
 select_test
+
+;	If more than 30 seconds elapses without input, assume
+;	48K mode.
+
+	halt
+
+	ld a, l
+	cp 1
+	jr nz, select_test_pause
+
+;	Paint our countdown timer every 200 cycles
+
+	push hl
+	ld a, h
+	ld l, a
+	ld a, 0x96
+	sub l
+	push af
+	ld a, 248
+	ld (v_column), a
+	ld a, 8
+	ld (v_width), a
+	pop af
+	call putchar
+	ld a, 6
+	ld (v_width), a
+	pop hl
+
+select_test_pause
+
+	dec hl
+	ld a, h
+	or l
+	jp nz, select_test_1
+
+;	Timer expired, print message assuming 48K mode and continue
+;	testing as such
+
+	ld hl, str_test_select_expired
+	call print
+	ld de, test_48kgeneric
+	jp select_test_3
+
+select_test_1
+
+;	Read key row 1-5
 
 	ld bc, 0xf7fe
 	in a, (c)
@@ -958,14 +1012,14 @@ select_test
 
 	and 0xf
 	cp 0xf
-	jr z, select_test
+	jp z, select_test
 
 ;	Scan the test vector table and call the appropriate routine
 
 	ld hl, test_vector_table
 	ld b, a
 
-select_test_1
+select_test_2
 
 	ld de, (hl)
 	ld a, d
@@ -973,7 +1027,7 @@ select_test_1
 	jr z, select_test
 
 	bit 0, b
-	jr nz, select_test_2
+	jr nz, select_test_4
 
 	push hl
 	ld de, (hl)
@@ -984,17 +1038,24 @@ select_test_1
 	inc hl
 	inc hl
 	ld de, (hl)
+
+select_test_3
+
+;	Jump to the testing routine held in HL, with return address
+;	being the testinterrupts routine. Disable interrupts first though.
+
+	di
 	ld hl, de
 	ld de, testinterrupts
 	push de
 	jp hl
 
-select_test_2
+select_test_4
 
 	ld de, 4
 	add hl, de
 	rr b
-	jr select_test_1
+	jr select_test_2
 
 testinterrupts
 
@@ -1583,7 +1644,7 @@ diagrom_exit
 	out (c), a
 	ld bc, 0x7ffd
 	out (c), a
-	
+
 ;	Just do a simple reset if diagboard hardware isn't detected
 
 	ld a, (v_testhwtype)
@@ -1647,7 +1708,7 @@ test_vector_table
 
 str_banner
 
-	defb	TEXTBOLD, "ZX Spectrum Diagnostics", TEXTNORM, 0
+	defb	TEXTBOLD, "ZX ", TKN_SPECTRUM, " Diagnostics", TEXTNORM, 0
 
 str_lowerrampass
 
@@ -1680,7 +1741,7 @@ str_48ktestsfail
 
 str_isthis16k
 
-	defb	"This appears to be a 16K Spectrum\n"
+	defb	"This appears to be a 16K ", TKN_SPECTRUM, "\n"
 	defb  "If 48K, check IC23-IC26 (74LS157, 32, 00)",0
 
 str_128ktestsfail
@@ -1694,7 +1755,7 @@ str_128kpagingfail
 
 str_romcrc
 
-	defb	AT, 4, 0, "Checking ROM version...     ", 0
+	defb	AT, 4, 0, "Checking ROM...", 0
 
 str_romunknown
 
@@ -1703,6 +1764,10 @@ str_romunknown
 str_testselect
 
 	defb	AT, 5, 0, "Press: 1..48K  2..128K  3..+2  4..+2A/+3", 0
+
+str_test_select_expired
+	
+	defb 	AT, 6, 0, "No selection made, assuming 48K mode.   \n", 0
 
 str_assume48k
 
@@ -1794,7 +1859,7 @@ str_halted_fail
 
 str_pagingin
 
-	defb	"\n\nPaging in Spectrum ROM...", 0
+	defb	"\n\nPaging in ", TKN_SPECTRUM, " ROM...", 0
 
 str_pagingtab
 

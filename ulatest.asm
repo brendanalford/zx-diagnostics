@@ -64,6 +64,7 @@ write_shadow_screen
 
 ;	Loop counting T states
 ;	ISR set above will break us out of this.
+
 ulatest_count_loop
 
 	inc hl
@@ -761,19 +762,19 @@ ula_type_table_uncontend
 
 str_ula48pal
 
-	defb "Spectrum 48K", 0
+	defb TKN_SPECTRUM, " 48K", 0
 
 str_ula48ntsc
 
-	defb "Spectrum 48K (NTSC)", 0
+	defb TKN_SPECTRUM, " 48K (NTSC)", 0
 
 str_ula128
 
-	defb "Spectrum 128K or +2", 0
+	defb TKN_SPECTRUM, " 128K or +2", 0
 
 str_ulaplus3
 
-	defb "Spectrum +2A/+3 ASIC", 0
+	defb TKN_SPECTRUM, " +2A/+3 ASIC", 0
 
 str_ts2068
 

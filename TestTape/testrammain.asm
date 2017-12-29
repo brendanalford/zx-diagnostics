@@ -82,7 +82,7 @@ lowermem_test
 
 ;	Establish a stack
 
-	ld sp, 0x7bff
+	ld sp, stack_start
 
 ;	Check if lower ram tests passed
 
@@ -307,11 +307,11 @@ rom_test
 	ld (v_128type), a
 
 	ld hl, str_romcrc
-    	call print
+    call print
 
 ;	Checksum the ROM
 
-    	call romcrc
+    call romcrc
 
 ;	Save it in DE temporarily
 
@@ -393,12 +393,64 @@ rom_unknown
       	ld hl, v_hexstr
       	call print
 
-; 	Allow user to choose model if ROM version can't be determined
+;; 	Allow user to choose model if ROM version can't be determined
 
 	ld hl, str_testselect
 	call print
 
+;	Load HL with 15 secs * 50 frames = 750
+;	Enable interrupts so we can count accurately.
+
+	ld hl, 0x401
+	ei		
+
 select_test
+
+;	If more than 20 seconds elapses without input, assume
+;	48K mode.
+
+	halt
+
+	ld a, l
+	cp 1
+	jr nz, select_test_pause
+
+;	Paint our countdown timer every 200 cycles
+
+	push hl
+	ld a, h
+	ld l, a
+	ld a, 0x96
+	sub l
+	push af
+	ld a, 248
+	ld (v_column), a
+	ld a, 8
+	ld (v_width), a
+	pop af
+	call putchar
+	ld a, 6
+	ld (v_width), a
+	pop hl
+
+select_test_pause
+
+	dec hl
+	ld a, h
+	or l
+	jp nz, select_test_1
+
+;	Timer expired, print message assuming 48K mode and continue
+;	testing as such
+
+	ld hl, str_test_select_expired
+	call print
+	ld de, test_48kgeneric
+	jp select_test_3
+
+select_test_1
+
+;	Read key row 1-5
 
 	ld bc, 0xf7fe
 	in a, (c)
@@ -407,14 +459,14 @@ select_test
 
 	and 0xf
 	cp 0xf
-	jr z, select_test
+	jp z, select_test
 
 ;	Scan the test vector table and call the appropriate routine
 
 	ld hl, test_vector_table
 	ld b, a
 
-select_test_1
+select_test_2
 
 	ld de, (hl)
 	ld a, d
@@ -422,7 +474,7 @@ select_test_1
 	jr z, select_test
 
 	bit 0, b
-	jr nz, select_test_2
+	jr nz, select_test_4
 
 	push hl
 	ld de, (hl)
@@ -433,17 +485,24 @@ select_test_1
 	inc hl
 	inc hl
 	ld de, (hl)
+
+select_test_3
+
+;	Jump to the testing routine held in HL, with return address
+;	being the tests_complete routine. Disable interrupts first though.
+
+	di
 	ld hl, de
 	ld de, tests_complete
 	push de
 	jp hl
 
-select_test_2
+select_test_4
 
 	ld de, 4
 	add hl, de
 	rr b
-	jr select_test_1
+	jr select_test_2
 
 
 tests_complete
@@ -467,8 +526,16 @@ tests_complete
 	ld hl, str_halted_fail
 	call print
 
-	di
-	halt
+; Loop and test for H key held, output screen to printer if so
+
+test_failed_loop
+
+	call scan_keys
+	cp 'H'
+	jr nz, test_failed_loop
+	call lprint_screen
+
+	jr test_failed_loop
 
 tests_passed
 
@@ -668,6 +735,51 @@ prt_scroll
 
  	ret
 
+;
+;	Printer support
+;
+    define PRINTER_PORT		0xfb
+	define COPY_ROM			0x0eaf
+
+lprint_screen
+
+    di
+    in a, (PRINTER_PORT)
+
+; Check for printer present
+
+    bit 6, a
+    jp nz, lpcopy_error
+
+    bit 7, a
+    jp nz, lpcopy_error
+
+;	Printer is present, prepare to copy. First
+;	ensure that ROM 0 is paged in.
+;	Don't worry about handling +2A/+3 paging as the 
+;	ZX Printer/Timex/Alphacom printers aren't supported on 
+;	these machines.
+
+	ld bc, 0x7ffd
+	ld a, 0x10
+	out (c), a
+
+;	Call COPY routine in ROM
+
+	ld b, 192
+	call COPY_ROM
+	ei
+	ret
+
+lpcopy_error
+
+    ld l, 7
+    ld bc, 0x0100
+    ld de, 0x0100
+    call beep
+    ei
+    ret
+
 	include "..\print.asm"
 	include "..\paging.asm"
 	include "..\input.asm"
@@ -754,9 +866,9 @@ str_testselect
 
 		defb	AT, 8, 0, "Press: 1..48K  2..128K  3..+2  4..+2A/+3", 0
 
-str_assume48k
-
-		defb 	AT, 8, 0, "Assuming 48K mode...", 0
+str_test_select_expired
+	
+		defb 	AT, 9, 0, "No selection made, assuming 48K mode.   \n", 0
 
 str_select48k
 
@@ -857,7 +969,11 @@ str_ic
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
-	BLOCK #7A80-$, #FF
+	BLOCK #797F-$, #FF
+
+stack_start
+
+	defb 0xff
 
 str_bit_ref
 
@@ -899,9 +1015,9 @@ str_plus3_ic_uncontend
 
 	defb "5  ", 0, "6  ", 0
 
-	BLOCK #7C00-$, #FF
+	BLOCK #7B00-$, #FF
 
-;	Character set at 0x7C00
+;	Character set at 0x7B00
 
 	include "..\charset.asm"
 

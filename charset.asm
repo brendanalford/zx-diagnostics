@@ -26,7 +26,7 @@ charset
 
 ; $20 - Character: ' '          CHR$(32)
 
-  DEFB    %00000000
+        DEFB    %00000000
         DEFB    %00000000
         DEFB    %00000000
         DEFB    %00000000
@@ -1082,14 +1082,14 @@ charset
 
 ; $80 - Spectrum stripe
 
-  DEFB    %00000001
-  DEFB    %00000011
-  DEFB    %00000111
-  DEFB    %00001111
-  DEFB    %00011111
-  DEFB    %00111111
-  DEFB    %01111111
-  DEFB    %11111111
+        DEFB    %00000001
+        DEFB    %00000011
+        DEFB    %00000111
+        DEFB    %00001111
+        DEFB    %00011111
+        DEFB    %00111111
+        DEFB    %01111111
+        DEFB    %11111111
 
 
 ; $81 - $8A Characters '0' to '9' in wide font
@@ -1097,19 +1097,19 @@ charset
         DEFB    %00000000
         DEFB    %00111100
         DEFB    %01000110
-  DEFB    %01001010
-  DEFB	%01010010
-  DEFB	%01100010
-  DEFB    %00111100
+        DEFB    %01001010
+        DEFB	%01010010
+        DEFB	%01100010
+        DEFB    %00111100
         DEFB    %00000000
 
         DEFB    %00000000
         DEFB    %00011000
         DEFB    %00101000
-  DEFB    %00001000
-  DEFB	%00001000
-  DEFB	%00001000
-  DEFB    %00111110
+        DEFB    %00001000
+        DEFB	%00001000
+        DEFB	%00001000
+        DEFB    %00111110
         DEFB    %00000000
 
         DEFB    %00000000
@@ -1124,139 +1124,195 @@ charset
         DEFB    %00000000
         DEFB    %00111100
         DEFB    %01000010
-  DEFB    %00001100
-  DEFB	%00000010
-  DEFB	%01000010
-  DEFB    %00111100
+        DEFB    %00001100
+        DEFB	%00000010
+        DEFB	%01000010
+        DEFB    %00111100
         DEFB    %00000000
 
         DEFB    %00000000
         DEFB    %00001000
         DEFB    %00011000
-  DEFB    %00101000
-  DEFB	%01001000
-  DEFB	%01111110
-  DEFB    %00001000
+        DEFB    %00101000
+        DEFB	%01001000
+        DEFB	%01111110
+        DEFB    %00001000
         DEFB    %00000000
 
         DEFB    %00000000
         DEFB    %01111110
         DEFB    %01000000
-  DEFB    %01111100
-  DEFB	%00000010
-  DEFB	%01000010
-  DEFB    %00111100
+        DEFB    %01111100
+        DEFB	%00000010
+        DEFB	%01000010
+        DEFB    %00111100
         DEFB    %00000000
 
-  DEFB    %00000000
-  DEFB    %00111100
-  DEFB    %01000000
-  DEFB    %01111100
-  DEFB	%01000010
-  DEFB	%01000010
-  DEFB    %00111100
-  DEFB    %00000000
+        DEFB    %00000000
+        DEFB    %00111100
+        DEFB    %01000000
+        DEFB    %01111100
+        DEFB	%01000010
+        DEFB	%01000010
+        DEFB    %00111100
+        DEFB    %00000000
 
-  DEFB    %00000000
-  DEFB    %01111110
-  DEFB    %00000010
-  DEFB    %00000100
-  DEFB	%00001000
-  DEFB	%00010000
-  DEFB    %00010000
-  DEFB    %00000000
+        DEFB    %00000000
+        DEFB    %01111110
+        DEFB    %00000010
+        DEFB    %00000100
+        DEFB	%00001000
+        DEFB	%00010000
+        DEFB    %00010000
+        DEFB    %00000000
 
-  DEFB    %00000000
-  DEFB    %00111100
-  DEFB    %01000010
-  DEFB    %01111100
-  DEFB	%01000010
-  DEFB	%01000010
-  DEFB    %00111100
-  DEFB    %00000000
+        DEFB    %00000000
+        DEFB    %00111100
+        DEFB    %01000010
+        DEFB    %00111100
+        DEFB	%01000010
+        DEFB	%01000010
+        DEFB    %00111100
+        DEFB    %00000000
 
-  DEFB    %00000000
-  DEFB    %00111100
-  DEFB    %01000010
-  DEFB    %01000010
-  DEFB	%00111110
-  DEFB	%01000010
-  DEFB    %00111100
-  DEFB    %00000000
+        DEFB    %00000000
+        DEFB    %00111100
+        DEFB    %01000010
+        DEFB    %01000010
+        DEFB	%00111110
+        DEFB	%01000010
+        DEFB    %00111100
+        DEFB    %00000000
 
 ; $8B - left filled curve
 
-  DEFB	%11111100
-  DEFB	%11110000
-  DEFB	%11100000
-  DEFB	%11000000
-  DEFB	%10000000
-  DEFB	%10000000
-  DEFB	%00000000
-  DEFB	%00000000
+        DEFB	%11111100
+        DEFB	%11110000
+        DEFB	%11100000
+        DEFB	%11000000
+        DEFB	%10000000
+        DEFB	%10000000
+        DEFB	%00000000
+        DEFB	%00000000
 
 ; $8C - right filled curve
 
-  DEFB	%00111111
-  DEFB	%00001111
-  DEFB	%00000111
-  DEFB	%00000011
-  DEFB	%00000001
-  DEFB	%00000001
-  DEFB	%00000000
-  DEFB	%00000000
+        DEFB	%00111111
+        DEFB	%00001111
+        DEFB	%00000111
+        DEFB	%00000011
+        DEFB	%00000001
+        DEFB	%00000001
+        DEFB	%00000000
+        DEFB	%00000000
 
 ; $8D - left open curve
 
-  DEFB	%00000011
-  DEFB	%00001100
-  DEFB	%00010000
-  DEFB	%00100000
-  DEFB	%01000000
-  DEFB	%01000000
-  DEFB	%10000000
-  DEFB	%10000000
+        DEFB	%00000011
+        DEFB	%00001100
+        DEFB	%00010000
+        DEFB	%00100000
+        DEFB	%01000000
+        DEFB	%01000000
+        DEFB	%10000000
+        DEFB	%10000000
 
 ; $8E - right open curve
 
-  DEFB	%11000000
-  DEFB	%00110000
-  DEFB	%00001000
-  DEFB	%00000100
-  DEFB	%00000010
-  DEFB	%00000010
-  DEFB	%00000001
-  DEFB	%00000001
+        DEFB	%11000000
+        DEFB	%00110000
+        DEFB	%00001000
+        DEFB	%00000100
+        DEFB	%00000010
+        DEFB	%00000010
+        DEFB	%00000001
+        DEFB	%00000001
 
 ; $8f - Top line
 
-  DEFB	%11111111
-  DEFB	%00000000
-  DEFB	%00000000
-  DEFB	%00000000
-  DEFB	%00000000
-  DEFB	%00000000
-  DEFB	%00000000
-  DEFB	%00000000
+        DEFB	%11111111
+        DEFB	%00000000
+        DEFB	%00000000
+        DEFB	%00000000
+        DEFB	%00000000
+        DEFB	%00000000
+        DEFB	%00000000
+        DEFB	%00000000
 
 ; $90 - left bottom filled curve
 
-  DEFB	%10000000
-  DEFB	%10000000
-  DEFB	%11000000
-  DEFB	%11000000
-  DEFB	%11100000
-  DEFB	%11110000
-  DEFB	%11111100
-  DEFB	%11111111
+        DEFB	%10000000
+        DEFB	%10000000
+        DEFB	%11000000
+        DEFB	%11000000
+        DEFB	%11100000
+        DEFB	%11110000
+        DEFB	%11111100
+        DEFB	%11111111
 
 ; $91 - right bottom filled curve
 
-  DEFB	%00000001
-  DEFB	%00000001
-  DEFB	%00000011
-  DEFB	%00000011
-  DEFB	%00000111
-  DEFB	%00001111
-  DEFB	%00111111
-  DEFB	%11111111
+        DEFB	%00000001
+        DEFB	%00000001
+        DEFB	%00000011
+        DEFB	%00000011
+        DEFB	%00000111
+        DEFB	%00001111
+        DEFB	%00111111
+        DEFB	%11111111
+
+; $92 - Full clock face
+
+        DEFB	%00111100
+        DEFB	%01111110
+        DEFB	%11111111
+        DEFB	%11111111
+        DEFB	%11111111
+        DEFB	%11111111
+        DEFB	%01111110
+        DEFB	%00111100
+
+ ; $93 - Three quarter clock face
+
+        DEFB	%00111100
+        DEFB	%01001110
+        DEFB	%10001111
+        DEFB	%10001111
+        DEFB	%11111111
+        DEFB	%11111111
+        DEFB	%01111110
+        DEFB	%00111100         
+                 
+ ; $94 - Half clock face
+
+        DEFB	%00111100
+        DEFB	%01001110
+        DEFB	%10001111
+        DEFB	%10001111
+        DEFB	%10001111
+        DEFB	%10001111
+        DEFB	%01001110
+        DEFB	%00111100
+            
+ ; $95 - Quarter clock face
+
+        DEFB	%00111100
+        DEFB	%01001110
+        DEFB	%10001111
+        DEFB	%10001111
+        DEFB	%10000001
+        DEFB	%10000001
+        DEFB	%01000010
+        DEFB	%00111100
+              
+ ; $96 - Empty clock face
+
+        DEFB	%00111100
+        DEFB	%01000010
+        DEFB	%10000001
+        DEFB	%10000001
+        DEFB	%10000001
+        DEFB	%10000001
+        DEFB	%01000010
+        DEFB	%00111100
+            

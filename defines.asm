@@ -739,6 +739,44 @@
 
 	ENDM
 
+;
+;	Macro to sound a tone while cycling border colours.
+;	Inputs: L=border colour.
+;
+	MACRO COLORBEEP freq, length
+
+	ld de, length
+
+.tone.duration
+
+	ld bc, freq			; bc = twice tone freq in Hz
+
+.tone.period
+
+	dec bc
+	ld a, b
+	or c
+	jr nz, .tone.period
+
+;	Toggle speaker output, preserve border
+
+	ld a, l
+	inc a
+	and 0x17
+	xor 0x10
+	ld l, a
+	out (0xfe), a
+
+;	Generate tone for desired duration
+
+	dec de
+	ld a, d
+	or e
+	jr nz, .tone.duration
+
+	ENDM
+
+
 ;	A quick macro to write a value in a to four consecutive
 ;	memory locations starting at HL.
 

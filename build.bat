@@ -34,6 +34,14 @@ echo Building tape based tests
 echo *************************
 echo.
 call build.bat
+if %errorlevel% neq 0 goto :cderror
+cd ..\ROMCheck
+echo.
+echo ****************************
+echo Building ROM Checker utility
+echo ****************************
+echo.
+call build.bat
 cd ..
 if %errorlevel% neq 0 goto :cderror
 echo All builds complete.

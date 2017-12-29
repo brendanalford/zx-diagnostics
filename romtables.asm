@@ -51,6 +51,10 @@ rom_signature_table
 
   defw 0x5129, str_rom128derby14, test_128k, rom_table_rom128derby14
 
+; Spectrum 128 Derby 4.02 ROM (Development machine)
+
+	defw 0xe9f5, str_rom128derby402, test_128k, rom_table_rom128derby402
+
 ;	Some +3E ROM sets that might be out there
 
 	defw 0xdba9, str_romplus3e_v1_38, test_plus3, rom_table_romplus3e_v1_38
@@ -66,6 +70,10 @@ rom_signature_table
 ;	Beckman 48K
 
 	defw 0x870c, str_rom48kbeckman, test_48k, 0x0000
+
+; Microdigital clones
+
+	defw 0x55b9, str_romtk90x, test_48kgeneric, 0x0000
 
 ; 	Gosh Wonderful ROM (assume 48K)
 
@@ -133,6 +141,10 @@ rom_table_rom128derby14
 
   defw 0x8c11, str_rom128_fail, 0x0000
 
+rom_table_rom128derby402
+
+  defw 0xbe09, str_rom128_fail, 0x0000
+
 rom_table_romplus3e_v1_38
 
 	defw	0xa8e8, str_romplus3_a_fail, 0xe579, str_romplus3_b_fail, 0x4f34, str_romplus3_b_fail, 0x0000
@@ -174,93 +186,102 @@ str_romjs128_fail
 	defb	"U18", 0
 
 ;
-;	ROM ID Strings
+;	ROM ID Strings. Tokenisation of strings 'Spectrum', 'ROM...' and 'Spanish'
+; performed to save space.
 ;
 
 str_rom48k
 
-	defb	"Spectrum 16/48K ROM...      ", 0
+	defb	TKN_SPECTRUM, " 16/48K ", TKN_ROM, 0
 
 str_rom48kesp
 
-	defb	"Spectrum 48K (Spanish) ROM...", 0
+	defb	TKN_SPECTRUM, " 48K (", TKN_SPANISH, ") ", TKN_ROM, 0
 
 str_rom128k
 
-	defb	"Spectrum 128K ROM...        ", 0
+	defb	TKN_SPECTRUM, " 128K ", TKN_ROM, 0
 
 str_romplus2
 
-	defb	"Spectrum +2 (Grey) ROM...   ", 0
+	defb	TKN_SPECTRUM, " +2 (Grey) ", TKN_ROM, 0
 
 str_rom128espv1
 
-	defb	"Spectrum 128K (Spanish v1) ROM...  ", 0
+	defb	TKN_SPECTRUM, " 128K (", TKN_SPANISH, " v1) ", TKN_ROM, 0
 
 str_rom128espv2
 
-	defb	"Spectrum 128K (Spanish v2) ROM...  ", 0
-
+	defb	TKN_SPECTRUM, " 128K (", TKN_SPANISH, " v2) ", TKN_ROM, 0
 
 str_romplus2esp
 
-	defb	"Spectrum +2 (Spanish) ROM...    ", 0
+	defb	TKN_SPECTRUM, " +2 (", TKN_SPANISH, ") ", TKN_ROM, 0
 
 str_romplus2fra
 
-	defb	"Spectrum +2 (French) ROM...    ", 0
+	defb	TKN_SPECTRUM, " +2 (French) ", TKN_ROM, 0
 
 	IFNDEF SLAMTEST
 
 str_romplus3
 
-	defb	"Spectrum +3 (v4.0) ROM...   ", 0
+	defb	TKN_SPECTRUM, " +3 (v4.0) ", TKN_ROM, 0
 
 str_romplus2a
 
-	defb  "Spectrum +2A (v4.1) ROM...  ", 0
+	defb  TKN_SPECTRUM, " +2A (v4.1) ", TKN_ROM, 0
 
 str_romplus3espv40
 
-	defb	"Spectrum +2A/+3 (Spanish v4.0) ROM... ", 0
+	defb	TKN_SPECTRUM, " +2A/+3 (", TKN_SPANISH, " v4.0) ", TKN_ROM, 0
 
 str_romplus3espv41
 
-	defb	"Spectrum +2A/+3 (Spanish v4.1) ROM... ", 0
+	defb	TKN_SPECTRUM, " +2A/+3 (", TKN_SPANISH, " v4.1) ", TKN_ROM, 0
 
 	IFNDEF SAVEMEM
 
 str_rom128derby14
 
-  defb	"Spectrum 128 Dev, Derby 1.4 ROM... ", 0
+  defb	TKN_SPECTRUM, " 128 Dev, Derby 1.4 ", TKN_ROM, 0
+
+str_rom128derby402
+
+  defb	TKN_SPECTRUM, " 128 Dev, Derby 4.02 ", TKN_ROM, 0
 
 str_romplus3e_v1_38
 
-	defb 	"Spectrum +3E v1.38 ROM...   ", 0
+	defb 	TKN_SPECTRUM, " +3E v1.38 ", TKN_ROM, 0
 
 str_romplus3e_v1_38esp
 
-	defb	"Spectrum +3E v1.38 (Spanish) ROM... ", 0
+	defb	TKN_SPECTRUM, " +3E v1.38 (", TKN_SPANISH, ") ", TKN_ROM, 0
 
 str_romplus3e_v1_43
 
-	defb 	"Spectrum +3E v1.43 ROM...   ", 0
+	defb 	TKN_SPECTRUM, " +3E v1.43 ", TKN_ROM, 0
 
 str_romplus3e_v1_43esp
 
-	defb 	"Spectrum +3E v1.43 (Spanish) ROM...   ", 0
+	defb 	TKN_SPECTRUM, " +3E v1.43 (", TKN_SPANISH, ") ", TKN_ROM, 0
 
 str_orelbk08
 
-	defb	"Orel BK-08 ROM...           ", 0
+	defb	"Orel BK-08 ", TKN_ROM, 0
 
 str_rom48kbeckman
 
-	defb 	"Beckman Spectrum 48K ROM... ", 0
+	defb 	"Beckman ", TKN_SPECTRUM, " 48K ", TKN_ROM, 0
+
+str_romtk90x
+
+	defb "Microdigital TK90X/TK95 ", TKN_ROM, 0
+
 
 str_rom48gw03
 
-	defb	"Gosh Wonderful 48K ROM...   ", 0
+	defb	"Gosh Wonderful 48K ", TKN_ROM, 0
 
 	ENDIF
 
