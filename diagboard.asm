@@ -21,19 +21,35 @@
 	include "defines.asm"
 	include "vars.asm"
 
+	define HW_TYPE_NONE			0
+	define HW_TYPE_DIAGBOARD	1
+	define HW_TYPE_SMART		2
+	define HW_TYPE_ZXC3			3
+	define HW_TYPE_DANDANATOR	4
+
 	org sys_rompaging
 ;
 ;	Handler for diagboard paging operations.
 ;	Inputs; A=command type, BC=operands.
 ;
-
+;	Commands:
+;
+;	0: Detect presence of diagnostic hardware
+;	1: Page in Diagnostic ROM
+;	2: Page out Diagnostic ROM
+;	3: Disable diagnostic hardware paging (Dandanator only)
+;	4: Enable diagnostic hardware paging (Dandanator only)
+;
 	cp 0
 	jp z, romhw_test
 	cp 1
 	jr z, romhw_pagein
 	cp 2
 	jr z, romhw_pageout
-
+	cp 3
+	jp z, romhw_disable
+	cp 4
+	jp z, romhw_enable
 
 ;	Command not understood, return with error in A
 
@@ -187,8 +203,82 @@ romhw_pageout_dand_3
 	ret nz
 	jp 0			; Yes - restart the machine
 
+;	Command 3: Disable diagnostic paging
+;	Required to stop Dandanator Mini accidentally
+; 	paging itself out after initial unlock when 
+;	lower RAM testing in soak mode.
 
-;	Command 3: Test for diagnostic devices
+romhw_disable
+
+	ld a, (v_testhwtype)
+	cp 4
+	jr z, romhw_disable_dand
+	ld a, 0xff
+	ret
+
+romhw_disable_dand
+
+;	Issue following sequence to lock:
+;	46 1 1 
+;	This'll lock Dandanator paging until the
+;	unlock sequence of 46 16 16 is presented.
+
+	ld hl,1
+	ld a, 46
+	call issue_dandanator_command
+	
+	inc hl
+	ld a, 1
+	call issue_dandanator_command
+	
+	inc hl
+	ld a, 1 
+	call issue_dandanator_command
+
+	ld (0), a
+	ld b, 0
+
+	xor a 
+	ret
+
+;	Command 4: Enable diagnostic paging
+;	Allow Dandanator Mini to control Diagnostic hardware
+;	page in/out after previous Command 3 (Lock).
+
+romhw_enable
+
+	ld a, (v_testhwtype)
+	cp 4
+	jr z, romhw_enable_dand
+	ld a, 0xff
+	ret
+
+romhw_enable_dand
+
+;	Issue following sequence to unlock:
+;	46 16 16  
+;	This'll unlock Dandanator paging until the
+;	locking sequence of 46 1 1 is presented.
+
+	ld hl,1
+	ld a, 46
+	call issue_dandanator_command
+	
+	inc hl
+	ld a, 16
+	call issue_dandanator_command
+	
+	inc hl
+	ld a, 16
+	call issue_dandanator_command
+
+	ld (0), a
+	ld b, 0
+
+	xor a 
+	ret
+
+;	Command 0: Test for diagnostic devices
 ;	Stores result in system variable v_testhwtype
 
 romhw_test
@@ -203,7 +293,7 @@ romhw_test
 
 romhw_found_diagboard
 
-	ld a, 1
+	ld a, HW_TYPE_DIAGBOARD
 	ld (v_testhwtype), a
 	xor a
 	out (ROMPAGE_PORT), a
@@ -227,7 +317,7 @@ romhw_test_smart
 
 romhw_found_smart
 
-	ld a, 2
+	ld a, HW_TYPE_SMART
 	ld (v_testhwtype), a
 	ld a, (v_hw_page)
 	ld bc, SMART_ROM_PORT
@@ -280,7 +370,7 @@ zxc_paged_in
 	ld a, e
 	and 0x7
 	ld (v_hw_page), a
-	ld a, 3
+	ld a, HW_TYPE_ZXC3
 	ld (v_testhwtype), a
 
 	ret
@@ -300,13 +390,13 @@ romhw_test_dandanator
 	call issue_dandanator_command
 	
 	inc hl
-	;ld a,16 ; a already contains 16
 	call issue_dandanator_command
 
 	ld (0), a
 	ld b, 0
 
 romhw_test_dandanator_loop
+
 	djnz romhw_test_dandanator_loop
 
 ;	Set up for disable of test ROM
@@ -328,7 +418,7 @@ dandanator_paging_test_success
 ;	Successfully paged out the test ROM, set flags and page ourselves
 ; 	back in.
 
-	ld a, 4
+	ld a, HW_TYPE_DANDANATOR
 	ld (v_testhwtype), a
 
 	ld hl, 1
@@ -344,8 +434,8 @@ romhw_not_found
 	ret
 
 ;	Issues a command held in the A register to the
-; Dandanator board. Preserves all registers used.
-;
+; 	Dandanator board. Preserves all registers used.
+
 issue_dandanator_command
 
 	push bc

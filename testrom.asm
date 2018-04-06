@@ -1247,7 +1247,9 @@ innerdelay_2
 
 ; 	Start next soak test iteration
 
-	im 0
+	di
+	ld a, 3
+	call sys_rompaging
 	jp start_testing
 
 soak_test_ffff
@@ -1333,7 +1335,6 @@ waitloop
 	cp 0xff
 	jr nz, waitloop
 
-	im 0
 	di
 
 ; 	WAIT message - about to page ROM in

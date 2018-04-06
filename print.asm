@@ -999,7 +999,7 @@ str_footer
 
 	defb	AT, 22, 0, VERSION_STRING
 	;defb 	AT, 23, 11 * 6, "http://git.io/vkf1o", 0
-	defb 	AT, 23, 18, PAPER, 1, INK, 7, TEXTBOLD, " Alpha version! http://git.io/vkf1o ", TEXTNORM, INK, 0, PAPER, 7
+	defb 	AT, 23, 18, PAPER, 2, INK, 7, TEXTBOLD, " Beta version! http://git.io/vkf1o ", TEXTNORM, INK, 0, PAPER, 7
 
 mask_bits
 

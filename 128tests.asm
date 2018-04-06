@@ -536,6 +536,9 @@ set_page_success_status
 	pop hl
 	ret
 
+test_page_contention
+
+	
 str_pcf_asic_fail
 
 	defb "PCF/ASIC Failure\n", 0

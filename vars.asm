@@ -56,6 +56,7 @@ v_128type				equ #7d3a; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
 v_testcard_flags		equ #7d3b; bit 0 - AY present. bit 1 - quiet mode
 v_ulacycles				equ #7d3c; ULA cycles x 6 since last interrupt
 v_ulafloatbus			equ #7d3e; ULA floating bus detected (0 no, 1 yes)
+v_ulapluspresent		equ #7d3f; ULAPLus hardware detected (0 no, 1 yes)
 v_testhwtype			equ #7d40; Type of interface we're running on. 0-none found,
 							 							 ; 1-Diagboard, 2-Retroleum SMART card, 3-ZXC3/ZXC4
 v_hw_page				equ #7d41; Paged ROM index on startup (SMART and ZXC4 hardware)

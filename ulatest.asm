@@ -80,10 +80,11 @@ ulatest_count_loop_done
 
 	xor a
 	ld (v_ulafloatbus), a
+	ld (v_ulapluspresent), a
 	ld hl, 0xfff
 	ld a, 0xff
 	ld b, a
-
+	
 ulatest_check_floating_bus
 
 	in a, (0xff)
@@ -96,10 +97,52 @@ ulatest_check_floating_bus
 
 	ld a, b
 	cp 0xff
-	jr z, checks_done
+	jr z, ulatest_check_ulaplus
 
 	ld a, 1
 	ld (v_ulafloatbus), a
+
+;	Check if we're running on ULAPlus capable hardware by writing 
+;	the pallette registers.
+
+ulatest_check_ulaplus
+
+	xor a
+	ld bc, 0xbf3b
+	out (c), a
+	ld bc, 0xff3b
+	out (c), a
+
+;	Turn on interrupts temporarily to wait for one frame.
+
+	ld hl, 0
+	ld (v_userint), hl
+	ei
+	halt
+	di
+	in a, (c)
+	cp 0
+	jr nz, checks_done
+
+; 	ULAPlus regiaters found. Check if the Timex port 0xFF is writable, if 
+;	not we've actually got a ZX-HD connected.
+; 	TODO: This can't work as port 0xFF reads must return the floating bus
+; 	to be standard ULA compatible. I wonder if there's a fully decoded port
+;	that can be read.
+
+	; xor a
+	; out (0xff), a
+	; ei
+	; halt
+	; di
+	; in a, (0xff)
+	; cp 0
+	; jr nz, checks_done
+
+; Timex port found, genuine bonafide SLAM module found.
+
+	ld a, 1
+	ld (v_ulapluspresent), a
 
 checks_done
 
@@ -125,6 +168,16 @@ checks_done
 
 	ld hl, (v_ulacycles)
 	ld de, hl
+	
+	ld a, (v_ulapluspresent)
+	cp 0
+	jr z, ula_type_factory
+
+	ld ix, ula_type_table_ulaplus
+	jr ula_type_find
+
+ula_type_factory
+
 	ld ix, ula_type_table_contend
 
 	ld a, (v_ulafloatbus)
@@ -760,6 +813,13 @@ ula_type_table_uncontend
 	defw 0x06E4, str_ulaplus3
 	defw 0x0000
 
+;	ULAPlus
+ula_type_table_ulaplus
+
+	defw 0x06CB, str_slam48plus
+	defw 0x06E4, str_slam128plus
+	defw 0x0000
+
 str_ula48pal
 
 	defb TKN_SPECTRUM, " 48K", 0
@@ -783,6 +843,14 @@ str_ts2068
 str_ula48notr6
 
 	defb "48K Issue 1 or TR6 missing", 0
+
+str_slam48plus
+
+	defb "SLAM48+", 0
+
+str_slam128plus
+
+	defb "SLAM128+", 0
 
 str_ulaunknown
 

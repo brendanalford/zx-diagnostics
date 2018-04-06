@@ -189,7 +189,9 @@ hex_digit_2
 
 	call get_hl_cursor_addr
 
-;	If on ZXC3 hardware, check if
+write_check_zxc3
+
+; If on ZXC3 hardware, check if
 ; we're about to write to 3Fc0-3FFF.
 ; Do not perform the write if so.
 
@@ -206,9 +208,6 @@ hex_digit_2
 	pop af
 	pop hl
 	jr write_end
-
-;	Now work out the high or low
-; nibble to write, and write it
 
 write_calc_nibble
 
@@ -239,8 +238,23 @@ write_high_nibble
 
 write_byte
 
+;	Write the byte in question. 
+;	Temporarily lock paging on diagnostic
+;	hardware that supports it, to avoid a
+;	write to ROM space triggering a paging
+;	command.
+
 	or b
+	push hl
+	push af
+	ld a, 3
+	call sys_rompaging
+	pop af
+	pop hl
 	ld (hl), a
+	ld a, 4
+	call sys_rompaging
+
 	pop hl
 	call refresh_mem_display
 
