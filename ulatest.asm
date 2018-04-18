@@ -49,6 +49,10 @@ write_shadow_screen
 	xor a
 	call pagein
 
+;	Detect CPU type and store it.
+
+	call ulatest_check_cpu_type
+
 ;	Detect frame length. Once HALT is issued, we start counting until the
 ;	second interrupt is reached.
 ;	NOTE: This routine doesn't produce exact lengths, but close enough
@@ -239,6 +243,26 @@ ula_type_done
 ula_print_floatbus_type
 
 	call print
+
+;	Experimental : Check CPU type.
+
+	ld hl, str_cputype
+	call print
+
+	ld a, (v_cmoscpupresent)
+	cp 0
+	jr z, ulatest_found_nmos
+
+	ld hl, str_cpu_cmos
+	call print
+	jr ula_print_0xfe_read
+
+ulatest_found_nmos
+
+	ld hl, str_cpu_nmos
+	call print
+
+ula_print_0xfe_read
 
 	ld hl, str_ulainresult
 	call print
@@ -757,6 +781,45 @@ ulatest_get_frame_length_done
 
 	jp ulatest_count_loop_done
 
+;
+;	Checks Z80 CPU type. Zero flag reset if NMOS, set if CMOS.
+;
+ulatest_check_cpu_type
+
+	xor a
+	ld (v_cmoscpupresent), a
+
+;	Do we have the AY present?
+
+	ld bc, AY_REG
+	xor a
+	out (c), a
+	in a, (c)
+	cp 0
+	jr nz, ulatest_check_cpu_type_0xfe
+
+	out (c), 0
+	in a, (c)
+	cp 0
+	ret z
+	ld a, 1
+	ld (v_cmoscpupresent), a
+	ret	
+
+ulatest_check_cpu_type_0xfe
+
+; 	Fallback - out to the ULA port and then quickly read back.
+;	This works on 48K machines only.
+
+	ld bc, 0x00fe
+	out (c), 0
+	in a, (c)
+	bit 6, a
+	ret z
+	ld a, 1
+	ld (v_cmoscpupresent), a
+	ret
+
 str_ulabanner
 
 	defb	TEXTBOLD, "ULA Test", TEXTNORM, 0
@@ -867,3 +930,15 @@ str_fb_detected
 str_fb_absent
 
 	defb "absent", 0
+
+str_cputype
+
+	defb AT, 4, 0, "CPU Type: ",0
+
+str_cpu_nmos
+
+	defb "NMOS (original)", 0
+
+str_cpu_cmos
+
+	defb "CMOS (possible incompatibility)", 0
