@@ -57,7 +57,7 @@ v_testcard_flags			equ #7c3b; bit 0 - AY present. bit 1 - quiet mode
 v_ulacycles					equ #7c3c; ULA cycles x 6 since last interrupt
 v_ulafloatbus				equ #7c3e; ULA floating bus detected (0 no, 1 yes)
 v_ulapluspresent			equ #7c3f; ULAPLus hardware detected (0 no, 1 yes)
-v_cmoscpupresent			equ #7f40; CMOS CPU detected (0 no, 1 yes)
+v_cmoscpupresent			equ #7c40; CMOS CPU detected (0 no, 1 yes)
 v_testhwtype				equ #7c41; Type of interface we're running on. 0-none found,
 							 	 	 ; 1-Diagboard, 2-Retroleum SMART card, 3-ZXC3/ZXC4
 v_hw_page					equ #7c42; Paged ROM index on startup (SMART and ZXC4 hardware)

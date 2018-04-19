@@ -794,11 +794,17 @@ ulatest_check_cpu_type
 	ld bc, AY_REG
 	xor a
 	out (c), a
+	ld bc, AY_DATA
+	ld a, 0x55
+	out (c), a
+	ld bc, AY_REG
 	in a, (c)
-	cp 0
+	cp 0x55
 	jr nz, ulatest_check_cpu_type_0xfe
 
+	ld bc, AY_DATA
 	out (c), 0
+	ld bc, AY_REG
 	in a, (c)
 	cp 0
 	ret z
