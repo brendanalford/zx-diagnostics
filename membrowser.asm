@@ -1033,7 +1033,21 @@ ld_buffer_8_bytes_hl
 	ld a, l
 	cp 0xc0
 	jr c, ld_buffer_8_bytes_hl_2
+
+;	ZXC3/4 and address between 3FC0-3FFF, fake it
+
+	push bc
+	push de
+	push hl
+	ld hl, v_membrowser_buffer
 	ld a, 0xff
+	ld (hl), a
+	ld de, v_membrowser_buffer + 1
+	ld bc, 7
+	ldir
+	pop hl
+	pop de
+	pop bc
 	ei
 	ret
 
