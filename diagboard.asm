@@ -21,12 +21,6 @@
 	include "defines.asm"
 	include "vars.asm"
 
-	define HW_TYPE_NONE			0
-	define HW_TYPE_DIAGBOARD	1
-	define HW_TYPE_SMART		2
-	define HW_TYPE_ZXC3			3
-	define HW_TYPE_DANDANATOR	4
-
 	org sys_rompaging
 ;
 ;	Handler for diagboard paging operations.

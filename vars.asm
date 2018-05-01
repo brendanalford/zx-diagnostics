@@ -74,8 +74,8 @@ v_membrowser_buffer			equ #7c71; 8 byte buffer for memory browser
 ;	Relocation addresses for routines that need the original ROM paged
 
 sys_romcrc					equ #7d00
-sys_ld_a_hl					equ #7d40
-sys_ld_buffer_8_bytes_hl	equ #7d80
+sys_ld_a_hl					equ #7d30
+sys_ld_buffer_8_bytes_hl	equ #7d70
 sys_rompaging				equ #7dc0
 
 ; Location of magic string for testing Diag ROM presence

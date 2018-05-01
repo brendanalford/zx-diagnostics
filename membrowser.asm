@@ -201,14 +201,27 @@ write_check_zxc3
 ; Do not perform the write if so.
 
 	ld a, (v_testhwtype)
-	cp 3
-	jr nz, write_calc_nibble
+	cp HW_TYPE_ZXC3
+	jr nz, write_check_dandanator
 	ld a, h
 	cp 0x3f
 	jr nz, write_calc_nibble
 	ld a, l
 	cp 0xc0
 	jr c, write_calc_nibble
+
+	pop af
+	pop hl
+	jr write_end
+
+write_check_dandanator
+
+	ld a, (v_testhwtype)
+	cp HW_TYPE_DANDANATOR
+	jr nz, write_calc_nibble
+	ld a, h
+	cp 0x40
+	jr nc, write_calc_nibble
 
 	pop af
 	pop hl
@@ -270,7 +283,7 @@ write_end
 
 exit
 
-	call diagrom_exit
+	jp diagrom_exit
 
 hard_copy
 
