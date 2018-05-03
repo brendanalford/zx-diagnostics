@@ -76,6 +76,11 @@ v_membrowser_buffer			equ #7c71; 8 byte buffer for memory browser
 sys_romcrc					equ #7d00
 sys_ld_a_hl					equ #7d30
 sys_ld_buffer_8_bytes_hl	equ #7d70
+
+;	NOTE: if relocating sys_rompaging to another memory location,
+;	be sure to also update diagboard.sjasm with the new org and length,
+;	otherwise paging attempts will misbehave or crash!
+
 sys_rompaging				equ #7dc0
 
 ; Location of magic string for testing Diag ROM presence

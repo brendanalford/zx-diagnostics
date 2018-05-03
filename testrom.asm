@@ -62,12 +62,26 @@
 	jp start
 
 ;	Define a version string in the dead space between the ROM start and the
-;	NMI/start vector
+;	IM1 0x38 restart/NMI/start vector
+
+str_build
+
+	defb	"ZX Diagnostics ", VERSION, "\nBuilt:  ", BUILD_TIMESTAMP , 0
 
 	BLOCK 0x0038-$, 0xff
 
 isr
 	jp isr_main
+
+str_gitbranch
+
+	defb  "Branch: ", GIT_BRANCH, 0
+
+	BLOCK 0x0060-$, 0xff
+
+str_rommagicstring
+
+	defb "TROM"
 
 	BLOCK 0x0066-$, 0xff
 
@@ -81,15 +95,7 @@ nmi
 	ld hl, 48878
 	jp keyboard_test
 
-	BLOCK 0x0080-$, 0xff
-
-str_build
-
-	defb	"ZX Diagnostics ", VERSION, "\nBuilt:  ", BUILD_TIMESTAMP , 0
-
-str_gitbranch
-
-	defb  "Branch: ", GIT_BRANCH, 0
+	BLOCK 0x0070-$, 0xff
 
 str_gitcommit
 
@@ -99,13 +105,7 @@ str_buildmachine
 
 	defb  "Host:   ", HOSTNAME, 0
 
-	BLOCK 0x00f0-$, 0xff
-
-str_rommagicstring
-
-	defb "TROM"
-
-	BLOCK 0x0100-$, 0xff
+	BLOCK 0x00a0-$, 0xff
 
 start
 
@@ -123,8 +123,6 @@ start
 	out (LED_PORT), a		; Light all LED's on startup
 	ld a, 1
 	out (ULA_PORT), a
-
-	IFNDEF SLAMTEST
 
 ;	Display splash screen (i.e. line)
 
@@ -172,8 +170,6 @@ splash_check_upper
 	jr nz, splash_loop
 
 	BLANKMEM 0x5940, 63, 7
-
-	ENDIF
 
 ; Insert delay here
 
@@ -241,14 +237,10 @@ start_loop_end
 	bit 1, a
 	jp z, about
 
-	IFNDEF SLAMTEST
-
 ;	Jump to memory browser if M is pressed
 
 	bit 2, a
 	jp z, mem_browser
-
-	ENDIF
 
 ;	Jump to ULA test routine if U key is pressed
 
@@ -1667,23 +1659,10 @@ diagrom_exit
 	include "testcard.asm"
 	include "ulatest.asm"
 	include "keyboardtest.asm"
-
-	IFNDEF SLAMTEST
 	include "membrowser.asm"
-	ENDIF
-
 	include "romtables.asm"
 	include "printer.asm"
 	include "about.asm"
-
-	;	Relocatable routines for diag board detection/paging
-
-rompage_reloc
-
-	incbin "diagboard.bin"
-
-end_rompage_reloc
-
 
 str_romdiagboard
 
@@ -1921,6 +1900,7 @@ isr_main
 	jr nz, isr_2
 	pop af
 	jp fail_border
+
 isr_2
 
 	push hl
@@ -1987,8 +1967,6 @@ fail_ram_bitmap
 	defb %01001110, %11100100, %00100100, %01001000
 	defb %00000000, %00000000, %00000000, %00000000
 
-	IFNDEF SLAMTEST
-
 splash_screen
 
 	defb %00000110, %00000110, %01000100, %10100000, %00001010, %00001010, %10000100, %00000000, %10100000, %10101110, %10100000, %00000110, %11000110, %00001110, %11100110, %11100110, %01001100, %11000000, %00001010, %00001010, %11101010, %11000100, %01001100, %11000000, %00000110, %10101010, %01101010, %11101110, %11100000, %01001100, %01001010, %11100000
@@ -1997,20 +1975,20 @@ splash_screen
 	defb %00000010, %01000010, %10101010, %10100000, %00001010, %01001010, %10001010, %00000000, %10100100, %10101000, %10100000, %00000010, %10001000, %01000100, %10000010, %01001000, %10101010, %10100000, %00001010, %01001010, %10000100, %10101010, %10101010, %10100000, %00000010, %01001010, %00101010, %01001000, %01000100, %10101010, %10101010, %01000000
 	defb %00001100, %00001100, %01001010, %10100000, %00000110, %00000110, %11101010, %00000000, %10100000, %10101110, %10100000, %00001100, %10000110, %00000100, %11101100, %01000110, %10101010, %11000000, %00001010, %00001010, %11100100, %11000100, %10101010, %11000000, %00001100, %01001010, %11001010, %11101000, %01000000, %10101100, %01000110, %01000000
 
-	ENDIF
+;	Relocatable routines for diag board detection/paging
+
+rompage_reloc
+
+	incbin "diagboard.bin"
+
+end_rompage_reloc
 
 free_space
 
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
-	IFNDEF SLAMTEST
 	BLOCK 0x3ae0-$, 0xff
-	ENDIF
-
-	IFDEF SLAMTEST
-	BLOCK 0x3100-$, 0xff
-	ENDIF
 
 free_space_end
 
@@ -2055,12 +2033,8 @@ str_plus3_ic_uncontend
 	defb "5  ", 0, "6  ", 0
 
 
-	IFNDEF SLAMTEST
 	BLOCK 0x3c00-$, 0xff
-	ENDIF
-	IFDEF SLAMTEST
-	BLOCK 0x3300-$, 0xff
-	ENDIF
+
 ;	Character set at 0x3C00
 
 	include "charset.asm"
