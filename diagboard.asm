@@ -303,7 +303,6 @@ romhw_test_smart
 	in a, (c)
 	and 0x0f
 	ld (v_hw_page), a
-
 	ld a, %10000001
 	out (c), a
 	call check_magic_string

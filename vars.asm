@@ -85,8 +85,8 @@ sys_rompaging				equ #7dc0
 
 ; Location of magic string for testing Diag ROM presence
 
-v_rom_magic_loc			equ #00f0
+v_rom_magic_loc				equ #0060
 
 ;	Default stack location
 
-sys_stack				equ #7bff
+sys_stack					equ #7bff
