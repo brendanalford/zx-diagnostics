@@ -53,31 +53,16 @@
 
 	ENDLUA
 
-	org 0
+;	First 56 bytes are reserved for the bootstrap/checksum routine
 
-; 	Ints must be disabled as we don't have
-; 	anywhere reliable to put a stack yet
-
-	di
-	jp start
+	org 56
 
 ;	Define a version string in the dead space between the ROM start and the
 ;	IM1 0x38 restart/NMI/start vector
 
-str_build
-
-	defb	"ZX Diagnostics ", VERSION, "\nBuilt:  ", BUILD_TIMESTAMP , 0
-
-	BLOCK 0x0038-$, 0xff
-
 isr
+
 	jp isr_main
-
-str_gitbranch
-
-	defb  "Branch: ", GIT_BRANCH, 0
-
-	BLOCK 0x0060-$, 0xff
 
 str_rommagicstring
 
@@ -95,7 +80,13 @@ nmi
 	ld hl, 48878
 	jp keyboard_test
 
-	BLOCK 0x0070-$, 0xff
+str_build
+
+	defb	"ZX Diagnostics ", VERSION, "\nBuilt:  ", BUILD_TIMESTAMP , 0
+
+str_gitbranch
+
+	defb  "Branch: ", GIT_BRANCH, 0
 
 str_gitcommit
 
@@ -105,7 +96,10 @@ str_buildmachine
 
 	defb  "Host:   ", HOSTNAME, 0
 
-	BLOCK 0x00a0-$, 0xff
+;	Modify this value (0x00e0) only in tandem with the value of 
+;	start_diags define in testrom.asm
+
+	BLOCK 0x00e0-$, 0xff
 
 start
 
