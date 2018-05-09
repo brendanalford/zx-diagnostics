@@ -66,7 +66,7 @@ isr
 
 ;	Be careful to change this only in conjunction with changes in vars.asm
 
-	BLOCK 0x0050-$, 0xFF
+	BLOCK v_rom_magic_loc-$, 0xFF
 
 str_rommagicstring
 

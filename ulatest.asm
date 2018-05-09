@@ -867,6 +867,7 @@ str_ulatype
 
 ;	Tables defining ULA timings to type strings.
 ;	Contended ULA's first
+
 ula_type_table_contend
 
 	defw 0x06CB, str_ula48pal
@@ -876,6 +877,7 @@ ula_type_table_contend
 	defw 0x0000
 
 ;	Uncontended ULA's
+
 ula_type_table_uncontend
 
 	defw 0x06CB, str_ula48notr6
@@ -888,7 +890,6 @@ ula_type_table_ulaplus
 	defw 0x06CB, str_slam48plus
 	defw 0x06E4, str_slam128plus
 	defw 0x05CD, str_slam128plus_ntsc
-	defw 0x06F8, str_slam128plus_pentagon
 	defw 0x0000
 
 str_ula48pal
@@ -927,9 +928,6 @@ str_slam128plus_ntsc
 
 	defb "SLAM128+ (NTSC mode)", 0
 
-str_slam128plus_pentagon
-
-	defb "SLAM128+ (Pentagon mode)", 0
 str_ulaunknown
 
 	defb "Unknown (", 0
