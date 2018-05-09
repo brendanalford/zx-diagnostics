@@ -84,8 +84,10 @@ sys_ld_buffer_8_bytes_hl	equ #7d70
 sys_rompaging				equ #7dc0
 
 ; Location of magic string for testing Diag ROM presence
+; Be careful to change this only in conjunction with corresponding
+; changes in testrommain.asm
 
-v_rom_magic_loc				equ #0060
+v_rom_magic_loc				equ #0050
 
 ;	Default stack location
 

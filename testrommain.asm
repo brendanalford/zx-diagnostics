@@ -64,6 +64,10 @@ isr
 
 	jp isr_main
 
+;	Be careful to change this only in conjunction with changes in vars.asm
+
+	BLOCK 0x0050-$, 0xFF
+
 str_rommagicstring
 
 	defb "TROM"
