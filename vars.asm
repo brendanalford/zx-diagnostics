@@ -87,7 +87,7 @@ sys_rompaging				equ #7dc0
 ; Be careful to change this only in conjunction with corresponding
 ; changes in testrommain.asm
 
-v_rom_magic_loc				equ #0050
+v_rom_magic_loc				equ 0x0050
 
 ;	Default stack location
 

@@ -121,13 +121,7 @@ romhw_pageout_diagboard
 
 	ld a, %00100000
 	out (ROMPAGE_PORT), a
-	ld a, b
-	cp 0x12
-	ret nz
-	ld a, c
-	cp 0x34
-	ret nz
-	jp 0
+	jp romhw_pageout_common
 
 romhw_pageout_smart
 
@@ -137,13 +131,8 @@ romhw_pageout_smart
 	or 0x80
 	out (c), a
 	pop bc
-	ld a, b
-	cp 0x12
-	ret nz
-	ld a, c
-	cp 0x34
-	ret nz
-	jp 0
+	jp romhw_pageout_common
+
 
 romhw_pageout_zxc
 
@@ -151,14 +140,7 @@ romhw_pageout_zxc
 	ld hl, 0x3fd0
 	ld a, (hl)
 	pop hl
-
-	ld a, b
-	cp 0x12
-	ret nz
-	ld a, c
-	cp 0x34
-	ret nz
-	jp 0
+	jp romhw_pageout_common
 
 romhw_pageout_dand
 
@@ -189,12 +171,20 @@ romhw_pageout_dand_3
 
 	cp 34		; Was this a page out with further commands locked?
 	ret nz
-	ld a, b		; If so, does BC=0x1234?
+	jp romhw_pageout_common
+
+;	Common code to all page out routines that checks
+;	BC for 0x1234 and does a JP 0 if a match, or
+;	simply returns otherwise.
+
+romhw_pageout_common
+
+	ld a, b			; Does BC=0x1234?
 	cp 0x12
 	ret nz
 	ld a, c
 	cp 0x34
-	ret nz
+	ret nz			; No, return to sender
 	jp 0			; Yes - restart the machine
 
 ;	Command 3: Disable diagnostic paging

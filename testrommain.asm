@@ -29,6 +29,10 @@
 
 	include "defines.asm"
 	include "version.asm"
+	
+;	Define the system variable locations in upper RAM
+
+	include "vars.asm"
 
 ;
 ;	Define a build timestamp
@@ -55,7 +59,7 @@
 
 ;	First 56 bytes are reserved for the bootstrap/checksum routine
 
-	org 56
+	org 0x38
 
 ;	Define a version string in the dead space between the ROM start and the
 ;	IM1 0x38 restart/NMI/start vector
@@ -1986,7 +1990,7 @@ free_space
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
 
-	BLOCK 0x3ae0-$, 0xff
+	BLOCK 0x3b00-$, 0xff
 
 free_space_end
 
@@ -2005,14 +2009,6 @@ str_128k_ic_contend
 str_128k_ic_uncontend
 
 	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0
-
-str_js128_ic_contend
-
-	defb "20 ",0, "21 ",0, "22 ",0, "23 ",0, "24 ",0, "25 ",0, "26 ",0, "27 ", 0
-
-str_js128_ic_uncontend
-
-	defb "29 ",0, "28 ",0, "10 ",0, "9  ",0, "30 ",0, "31 ",0, "32 ",0, "33 ", 0
 
 str_plus2_ic_contend
 
@@ -2047,6 +2043,3 @@ str_plus3_ic_uncontend
 
 	BLOCK 0x4000-$, 0x00
 
-;	Define the system variable locations in upper RAM
-
-	include "vars.asm"

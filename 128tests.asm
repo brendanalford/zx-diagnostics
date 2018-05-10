@@ -46,11 +46,6 @@ test_plus3
 	ld (v_128type), a
 	jr begin_128_tests
 
-test_js128
-
-	ld a, 3
-	ld (v_128type), a
-
 begin_128_tests
 
 	ld hl, str_testingbank
@@ -260,8 +255,6 @@ test_ram_page_skip
 	jr z, ic_fail_plus2
 	cp 2
 	jr z, ic_fail_plus3
-	cp 3
-	jr z, ic_fail_js128
 
 ; 	Output failing IC's with Toastrack IC references
 
@@ -290,20 +283,6 @@ ic_fail_plus2
 	ld ix, str_plus2_ic_contend
 	call print_fail_ic
 	jr test_ram_fail_end
-
-ic_fail_js128
-
-	ld a, (v_fail_ic_uncontend)
-	ld d, a
-	ld ix, str_js128_ic_uncontend
-	call print_fail_ic
-
-	ld a, (v_fail_ic_contend)
-	ld d, a
-	ld ix, str_js128_ic_contend
-	call print_fail_ic
-	jr test_ram_fail_end
-
 
 ic_fail_plus3
 
