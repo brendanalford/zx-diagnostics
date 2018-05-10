@@ -5,8 +5,8 @@ if %errorlevel% neq 0 goto :end
 echo Building Bootstrap...
 sjasmplus testrom.sjasm --lst=testrom.lst --lstlab
 if %errorlevel% neq 0 goto :end
+del testrommain.bin
 echo Building tape image...
 bin2tap -a 32768 -o testrom.tap testrom.bin
 :end
-del testrommain.bin
 exit /b errorlevel
