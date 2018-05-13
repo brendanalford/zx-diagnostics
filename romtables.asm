@@ -181,10 +181,6 @@ str_romplus3_b_fail
 
 	defb 	"IC8", 0
 
-str_romjs128_fail
-
-	defb	"U18", 0
-
 ;
 ;	ROM ID Strings. Tokenisation of strings 'Spectrum', 'ROM...' and 'Spanish'
 ; performed to save space.

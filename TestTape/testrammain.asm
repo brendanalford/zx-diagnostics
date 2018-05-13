@@ -946,10 +946,6 @@ str_check_plus2_hal
 
 	defb	"Check IC7 (HAL10H8ACN) and IC6 (74LS174N)", 0
 
-str_check_js128_hal
-
-	defb	"Check HAL (GAL16V8) and U6 (74LS174N)", 0
-
 str_check_plus3_ula
 
 	defb	"Check IC1 (ULA 40077)", 0
@@ -990,14 +986,6 @@ str_128k_ic_contend
 str_128k_ic_uncontend
 
 	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0
-
-str_js128_ic_contend
-
-	defb "20 ",0, "21 ",0, "22 ",0, "23 ",0, "24 ",0, "25 ",0, "26 ",0, "27 ", 0
-
-str_js128_ic_uncontend
-
-	defb "29 ",0, "28 ",0, "10 ",0, "9  ",0, "30 ",0, "31 ",0, "32 ",0, "33 ", 0
 
 str_plus2_ic_contend
 

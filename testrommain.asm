@@ -1851,10 +1851,6 @@ str_check_128_hal
 
 	defb	"Check IC29 (PAL10H8CN) and IC31 (74LS174N)", 0
 
-str_check_js128_hal
-
-	defb	"Check HAL (GAL16V8) and U6 (74LS174N)", 0
-
 str_check_plus2_hal
 
 	defb	"Check IC7 (HAL10H8ACN) and IC6 (74LS174N)", 0

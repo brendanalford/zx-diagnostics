@@ -152,12 +152,10 @@ test_ram_page
 	ld c, ixh
 
 ; Are we on a machine with contention as per the 128 documentation
-; (+2A/+3/JS128)?
+; (+2A/+3)?
 
 	ld a, (v_128type)
 	cp 2
-	jr z, even_contend
-	cp 3
 	jr z, even_contend
 	jr odd_contend
 
@@ -455,18 +453,10 @@ test_paging_fail
 	jr z, plus2_pal_msg
 	cp 2
 	jr z, plus3_ula_msg
-	cp 3
-	jr z, js128_pal_msg
 
 	ld hl, str_check_128_hal
 	call print
 
-	ret
-
-js128_pal_msg
-
-	ld hl, str_check_js128_hal
-	call print
 	ret
 
 plus2_pal_msg
