@@ -84,7 +84,13 @@ nmi
 ;	Handle this via NMI as the user may not be able
 ;	to hold down the K key if the keyboard membrane
 ;	is suspect.
+;	If D key is held down, jump to the memory browser.
+;	This facilitates debugging the diagnostics themselves.
 
+	ld bc, 0xfdfe
+	in a, (c)
+	bit 2, a
+	jp z, mem_browser
 	ld hl, 48878
 	jp keyboard_test
 
