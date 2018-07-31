@@ -87,19 +87,20 @@ ulatest_count_loop_done
 	ld (v_ulapluspresent), a
 	ld hl, 0xfff
 	ld a, 0xff
-	ld b, a
+	ld d, a
+	ld bc, 0xffff
 	
 ulatest_check_floating_bus
 
-	in a, (0xff)
-	and b
-	ld b, a
+	in a, (c)
+	and d
+	ld d, a
 	dec hl
 	ld a, h
 	or l
 	jr nz, ulatest_check_floating_bus
 
-	ld a, b
+	ld a, d
 	cp 0xff
 	jr z, ulatest_check_ulaplus
 

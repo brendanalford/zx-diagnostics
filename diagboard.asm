@@ -55,14 +55,16 @@
 romhw_pagein
 
 	ld a, (v_testhwtype)
-	cp 1
+	cp HW_TYPE_DIAGBOARD
 	jr z, romhw_pagein_diagboard
-	cp 2
+	cp HW_TYPE_SMART
 	jr z, romhw_pagein_smart
-	cp 3
+	cp HW_TYPE_ZXC3
 	jr z, romhw_pagein_zxc
-	cp 4
+	cp HW_TYPE_DANDANATOR
 	jr z, romhw_pagein_dand
+	cp HW_TYPE_CSS
+	jr z, romhw_pagein_css
 	ld a, 0xff
 	ret
 
@@ -100,6 +102,14 @@ romhw_pagein_dand
 	pop hl
 	ret
 
+romhw_pagein_css
+
+	push bc
+	ld bc, 0x5fff
+	in a, (c)
+	pop bc
+	ret
+
 ;	Command 2: Page out external ROM
 ;	BC = 0x1234: Jump to start of internal ROM
 
@@ -114,6 +124,8 @@ romhw_pageout
 	jr z, romhw_pageout_zxc
 	cp 4
 	jr z, romhw_pageout_dand
+	cp 5
+	jr z, romhw_pageout_css
 	ld a, 0xff
 	ret
 
@@ -172,6 +184,15 @@ romhw_pageout_dand_3
 	cp 34		; Was this a page out with further commands locked?
 	ret nz
 	jp romhw_pageout_common
+
+romhw_pageout_css
+
+	push bc
+	ld bc, 0x3fff
+	in a, (c)
+	pop bc
+
+;	Now we can just run in to the next routine.
 
 ;	Common code to all page out routines that checks
 ;	BC for 0x1234 and does a JP 0 if a match, or
@@ -394,7 +415,7 @@ romhw_test_dandanator_loop
 	ld a, (hl)
 
 	call check_magic_string
-	jr z, romhw_not_found
+	jr z, romhw_test_css
 
 dandanator_paging_test_success
 
@@ -407,6 +428,19 @@ dandanator_paging_test_success
 	ld hl, 1
 	ld a, 32
 	call issue_dandanator_command
+	ret
+
+romhw_test_css
+
+	ld bc, 0x3fff
+	in a, (c)
+	call check_magic_string
+	jr z, romhw_not_found
+	ld bc, 0x5fff
+	in a, (c)
+
+	ld a, HW_TYPE_CSS
+	ld (v_testhwtype), a
 	ret
 
 romhw_not_found
