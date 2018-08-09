@@ -75,6 +75,11 @@ rom_signature_table
 
 	defw 0x55b9, str_romtk90x, test_48kgeneric, 0x0000
 
+;	Timex 2048/2068
+
+	defw 0xac0c, str_romts2048, test_48kgeneric, 0x0000
+	defw 0x3246, str_romts2068, test_48kgeneric, 0x0000
+
 ; 	Gosh Wonderful ROM (assume 48K)
 
 	defw 0x8116, str_rom48gw03, test_48k, 0x0000
@@ -279,6 +284,14 @@ str_rom48gw03
 
 	defb	"Gosh Wonderful 48K ", TKN_ROM, 0
 
+str_romts2048
+
+	defb	"Timex TS2048 ", TKN_ROM, 0
+
+str_romts2068
+
+	defb	"Timex TS2068 ", TKN_ROM, 0
+	
 	ENDIF
 
 	ENDIF
