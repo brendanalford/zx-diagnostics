@@ -915,7 +915,7 @@ str_ts2068
 
 str_ula48notr6
 
-	defb "48K Issue 1 or TR6 missing", 0
+	defb "5C102E (or TR6 missing)", 0
 
 str_slam48plus
 
