@@ -29,7 +29,7 @@
 
 ;	Modify this value in tandem with the value of label start in testrommain.asm
 
-	define start_diags		0x00e0
+	define start_diags		0x0100
 
 	LUA ALLPASS
 

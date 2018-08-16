@@ -41,14 +41,22 @@
 	LUA ALLPASS
 
 	file = io.open("branch.txt", "r")
-	io.input(file)
-	branch = io.read()
-	io.close(file)
+	if (file==nil) then
+		branch = "(none)"
+	else
+		io.input(file)
+		branch = io.read()
+		io.close(file)
+	end
 
 	file = io.open("commit.txt", "r")
-	io.input(file)
-	commit = io.read()
-	io.close(file)
+	if (file==nil) then
+		commit = "(none)"
+	else
+		io.input(file)
+		commit = io.read()
+		io.close(file)
+	end
 
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
 	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
@@ -113,7 +121,7 @@ str_buildmachine
 ;	Modify this value (0x00e0) only in tandem with the value of 
 ;	start_diags define in testrom.asm
 
-	BLOCK 0x00e0-$, 0xff
+	BLOCK 0x0100-$, 0xff
 
 start
 
