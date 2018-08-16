@@ -780,10 +780,10 @@ lpcopy_error
     ei
     ret
 
-	include "..\print.asm"
-	include "..\paging.asm"
-	include "..\input.asm"
-	include "..\romtables.asm"
+	include "../print.asm"
+	include "../paging.asm"
+	include "../input.asm"
+	include "../romtables.asm"
 
 ;
 ;	Table to define pointers to test routines
