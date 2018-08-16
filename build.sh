@@ -8,6 +8,7 @@ if [ $? -eq 0 ]; then
     echo =================
     git rev-parse --abbrev-ref HEAD > branch.txt
     git rev-parse --short HEAD > commit.txt
+    /bin/hostname > hostname.txt
     ./buildmain.sh
     if [ $? -eq 0 ]; then
         cd FlashUtils

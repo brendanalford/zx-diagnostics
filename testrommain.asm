@@ -66,9 +66,16 @@
 
 	hostname = os.getenv("USERDOMAIN")
 	if (hostname==nil) then
-		hostname = os.getenv("HOSTNAME")
-		if (hostname==nil) then
-			hostname="(unknown)"
+		file = io.open("hostname.txt",r)
+		if (file==nil) then
+			hostname = "(unknown)"
+		else
+			io.input(file)
+			hostname = io.read()
+			io.close(file)
+			if (hostname==nil) then
+				hostname = "(unknown)"
+			end
 		end
 	end
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
