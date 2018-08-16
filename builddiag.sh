@@ -1,0 +1,3 @@
+echo Building Diagboard detection routines...
+sjasmplus diagboard.sjasm
+exit $?

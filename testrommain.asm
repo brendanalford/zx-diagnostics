@@ -64,9 +64,16 @@
 		end	
 	end
 
+	hostname = os.getenv("USERDOMAIN")
+	if (hostname==nil) then
+		hostname = os.getenv("HOSTNAME")
+		if (hostname==nil) then
+			hostname="(unknown)"
+		end
+	end
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
 	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
-	sj.insert_define("HOSTNAME", '"' .. os.getenv("USERDOMAIN"):lower() .. '"');
+	sj.insert_define("HOSTNAME", '"' .. hostname:lower() .. '"');
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
 
 	ENDLUA
