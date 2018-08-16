@@ -575,9 +575,9 @@ tests_done
 ;
 ;	Testing Routines
 ;
-	include "..\testroutines.asm"
-	include "..\48tests.asm"
-	include "..\128tests.asm"
+	include "../testroutines.asm"
+	include "../48tests.asm"
+	include "../128tests.asm"
 
 ;
 ;	Subroutine to print a list of failing IC's.
