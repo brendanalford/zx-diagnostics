@@ -47,6 +47,9 @@
 		io.input(file)
 		branch = io.read()
 		io.close(file)
+		if (branch==nil) then
+			branch = "(none)"
+		end
 	end
 
 	file = io.open("commit.txt", "r")
@@ -56,6 +59,9 @@
 		io.input(file)
 		commit = io.read()
 		io.close(file)
+		if (commit==nil) then
+			commit = "(none)"
+		end	
 	end
 
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
