@@ -27,8 +27,8 @@
 ;	v0.2 modifications and 128K testing by Brendan Alford.
 ;
 
-	include "..\defines.asm"
-	include "..\version.asm"
+	include "../defines.asm"
+	include "../version.asm"
 
 	org 24600
 
