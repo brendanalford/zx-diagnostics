@@ -1007,7 +1007,7 @@ str_plus3_ic_uncontend
 
 ;	Character set at 0x7B00
 
-	include "..\charset.asm"
+	include "../charset.asm"
 
 ;	Fill ROM space up to 0x7FFF with FF's
 
