@@ -47,6 +47,7 @@
 	define TKN_SPECTRUM		0xc0
 	define TKN_ROM			0xc1
 	define TKN_SPANISH		0xc2
+	define TKN_MICRODIGITAL	0xc3
 
 ; Token expansions
 
@@ -61,6 +62,10 @@ tkn_rom
 tkn_spanish
 
 	defb "Spanish", 0
+
+tkn_microdigital
+
+	defb "Microdigital", 0
 
 	define ATTR_TRANS	0xff
 
@@ -153,9 +158,19 @@ print_chk_tok_rom
 print_chk_tok_spanish
 
 	cp TKN_SPANISH
-	jr nz, print_chk_ctrl_chr
+	jr nz, print_chk_tok_microdigital
 	push hl
 	ld hl, tkn_spanish
+	call print
+	pop hl
+	jr print_nextchar
+
+print_chk_tok_microdigital
+
+	cp TKN_MICRODIGITAL
+	jr nz, print_chk_ctrl_chr
+	push hl
+	ld hl, tkn_microdigital
 	call print
 	pop hl
 	jr print_nextchar
@@ -201,7 +216,7 @@ print_chk_attr
 	ld a, (hl)
 	inc hl
 	ld (v_attr), a
-	jr print_nextchar
+	jp print_nextchar
 
 ;	Check for INK control code
 

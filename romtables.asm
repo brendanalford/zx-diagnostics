@@ -73,7 +73,9 @@ rom_signature_table
 
 ; Microdigital clones
 
-	defw 0x55b9, str_romtk90x, test_48kgeneric, 0x0000
+	defw 0x55b9, str_romtk95, test_48kgeneric, 0x0000
+	defw 0xf9e4, str_romtk90xv1, test_48kgeneric, 0x0000
+	defw 0x6074, str_romtk90xv2, test_48kgeneric, 0x0000
 
 ;	Timex 2048/2068
 
@@ -275,10 +277,17 @@ str_rom48kbeckman
 
 	defb 	"Beckman ", TKN_SPECTRUM, " 48K ", TKN_ROM, 0
 
-str_romtk90x
+str_romtk90xv1
 
-	defb "Microdigital TK90X/TK95 ", TKN_ROM, 0
+	defb TKN_MICRODIGITAL," TK90X v1 ", TKN_ROM, 0
 
+str_romtk90xv2
+
+	defb TKN_MICRODIGITAL," TK90X v2 ", TKN_ROM, 0
+
+str_romtk95
+
+	defb TKN_MICRODIGITAL," TK95 ", TKN_ROM, 0
 
 str_rom48gw03
 
