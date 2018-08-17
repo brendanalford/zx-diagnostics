@@ -829,7 +829,7 @@ ulatest_check_cpu_type_0xfe
 
 str_ulabanner
 
-	defb	TEXTBOLD, "ULA Test", TEXTNORM, 0
+	defb	TEXTBOLD, "ULA/ASIC Test", TEXTNORM, 0
 
 str_ulainresult
 
@@ -875,6 +875,7 @@ ula_type_table_contend
 	defw 0x06E4, str_ula128
 	defw 0x05BE, str_ula48ntsc
 	defw 0x05B3, str_ts2068
+	defw 0x05CD, str_tk9x
 	defw 0x0000
 
 ;	Uncontended ULA's
@@ -928,6 +929,10 @@ str_slam128plus
 str_slam128plus_ntsc
 
 	defb "SLAM128+ (NTSC mode)", 0
+
+str_tk9x
+
+	defb TKN_MICRODIGITAL, " TK90X/TK95 ASIC", 0
 
 str_ulaunknown
 
