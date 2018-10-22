@@ -49,6 +49,10 @@ write_shadow_screen
 	xor a
 	call pagein
 
+;	Detect CPU type and store it.
+
+	call ulatest_check_cpu_type
+
 ;	Detect frame length. Once HALT is issued, we start counting until the
 ;	second interrupt is reached.
 ;	NOTE: This routine doesn't produce exact lengths, but close enough
@@ -80,26 +84,70 @@ ulatest_count_loop_done
 
 	xor a
 	ld (v_ulafloatbus), a
+	ld (v_ulapluspresent), a
 	ld hl, 0xfff
 	ld a, 0xff
-	ld b, a
-
+	ld d, a
+	ld bc, 0xffff
+	
 ulatest_check_floating_bus
 
-	in a, (0xff)
-	and b
-	ld b, a
+	in a, (c)
+	and d
+	ld d, a
 	dec hl
 	ld a, h
 	or l
 	jr nz, ulatest_check_floating_bus
 
-	ld a, b
+	ld a, d
 	cp 0xff
-	jr z, checks_done
+	jr z, ulatest_check_ulaplus
 
 	ld a, 1
 	ld (v_ulafloatbus), a
+
+;	Check if we're running on ULAPlus capable hardware by writing 
+;	the pallette registers.
+
+ulatest_check_ulaplus
+
+	xor a
+	ld bc, 0xbf3b
+	out (c), a
+	ld bc, 0xff3b
+	out (c), a
+
+;	Turn on interrupts temporarily to wait for one frame.
+
+	ld hl, 0
+	ld (v_userint), hl
+	ei
+	halt
+	di
+	in a, (c)
+	cp 0
+	jr nz, checks_done
+
+; 	ULAPlus regiaters found. Check if the Timex port 0xFF is writable, if 
+;	not we've actually got a ZX-HD connected.
+; 	TODO: This can't work as port 0xFF reads must return the floating bus
+; 	to be standard ULA compatible. I wonder if there's a fully decoded port
+;	that can be read.
+
+	; xor a
+	; out (0xff), a
+	; ei
+	; halt
+	; di
+	; in a, (0xff)
+	; cp 0
+	; jr nz, checks_done
+
+; Timex port found, genuine bonafide SLAM module found.
+
+	ld a, 1
+	ld (v_ulapluspresent), a
 
 checks_done
 
@@ -125,6 +173,16 @@ checks_done
 
 	ld hl, (v_ulacycles)
 	ld de, hl
+	
+	ld a, (v_ulapluspresent)
+	cp 0
+	jr z, ula_type_factory
+
+	ld ix, ula_type_table_ulaplus
+	jr ula_type_find
+
+ula_type_factory
+
 	ld ix, ula_type_table_contend
 
 	ld a, (v_ulafloatbus)
@@ -186,6 +244,26 @@ ula_type_done
 ula_print_floatbus_type
 
 	call print
+
+;	Experimental : Check CPU type.
+
+	ld hl, str_cputype
+	call print
+
+	ld a, (v_cmoscpupresent)
+	cp 0
+	jr z, ulatest_found_nmos
+
+	ld hl, str_cpu_cmos
+	call print
+	jr ula_print_0xfe_read
+
+ulatest_found_nmos
+
+	ld hl, str_cpu_nmos
+	call print
+
+ula_print_0xfe_read
 
 	ld hl, str_ulainresult
 	call print
@@ -704,9 +782,54 @@ ulatest_get_frame_length_done
 
 	jp ulatest_count_loop_done
 
+;
+;	Checks Z80 CPU type. Zero flag reset if NMOS, set if CMOS.
+;
+ulatest_check_cpu_type
+
+	xor a
+	ld (v_cmoscpupresent), a
+
+;	Do we have the AY present?
+
+	ld bc, AY_REG
+	xor a
+	out (c), a
+	ld bc, AY_DATA
+	ld a, 0x55
+	out (c), a
+	ld bc, AY_REG
+	in a, (c)
+	cp 0x55
+	jr nz, ulatest_check_cpu_type_0xfe
+
+	ld bc, AY_DATA
+	out (c), 0
+	ld bc, AY_REG
+	in a, (c)
+	cp 0
+	ret z
+	ld a, 1
+	ld (v_cmoscpupresent), a
+	ret	
+
+ulatest_check_cpu_type_0xfe
+
+; 	Fallback - out to the ULA port and then quickly read back.
+;	This works on 48K machines only.
+
+	ld bc, 0x00fe
+	out (c), 0
+	in a, (c)
+	bit 6, a
+	ret z
+	ld a, 1
+	ld (v_cmoscpupresent), a
+	ret
+
 str_ulabanner
 
-	defb	TEXTBOLD, "ULA Test", TEXTNORM, 0
+	defb	TEXTBOLD, "ULA/ASIC Test", TEXTNORM, 0
 
 str_ulainresult
 
@@ -745,19 +868,30 @@ str_ulatype
 
 ;	Tables defining ULA timings to type strings.
 ;	Contended ULA's first
+
 ula_type_table_contend
 
 	defw 0x06CB, str_ula48pal
 	defw 0x06E4, str_ula128
 	defw 0x05BE, str_ula48ntsc
 	defw 0x05B3, str_ts2068
+	defw 0x05CD, str_tk9x
 	defw 0x0000
 
 ;	Uncontended ULA's
+
 ula_type_table_uncontend
 
 	defw 0x06CB, str_ula48notr6
 	defw 0x06E4, str_ulaplus3
+	defw 0x0000
+
+;	ULAPlus
+ula_type_table_ulaplus
+
+	defw 0x06CB, str_slam48plus
+	defw 0x06E4, str_slam128plus
+	defw 0x05CD, str_slam128plus_ntsc
 	defw 0x0000
 
 str_ula48pal
@@ -782,7 +916,23 @@ str_ts2068
 
 str_ula48notr6
 
-	defb "48K Issue 1 or TR6 missing", 0
+	defb "5C102E (or TR6 missing)", 0
+
+str_slam48plus
+
+	defb "SLAM48+", 0
+
+str_slam128plus
+
+	defb "SLAM128+", 0
+
+str_slam128plus_ntsc
+
+	defb "SLAM128+ (NTSC mode)", 0
+
+str_tk9x
+
+	defb TKN_MICRODIGITAL, " TK90X/TK95 ASIC", 0
 
 str_ulaunknown
 
@@ -799,3 +949,15 @@ str_fb_detected
 str_fb_absent
 
 	defb "absent", 0
+
+str_cputype
+
+	defb AT, 4, 0, "CPU Type: ",0
+
+str_cpu_nmos
+
+	defb "NMOS (original)", 0
+
+str_cpu_cmos
+
+	defb "CMOS (possible incompatibility)", 0

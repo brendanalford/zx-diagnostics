@@ -46,11 +46,6 @@ test_plus3
 	ld (v_128type), a
 	jr begin_128_tests
 
-test_js128
-
-	ld a, 3
-	ld (v_128type), a
-
 begin_128_tests
 
 	ld hl, str_testingbank
@@ -157,12 +152,10 @@ test_ram_page
 	ld c, ixh
 
 ; Are we on a machine with contention as per the 128 documentation
-; (+2A/+3/JS128)?
+; (+2A/+3)?
 
 	ld a, (v_128type)
 	cp 2
-	jr z, even_contend
-	cp 3
 	jr z, even_contend
 	jr odd_contend
 
@@ -260,8 +253,6 @@ test_ram_page_skip
 	jr z, ic_fail_plus2
 	cp 2
 	jr z, ic_fail_plus3
-	cp 3
-	jr z, ic_fail_js128
 
 ; 	Output failing IC's with Toastrack IC references
 
@@ -290,20 +281,6 @@ ic_fail_plus2
 	ld ix, str_plus2_ic_contend
 	call print_fail_ic
 	jr test_ram_fail_end
-
-ic_fail_js128
-
-	ld a, (v_fail_ic_uncontend)
-	ld d, a
-	ld ix, str_js128_ic_uncontend
-	call print_fail_ic
-
-	ld a, (v_fail_ic_contend)
-	ld d, a
-	ld ix, str_js128_ic_contend
-	call print_fail_ic
-	jr test_ram_fail_end
-
 
 ic_fail_plus3
 
@@ -476,18 +453,10 @@ test_paging_fail
 	jr z, plus2_pal_msg
 	cp 2
 	jr z, plus3_ula_msg
-	cp 3
-	jr z, js128_pal_msg
 
 	ld hl, str_check_128_hal
 	call print
 
-	ret
-
-js128_pal_msg
-
-	ld hl, str_check_js128_hal
-	call print
 	ret
 
 plus2_pal_msg
@@ -536,6 +505,9 @@ set_page_success_status
 	pop hl
 	ret
 
+test_page_contention
+
+	
 str_pcf_asic_fail
 
 	defb "PCF/ASIC Failure\n", 0

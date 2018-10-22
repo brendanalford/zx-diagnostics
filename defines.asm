@@ -58,6 +58,14 @@
 	define	CRC_128K	0xeffc
 	define	CRC_PLUS2	0x2aa3
 
+;	Diagnostic board types
+
+	define HW_TYPE_NONE			0
+	define HW_TYPE_DIAGBOARD	1
+	define HW_TYPE_SMART		2
+	define HW_TYPE_ZXC3			3
+	define HW_TYPE_DANDANATOR	4
+	define HW_TYPE_CSS			5
 
 ;
 ;	Macro to run a RAM walk test

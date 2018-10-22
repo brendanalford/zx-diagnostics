@@ -1,6 +1,6 @@
 ; SjASMPlus source file for Diag board test rom
 
-  define ORG 0x7e00
+  define ORG 0x7dc0
   define LENGTH 0x200
   device zxspectrum48
   include diagboard.asm

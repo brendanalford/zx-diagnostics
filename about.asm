@@ -78,6 +78,13 @@ about
 
 .checkhw_4
 
+	cp 5
+	jr nz, .checkhw_5
+	ld hl, str_css
+	jr print_hw
+	
+.checkhw_5
+
 	ld hl, str_no_hardware
 
 print_hw
@@ -172,6 +179,10 @@ str_zxc
 str_dand
 
 	defb "ZX Dandanator! Mini\n\n", 0
+
+str_css
+
+	defb "CSS 128K ROM Board\n\n", 0
 
 str_no_hardware
 

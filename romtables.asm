@@ -73,7 +73,14 @@ rom_signature_table
 
 ; Microdigital clones
 
-	defw 0x55b9, str_romtk90x, test_48kgeneric, 0x0000
+	defw 0x55b9, str_romtk95, test_48kgeneric, 0x0000
+	defw 0xf9e4, str_romtk90xv1, test_48kgeneric, 0x0000
+	defw 0x6074, str_romtk90xv2, test_48kgeneric, 0x0000
+
+;	Timex 2048/2068
+
+	defw 0xac0c, str_romts2048, test_48kgeneric, 0x0000
+	defw 0x3246, str_romts2068, test_48kgeneric, 0x0000
 
 ; 	Gosh Wonderful ROM (assume 48K)
 
@@ -181,10 +188,6 @@ str_romplus3_b_fail
 
 	defb 	"IC8", 0
 
-str_romjs128_fail
-
-	defb	"U18", 0
-
 ;
 ;	ROM ID Strings. Tokenisation of strings 'Spectrum', 'ROM...' and 'Spanish'
 ; performed to save space.
@@ -274,15 +277,30 @@ str_rom48kbeckman
 
 	defb 	"Beckman ", TKN_SPECTRUM, " 48K ", TKN_ROM, 0
 
-str_romtk90x
+str_romtk90xv1
 
-	defb "Microdigital TK90X/TK95 ", TKN_ROM, 0
+	defb TKN_MICRODIGITAL," TK90X v1 ", TKN_ROM, 0
 
+str_romtk90xv2
+
+	defb TKN_MICRODIGITAL," TK90X v2 ", TKN_ROM, 0
+
+str_romtk95
+
+	defb TKN_MICRODIGITAL," TK95 ", TKN_ROM, 0
 
 str_rom48gw03
 
 	defb	"Gosh Wonderful 48K ", TKN_ROM, 0
 
+str_romts2048
+
+	defb	"Timex TS2048 ", TKN_ROM, 0
+
+str_romts2068
+
+	defb	"Timex TS2068 ", TKN_ROM, 0
+	
 	ENDIF
 
 	ENDIF

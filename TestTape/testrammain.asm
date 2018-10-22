@@ -27,8 +27,8 @@
 ;	v0.2 modifications and 128K testing by Brendan Alford.
 ;
 
-	include "..\defines.asm"
-	include "..\version.asm"
+	include "../defines.asm"
+	include "../version.asm"
 
 	org 24600
 
@@ -575,9 +575,9 @@ tests_done
 ;
 ;	Testing Routines
 ;
-	include "..\testroutines.asm"
-	include "..\48tests.asm"
-	include "..\128tests.asm"
+	include "../testroutines.asm"
+	include "../48tests.asm"
+	include "../128tests.asm"
 
 ;
 ;	Subroutine to print a list of failing IC's.
@@ -780,10 +780,10 @@ lpcopy_error
     ei
     ret
 
-	include "..\print.asm"
-	include "..\paging.asm"
-	include "..\input.asm"
-	include "..\romtables.asm"
+	include "../print.asm"
+	include "../paging.asm"
+	include "../input.asm"
+	include "../romtables.asm"
 
 ;
 ;	Table to define pointers to test routines
@@ -946,10 +946,6 @@ str_check_plus2_hal
 
 	defb	"Check IC7 (HAL10H8ACN) and IC6 (74LS174N)", 0
 
-str_check_js128_hal
-
-	defb	"Check HAL (GAL16V8) and U6 (74LS174N)", 0
-
 str_check_plus3_ula
 
 	defb	"Check IC1 (ULA 40077)", 0
@@ -991,14 +987,6 @@ str_128k_ic_uncontend
 
 	defb "15 ",0, "16 ",0, "17 ",0, "18 ",0, "19 ",0, "20 ",0, "21 ",0, "22 ", 0
 
-str_js128_ic_contend
-
-	defb "20 ",0, "21 ",0, "22 ",0, "23 ",0, "24 ",0, "25 ",0, "26 ",0, "27 ", 0
-
-str_js128_ic_uncontend
-
-	defb "29 ",0, "28 ",0, "10 ",0, "9  ",0, "30 ",0, "31 ",0, "32 ",0, "33 ", 0
-
 str_plus2_ic_contend
 
 	defb "32 ",0, "31 ",0, "30 ",0, "29 ",0, "28 ",0, "27 ",0, "26 ",0, "25 ", 0
@@ -1019,7 +1007,7 @@ str_plus3_ic_uncontend
 
 ;	Character set at 0x7B00
 
-	include "..\charset.asm"
+	include "../charset.asm"
 
 ;	Fill ROM space up to 0x7FFF with FF's
 

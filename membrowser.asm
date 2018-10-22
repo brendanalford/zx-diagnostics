@@ -31,6 +31,11 @@ mem_browser
 	ld bc, ld_a_hl_end-ld_a_hl
 	ldir
 
+	ld hl, ld_buffer_8_bytes_hl
+	ld de, sys_ld_buffer_8_bytes_hl
+	ld bc, ld_buffer_8_bytes_hl_end-ld_buffer_8_bytes_hl
+	ldir
+
 ;	Set the correct interrupt service routine
 
 	ld hl, membrowser_isr
@@ -189,13 +194,15 @@ hex_digit_2
 
 	call get_hl_cursor_addr
 
-;	If on ZXC3 hardware, check if
+write_check_zxc3
+
+; If on ZXC3 hardware, check if
 ; we're about to write to 3Fc0-3FFF.
 ; Do not perform the write if so.
 
 	ld a, (v_testhwtype)
-	cp 3
-	jr nz, write_calc_nibble
+	cp HW_TYPE_ZXC3
+	jr nz, write_check_dandanator
 	ld a, h
 	cp 0x3f
 	jr nz, write_calc_nibble
@@ -207,8 +214,18 @@ hex_digit_2
 	pop hl
 	jr write_end
 
-;	Now work out the high or low
-; nibble to write, and write it
+write_check_dandanator
+
+	ld a, (v_testhwtype)
+	cp HW_TYPE_DANDANATOR
+	jr nz, write_calc_nibble
+	ld a, h
+	cp 0x40
+	jr nc, write_calc_nibble
+
+	pop af
+	pop hl
+	jr write_end
 
 write_calc_nibble
 
@@ -239,8 +256,23 @@ write_high_nibble
 
 write_byte
 
+;	Write the byte in question. 
+;	Temporarily lock paging on diagnostic
+;	hardware that supports it, to avoid a
+;	write to ROM space triggering a paging
+;	command.
+
 	or b
+	push hl
+	push af
+	ld a, 3
+	call sys_rompaging
+	pop af
+	pop hl
 	ld (hl), a
+	ld a, 4
+	call sys_rompaging
+
 	pop hl
 	call refresh_mem_display
 
@@ -251,7 +283,7 @@ write_end
 
 exit
 
-	call diagrom_exit
+	jp diagrom_exit
 
 hard_copy
 
@@ -262,6 +294,7 @@ hard_copy
 
 ;	Routine to allow the user to enter a 4 digit
 ;	hexadecimal memory address to go to
+
 goto_addr
 
 ;	We're replacing the value of HL (memory pointer)
@@ -318,6 +351,7 @@ goto_addr
 get_hex_digit
 
 ;	Get a keypress and see if it's a valid hex digit
+
 	xor a
 	call scan_keys
 	jr nc, get_hex_digit
@@ -366,7 +400,8 @@ get_hex_digit_2
 	ret
 
 
-; Page in whatever ROM the user wants
+; 	Page in whatever ROM the user wants
+
 rom_page
 
 	push hl
@@ -482,6 +517,7 @@ ram_page_sel_chk
 	jp mem_loop
 
 page_up
+
 	and a
 	ld de, 0x90
 	sbc hl, de
@@ -697,9 +733,13 @@ print_mem_line
 	push bc
 	ld b, 8
 
+	call sys_ld_buffer_8_bytes_hl
+	push hl
+	ld hl, v_membrowser_buffer
+
 mem_loop_hex
 
-	call sys_ld_a_hl
+	ld a, (hl)
 	push hl
 	push bc
 	ld l, a
@@ -717,12 +757,9 @@ mem_loop_hex
 	pop hl
 	inc hl
 	djnz mem_loop_hex
+	pop hl
 
-;	Step back 8 bytes , time to output in ASCII
-
-	ld de, 8
-	and a
-	sbc hl, de
+;	Time to output the same 8 bytes in ASCII
 
 	ld a, (v_column)
 	ld d, 12
@@ -730,10 +767,12 @@ mem_loop_hex
 	ld (v_column), a
 
 	ld b, 8
+	push hl
+	ld hl, v_membrowser_buffer
 
 mem_loop_ascii
 
-	call sys_ld_a_hl
+	ld a, (hl)
 	cp 32
 	jr c, control_char
 	cp 127
@@ -754,7 +793,16 @@ mem_loop_ascii_next
 	ld (v_column), a
 	inc hl
 	djnz mem_loop_ascii
+	pop hl
 	pop bc
+
+;	Add 8 bytes to the original HL value to get the next line
+
+	ld de, 8
+	and a
+	adc hl, de
+
+;	Restore attributes for next line
 
 	ld a, 56
 	ld (v_attr), a
@@ -978,6 +1026,66 @@ ld_a_hl_2
 	ret
 
 ld_a_hl_end
+
+;
+;	Routine for relocation to RAM. Loads v_membrowser_buffer with
+;	values of 8 memory locations starting at HL.
+;	Pages out ROM to do it.
+; 	Checks to see if ZXC4 is active, and if the location points to the
+; 	area between 3FC0-3FFF. It'll return FF's in this case.
+;
+ld_buffer_8_bytes_hl
+
+	di
+	ld a, (v_testhwtype)
+	cp 3
+	jr nz, ld_buffer_8_bytes_hl_2
+	ld a, h
+	cp 0x3f
+	jr nz, ld_buffer_8_bytes_hl_2
+	ld a, l
+	cp 0xc0
+	jr c, ld_buffer_8_bytes_hl_2
+
+;	ZXC3/4 and address between 3FC0-3FFF, fake it
+
+	push bc
+	push de
+	push hl
+	ld hl, v_membrowser_buffer
+	ld a, 0xff
+	ld (hl), a
+	ld de, v_membrowser_buffer + 1
+	ld bc, 7
+	ldir
+	pop hl
+	pop de
+	pop bc
+	ei
+	ret
+
+ld_buffer_8_bytes_hl_2
+
+	push bc
+	push de
+	push hl
+
+	ld a, 2
+	call sys_rompaging
+	
+	ld de, v_membrowser_buffer
+	ld bc, 8
+	ldir
+
+	ld a, 1
+	call sys_rompaging
+	
+	pop hl
+	pop de
+	pop bc
+	ret
+	
+ld_buffer_8_bytes_hl_end
 
 str_mem_browser_header
 

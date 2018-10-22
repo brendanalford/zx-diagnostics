@@ -26,14 +26,24 @@
 ;	Handler for diagboard paging operations.
 ;	Inputs; A=command type, BC=operands.
 ;
-
+;	Commands:
+;
+;	0: Detect presence of diagnostic hardware
+;	1: Page in Diagnostic ROM
+;	2: Page out Diagnostic ROM
+;	3: Disable diagnostic hardware paging (Dandanator only)
+;	4: Enable diagnostic hardware paging (Dandanator only)
+;
 	cp 0
 	jp z, romhw_test
 	cp 1
 	jr z, romhw_pagein
 	cp 2
 	jr z, romhw_pageout
-
+	cp 3
+	jp z, romhw_disable
+	cp 4
+	jp z, romhw_enable
 
 ;	Command not understood, return with error in A
 
@@ -45,14 +55,16 @@
 romhw_pagein
 
 	ld a, (v_testhwtype)
-	cp 1
+	cp HW_TYPE_DIAGBOARD
 	jr z, romhw_pagein_diagboard
-	cp 2
+	cp HW_TYPE_SMART
 	jr z, romhw_pagein_smart
-	cp 3
+	cp HW_TYPE_ZXC3
 	jr z, romhw_pagein_zxc
-	cp 4
+	cp HW_TYPE_DANDANATOR
 	jr z, romhw_pagein_dand
+	cp HW_TYPE_CSS
+	jr z, romhw_pagein_css
 	ld a, 0xff
 	ret
 
@@ -90,6 +102,14 @@ romhw_pagein_dand
 	pop hl
 	ret
 
+romhw_pagein_css
+
+	push bc
+	ld bc, 0x5fff
+	in a, (c)
+	pop bc
+	ret
+
 ;	Command 2: Page out external ROM
 ;	BC = 0x1234: Jump to start of internal ROM
 
@@ -104,6 +124,8 @@ romhw_pageout
 	jr z, romhw_pageout_zxc
 	cp 4
 	jr z, romhw_pageout_dand
+	cp 5
+	jr z, romhw_pageout_css
 	ld a, 0xff
 	ret
 
@@ -111,13 +133,7 @@ romhw_pageout_diagboard
 
 	ld a, %00100000
 	out (ROMPAGE_PORT), a
-	ld a, b
-	cp 0x12
-	ret nz
-	ld a, c
-	cp 0x34
-	ret nz
-	jp 0
+	jp romhw_pageout_common
 
 romhw_pageout_smart
 
@@ -127,13 +143,8 @@ romhw_pageout_smart
 	or 0x80
 	out (c), a
 	pop bc
-	ld a, b
-	cp 0x12
-	ret nz
-	ld a, c
-	cp 0x34
-	ret nz
-	jp 0
+	jp romhw_pageout_common
+
 
 romhw_pageout_zxc
 
@@ -141,14 +152,7 @@ romhw_pageout_zxc
 	ld hl, 0x3fd0
 	ld a, (hl)
 	pop hl
-
-	ld a, b
-	cp 0x12
-	ret nz
-	ld a, c
-	cp 0x34
-	ret nz
-	jp 0
+	jp romhw_pageout_common
 
 romhw_pageout_dand
 
@@ -179,16 +183,107 @@ romhw_pageout_dand_3
 
 	cp 34		; Was this a page out with further commands locked?
 	ret nz
-	ld a, b		; If so, does BC=0x1234?
+	jp romhw_pageout_common
+
+romhw_pageout_css
+
+	push bc
+	ld bc, 0x3fff
+	in a, (c)
+	pop bc
+
+;	Now we can just run in to the next routine.
+
+;	Common code to all page out routines that checks
+;	BC for 0x1234 and does a JP 0 if a match, or
+;	simply returns otherwise.
+
+romhw_pageout_common
+
+	ld a, b			; Does BC=0x1234?
 	cp 0x12
 	ret nz
 	ld a, c
 	cp 0x34
-	ret nz
+	ret nz			; No, return to sender
 	jp 0			; Yes - restart the machine
 
+;	Command 3: Disable diagnostic paging
+;	Required to stop Dandanator Mini accidentally
+; 	paging itself out after initial unlock when 
+;	lower RAM testing in soak mode.
 
-;	Command 3: Test for diagnostic devices
+romhw_disable
+
+	ld a, (v_testhwtype)
+	cp 4
+	jr z, romhw_disable_dand
+	ld a, 0xff
+	ret
+
+romhw_disable_dand
+
+;	Issue following sequence to lock:
+;	46 1 1 
+;	This'll lock Dandanator paging until the
+;	unlock sequence of 46 16 16 is presented.
+
+	ld hl,1
+	ld a, 46
+	call issue_dandanator_command
+	
+	inc hl
+	ld a, 1
+	call issue_dandanator_command
+	
+	inc hl
+	ld a, 1 
+	call issue_dandanator_command
+
+	ld (0), a
+	ld b, 0
+
+	xor a 
+	ret
+
+;	Command 4: Enable diagnostic paging
+;	Allow Dandanator Mini to control Diagnostic hardware
+;	page in/out after previous Command 3 (Lock).
+
+romhw_enable
+
+	ld a, (v_testhwtype)
+	cp 4
+	jr z, romhw_enable_dand
+	ld a, 0xff
+	ret
+
+romhw_enable_dand
+
+;	Issue following sequence to unlock:
+;	46 16 16  
+;	This'll unlock Dandanator paging until the
+;	locking sequence of 46 1 1 is presented.
+
+	ld hl,1
+	ld a, 46
+	call issue_dandanator_command
+	
+	inc hl
+	ld a, 16
+	call issue_dandanator_command
+	
+	inc hl
+	ld a, 16
+	call issue_dandanator_command
+
+	ld (0), a
+	ld b, 0
+
+	xor a 
+	ret
+
+;	Command 0: Test for diagnostic devices
 ;	Stores result in system variable v_testhwtype
 
 romhw_test
@@ -203,7 +298,7 @@ romhw_test
 
 romhw_found_diagboard
 
-	ld a, 1
+	ld a, HW_TYPE_DIAGBOARD
 	ld (v_testhwtype), a
 	xor a
 	out (ROMPAGE_PORT), a
@@ -219,7 +314,6 @@ romhw_test_smart
 	in a, (c)
 	and 0x0f
 	ld (v_hw_page), a
-
 	ld a, %10000001
 	out (c), a
 	call check_magic_string
@@ -227,7 +321,7 @@ romhw_test_smart
 
 romhw_found_smart
 
-	ld a, 2
+	ld a, HW_TYPE_SMART
 	ld (v_testhwtype), a
 	ld a, (v_hw_page)
 	ld bc, SMART_ROM_PORT
@@ -280,7 +374,7 @@ zxc_paged_in
 	ld a, e
 	and 0x7
 	ld (v_hw_page), a
-	ld a, 3
+	ld a, HW_TYPE_ZXC3
 	ld (v_testhwtype), a
 
 	ret
@@ -300,13 +394,13 @@ romhw_test_dandanator
 	call issue_dandanator_command
 	
 	inc hl
-	;ld a,16 ; a already contains 16
 	call issue_dandanator_command
 
 	ld (0), a
 	ld b, 0
 
 romhw_test_dandanator_loop
+
 	djnz romhw_test_dandanator_loop
 
 ;	Set up for disable of test ROM
@@ -321,19 +415,32 @@ romhw_test_dandanator_loop
 	ld a, (hl)
 
 	call check_magic_string
-	jr z, romhw_not_found
+	jr z, romhw_test_css
 
 dandanator_paging_test_success
 
 ;	Successfully paged out the test ROM, set flags and page ourselves
 ; 	back in.
 
-	ld a, 4
+	ld a, HW_TYPE_DANDANATOR
 	ld (v_testhwtype), a
 
 	ld hl, 1
 	ld a, 32
 	call issue_dandanator_command
+	ret
+
+romhw_test_css
+
+	ld bc, 0x3fff
+	in a, (c)
+	call check_magic_string
+	jr z, romhw_not_found
+	ld bc, 0x5fff
+	in a, (c)
+
+	ld a, HW_TYPE_CSS
+	ld (v_testhwtype), a
 	ret
 
 romhw_not_found
@@ -344,8 +451,8 @@ romhw_not_found
 	ret
 
 ;	Issues a command held in the A register to the
-; Dandanator board. Preserves all registers used.
-;
+; 	Dandanator board. Preserves all registers used.
+
 issue_dandanator_command
 
 	push bc

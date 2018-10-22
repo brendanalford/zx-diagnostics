@@ -281,13 +281,13 @@ exit_2
 	define test_48kgeneric	0x0000
 
 	include "vars.asm"
-	include "..\version.asm"
-	include "..\print.asm"
-	include "..\charset.asm"
-	include "..\scroll.asm"
-	include "..\romtables.asm"
-	include "..\crc16.asm"
-	include "..\paging.asm"
+	include "../version.asm"
+	include "../print.asm"
+	include "../charset.asm"
+	include "../scroll.asm"
+	include "../romtables.asm"
+	include "../crc16.asm"
+	include "../paging.asm"
 
 ;
 ;	The standard strings from romtables.asm include trailing dots and spaces.
