@@ -377,14 +377,14 @@ initialize
 	ld a, 2
 	ld (v_scroll), a
 	ld a, 21
-	ld (v_scroll_lines), a
+	ld (v_scrl_lines), a
 
 	ld a, 6
 	ld (v_width), a
 	ld a, 0xff
 	ld (v_scroll), a
 	cpl
-	ld (v_scroll_lines), a
+	ld (v_scrl_lines), a
 
 
 	ld b, 5

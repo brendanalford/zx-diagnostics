@@ -845,7 +845,7 @@ str_ulaint_test
 
 str_ulaintfail
 
-	defb AT, 8, 13 * 6, ATTR, ATTR_TRANS, TEXTBOLD, "FAIL FAIL FAIL", TEXTNORM, ATTR, 56, 0
+	defb AT, 8, 13 * 6, ATTR, ATRB_TRANS, TEXTBOLD, "FAIL FAIL FAIL", TEXTNORM, ATTR, 56, 0
 
 str_ulaselecttest
 

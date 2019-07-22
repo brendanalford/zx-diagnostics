@@ -23,4 +23,4 @@
 
 	define VERSION	"v0.38"
 
-	define VERSION_STRING TAB, 48, VERSION, " D. Smith, B. Alford"
+	define VERS_STRING TAB, 48, VERSION, " D. Smith, B. Alford"

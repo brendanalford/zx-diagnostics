@@ -77,13 +77,13 @@ start_2
 	ld a, 0x2
 	ld (v_scroll), a
 	ld a, 0x15
-	ld (v_scroll_lines), a
+	ld (v_scrl_lines), a
 
 
 	ld a, 2
 	ld (v_scroll), a
 	ld a, 21
-	ld (v_scroll_lines), a
+	ld (v_scrl_lines), a
 
 ;	Main Menu screen
 

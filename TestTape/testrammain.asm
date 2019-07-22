@@ -1026,7 +1026,7 @@ v_attr			equ #7f82; 1
 v_pr_ops		equ #7f83; 1
 v_width			equ #7f84; 1
 v_scroll		equ #7f85; 1
-v_scroll_lines  	equ #7d86; 1
+v_scrl_lines  	equ #7d86; 1
 
 ;	Miscellaneous
 

@@ -30,7 +30,7 @@ v_attr							equ #bf02; 1
 v_pr_ops						equ #bf03; bit 0: bold on/off, bit 1: inverse on/off
 v_width							equ #bf04; 1
 v_scroll						equ #bf05; 1
-v_scroll_lines  		equ #bf06; 1
+v_scrl_lines  		equ #bf06; 1
 
 ;	Miscellaneous
 

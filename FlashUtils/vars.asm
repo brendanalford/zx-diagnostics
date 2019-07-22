@@ -26,8 +26,8 @@
 ; 	v_pr_ops - bit 0: bold on/off, bit 1: inverse on/off
 	define v_pr_ops     	0xff03
 	define v_width			0xff04
-	define v_scroll			0xff05
-	define v_scroll_lines		0xff06
+	define v_scrl_lines		0xff05
+	define v_scroll			0xff06
 	define v_page     		0xff10
 	define v_printbuf 		0xff11
 	define v_tapehdr  		0xff20 
