@@ -1006,7 +1006,8 @@ chip_unknown2
 str_bad_ramtop
 
 	defb 0x0d, "Please set RAMTOP to 32767 or ", 0x0d
-	defb "lower to use this utility.", 0
+	defb "lower to use this utility, e.g.", 0x0d, 0x0d
+	defb "CLEAR 32767", 0
 
 str_banner
 
