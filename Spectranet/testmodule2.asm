@@ -26,8 +26,8 @@
 ;
 
 	include "vars.asm"
-	include "..\defines.asm"
-	include "..\version.asm"
+	include "../defines.asm"
+	include "../version.asm"
 	include "spectranet.asm"
 
 	org 0x1000
@@ -192,11 +192,11 @@ test_return
 	define SAVEMEM 
 
 	include "output.asm"
-	include "..\paging.asm"
+	include "../paging.asm"
 	include "testroutines.asm"
 	include "spectranet48tests.asm"
 	include "spectranet128tests.asm"
-	include "..\romtables.asm"
+	include "../romtables.asm"
 
 ;
 ;	Prints a 16-bit hex number to the buffer pointed to by DE.

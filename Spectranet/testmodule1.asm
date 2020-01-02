@@ -28,8 +28,8 @@
 ;	paged in at 0x1000.
 
 	include "vars.asm"
-	include "..\defines.asm"
-	include "..\version.asm"
+	include "../defines.asm"
+	include "../version.asm"
 	include "spectranet.asm"
 	
 ;
@@ -38,19 +38,47 @@
 ;
 	LUA ALLPASS
 
-	file = io.open("..\\branch.txt", "r")
-	io.input(file)
-	branch = io.read()
-	io.close(file)
-	
-	file = io.open("..\\commit.txt", "r")
-	io.input(file)
-	commit = io.read()
-	io.close(file)
-	
+	file = io.open("../branch.txt", "r")
+	if (file==nil) then
+		branch = "(none)"
+	else
+		io.input(file)
+		branch = io.read()
+		io.close(file)
+		if (branch==nil) then
+			branch = "(none)"
+		end
+	end
+
+	file = io.open("../commit.txt", "r")
+	if (file==nil) then
+		commit = "(none)"
+	else
+		io.input(file)
+		commit = io.read()
+		io.close(file)
+		if (commit==nil) then
+			commit = "(none)"
+		end	
+	end
+
+	hostname = os.getenv("USERDOMAIN")
+	if (hostname==nil) then
+		file = io.open("hostname.txt",r)
+		if (file==nil) then
+			hostname = "(unknown)"
+		else
+			io.input(file)
+			hostname = io.read()
+			io.close(file)
+			if (hostname==nil) then
+				hostname = "(unknown)"
+			end
+		end
+	end
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
 	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
-	sj.insert_define("HOSTNAME", '"' .. os.getenv("USERDOMAIN") .. '"');
+	sj.insert_define("HOSTNAME", '"' .. hostname:lower() .. '"');
 	sj.insert_define("BUILD_TIMESTAMP", '"' .. os.date("%d/%m/%Y %H:%M:%S") .. '"');
 
 	ENDLUA
