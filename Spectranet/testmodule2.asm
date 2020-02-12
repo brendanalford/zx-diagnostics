@@ -156,6 +156,11 @@ rom_check_found
 	ld hl, de
 
 	call outputstring
+
+;	Insert 6 spaces so that ROM and test strings are vertically aligned
+	ld hl, str_6spaces
+	call outputstring
+
 	ld hl, str_testpass
 	call outputstring
 	pop hl
@@ -420,6 +425,10 @@ str_identity
 
 	defb "ZX Diagnostics Module 2 ", VERSION, 0 
 	
+str_6spaces
+
+	defb "      ", 0
+
 str_testpass
 
 	defb "PASS", 0
