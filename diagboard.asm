@@ -65,6 +65,8 @@ romhw_pagein
 	jr z, romhw_pagein_dand
 	cp HW_TYPE_CSS
 	jr z, romhw_pagein_css
+	cp HW_TYPE_VTX
+	jr z, romhw_pagein_vtx
 	ld a, 0xff
 	ret
 
@@ -110,22 +112,33 @@ romhw_pagein_css
 	pop bc
 	ret
 
+romhw_pagein_vtx 
+
+	ld a, 0x15 
+	out (0xff), a
+	ex (sp), hl
+	ex (sp), hl 
+	ret 
+
 ;	Command 2: Page out external ROM
 ;	BC = 0x1234: Jump to start of internal ROM
 
 romhw_pageout
 
 	ld a, (v_testhwtype)
-	cp 1
+	cp HW_TYPE_DIAGBOARD
 	jr z, romhw_pageout_diagboard
-	cp 2
+	cp HW_TYPE_SMART
 	jr z, romhw_pageout_smart
-	cp 3
+	cp HW_TYPE_ZXC3
 	jr z, romhw_pageout_zxc
-	cp 4
+	cp HW_TYPE_DANDANATOR
 	jr z, romhw_pageout_dand
-	cp 5
+	cp HW_TYPE_CSS
 	jr z, romhw_pageout_css
+	cp HW_TYPE_VTX 
+	jr z, romhw_pageout_vtx 
+
 	ld a, 0xff
 	ret
 
@@ -191,6 +204,14 @@ romhw_pageout_css
 	ld bc, 0x3fff
 	in a, (c)
 	pop bc
+	jp romhw_pageout_common
+
+romhw_pageout_vtx 
+
+	ld a, 0x35
+	out (0xff), a
+	ex (sp), hl
+	ex (sp), hl 
 
 ;	Now we can just run in to the next routine.
 
@@ -292,7 +313,6 @@ romhw_test
 
 	ld a, %00100000
 	out (ROMPAGE_PORT), a
-
 	call check_magic_string
 	jr z, romhw_test_smart
 
@@ -435,13 +455,30 @@ romhw_test_css
 	ld bc, 0x3fff
 	in a, (c)
 	call check_magic_string
-	jr z, romhw_not_found
+	jr z, romhw_test_vtx
+
 	ld bc, 0x5fff
 	in a, (c)
-
 	ld a, HW_TYPE_CSS
 	ld (v_testhwtype), a
 	ret
+
+romhw_test_vtx 
+
+	ld a, 0x35
+	out (0xff), a
+	ex (sp), hl
+	ex (sp), hl
+	call check_magic_string
+	jr z, romhw_not_found 
+
+	ld a, HW_TYPE_VTX
+	ld (v_testhwtype), a 
+	ld a, 0x15
+	out (0xff), a
+	ex (sp), hl
+	ex (sp), hl	
+	ret 
 
 romhw_not_found
 
@@ -493,6 +530,7 @@ check_magic_string
 
 	ld hl, v_rom_magic_loc
 	ld a, (hl)
+
 	cp 'T'
 	ret nz
 	inc hl

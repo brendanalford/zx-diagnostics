@@ -442,7 +442,7 @@ str_rombroken
 
 str_contact
 
-	defb "Please contact Brendan Alford\n(brendanalford@eircom.net) with the ROM\n"
+	defb "Please contact Brendan Alford\n(brendan.alford@gmail.com) with the ROM\n"
 	defb "checksums detailed below, along with a\n"
 	defb "description of your hardware.\n", 0
 

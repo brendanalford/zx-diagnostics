@@ -66,7 +66,8 @@
 	define HW_TYPE_ZXC3			3
 	define HW_TYPE_DANDANATOR	4
 	define HW_TYPE_CSS			5
-
+	define HW_TYPE_VTX			6
+	
 ;
 ;	Macro to run a RAM walk test
 ;
