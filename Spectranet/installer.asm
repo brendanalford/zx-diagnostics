@@ -26,7 +26,7 @@
 	define MAX_PAGE 0x1F
 
 	include "spectranet.asm"
-	include "..\version.asm"
+	include "../version.asm"
 
 	org 0x8000
 
