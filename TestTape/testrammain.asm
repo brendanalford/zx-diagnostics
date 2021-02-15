@@ -243,19 +243,36 @@ decstr_init
 	inc hl
 	djnz decstr_init
 
-    	ld a, BORDERWHT
-    	out (ULA_PORT), a
+	ld a, BORDERWHT
+	out (ULA_PORT), a
 
 ;	Clear the screen and print the top and bottom banners
 
 	call cls
-    	ld hl, str_banner
-    	call print_header
+    ld hl, str_banner
+    call print_header
 
 	call print_footer
 
 	ld hl, str_lowerramok
 	call print
+
+check_cpu_type 
+
+	ld hl, str_cpu_type
+	call print 
+	call ulatest_check_cpu_type
+	ld hl, str_cpu_type_nmos 
+	ld a, (v_cmoscpupresent)
+	cp 0
+	jr z, check_cpu_type_print 
+	ld hl, str_cpu_type_cmos 
+
+check_cpu_type_print 
+
+	call print 
+
+soak_test 
 
 	ld a, iyh
 	or iyl
@@ -780,6 +797,51 @@ lpcopy_error
     ei
     ret
 
+;	Checks the CPU type installed in this machine. Stores result in
+;	v_cmoscpupresent - 0 for NMOS, 1 for CMOS.
+;
+ulatest_check_cpu_type
+
+	xor a
+	ld (v_cmoscpupresent), a
+
+;	Do we have the AY present?
+
+	ld bc, AY_REG
+	xor a
+	out (c), a
+	ld bc, AY_DATA
+	ld a, 0x55
+	out (c), a
+	ld bc, AY_REG
+	in a, (c)
+	cp 0x55
+	jr nz, ulatest_check_cpu_type_0xfe
+
+	ld bc, AY_DATA
+	out (c), 0
+	ld bc, AY_REG
+	in a, (c)
+	cp 0
+	ret z
+	ld a, 1
+	ld (v_cmoscpupresent), a
+	ret	
+
+ulatest_check_cpu_type_0xfe
+
+; 	Fallback - out to the ULA port and then quickly read back.
+;	This works on 48K machines only.
+
+	ld bc, 0x00fe
+	out (c), 0
+	in a, (c)
+	bit 6, a
+	ret z
+	ld a, 1
+	ld (v_cmoscpupresent), a
+	ret
+
 	include "../print.asm"
 	include "../paging.asm"
 	include "../input.asm"
@@ -814,11 +876,11 @@ str_lowerramok
 
 str_runsoak
 
-	defb	AT, 5, 0, "Run in soak test mode? (Press Y or N)", 0
+	defb	AT, 6, 0, "Run in soak test mode? (Press Y or N)", 0
 
 str_soaktest
 
-	defb 	AT, 5, 0, "Soak test running, iteration ", 0
+	defb 	AT, 6, 0, "Soak test running, iteration ", 0
 
 str_test4
 
@@ -860,31 +922,31 @@ str_romcrc
 
 str_romunknown
 
-	defb	AT, 7, 0, INK, 2, TEXTBOLD, "Unknown or corrupt ROM... ", TEXTNORM, INK, 0, "            ", ATTR, 56, 0
+	defb	AT, 8, 0, INK, 2, TEXTBOLD, "Unknown or corrupt ROM... ", TEXTNORM, INK, 0, "            ", ATTR, 56, 0
 
 str_testselect
 
-		defb	AT, 8, 0, "Press: 1..48K  2..128K  3..+2  4..+2A/+3", 0
+	defb	AT, 9, 0, "Press: 1..48K  2..128K  3..+2  4..+2A/+3", 0
 
 str_test_select_expired
 	
-		defb 	AT, 9, 0, "No selection made, assuming 48K mode.   \n", 0
+	defb 	AT, 10, 0, "No selection made, assuming 48K mode.   \n", 0
 
 str_select48k
 
-		defb	AT, 8, 7 * 6, TEXTBOLD, INK, 4, "1..48K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 9, 7 * 6, TEXTBOLD, INK, 4, "1..48K\n", TEXTNORM, ATTR, 56, 0
 
 str_select128k
 
-		defb	AT, 8, 15 * 6, TEXTBOLD, INK, 4, "2..128K\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 9, 15 * 6, TEXTBOLD, INK, 4, "2..128K\n", TEXTNORM, ATTR, 56, 0
 
 str_selectplus2
 
-		defb	AT, 8, 24 * 6, TEXTBOLD, INK, 4, "3..+2\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 9, 24 * 6, TEXTBOLD, INK, 4, "3..+2\n", TEXTNORM, ATTR, 56, 0
 
 str_selectplus3
 
-		defb	AT, 8, 31 * 6, TEXTBOLD, INK, 4, "4..+2A/+3\n", TEXTNORM, ATTR, 56, 0
+	defb	AT, 9, 31 * 6, TEXTBOLD, INK, 4, "4..+2A/+3\n", TEXTNORM, ATTR, 56, 0
 
 str_dblbackspace
 
@@ -952,7 +1014,7 @@ str_check_plus3_ula
 
 str_paging_stress_fail
 
-	defb "If Issue 1 Z70830 PCB, check RAM\n(must be AMS or MT4067 type)", 0
+	defb 	"If Issue 1 Z70830 PCB, check RAM\n(must be AMS or MT4067 type)", 0
 
 str_check_ic
 
@@ -961,6 +1023,18 @@ str_check_ic
 str_ic
 
 	defb "IC", 0
+
+str_cpu_type
+
+	defb 	AT, 4, 0, "CPU type: ", 0
+
+str_cpu_type_nmos
+
+	defb	"NMOS\n", 0
+
+str_cpu_type_cmos
+
+	defb	"CMOS\n", 0
 
 ;	Page align the IC strings to make calcs easier
 ;	Each string block needs to be aligned to 32 bytes
@@ -1026,7 +1100,7 @@ v_attr			equ #7f82; 1
 v_pr_ops		equ #7f83; 1
 v_width			equ #7f84; 1
 v_scroll		equ #7f85; 1
-v_scroll_lines  	equ #7d86; 1
+v_scrl_lines  	equ #7d86; 1
 
 ;	Miscellaneous
 
@@ -1036,15 +1110,16 @@ v_decstr		equ #7fa0; 6
 
 ;	Testing variables
 
-v_stacktmp		equ #7fb0; Temporary stack location when calling routines that assume no lower ram
-v_curpage		equ #7fb2; Currently paged location
-v_paging		equ #7fb3; Bank Paging status (output)
-v_fail_ic		equ #7fb6; Failed IC bitmap (48K)
+v_stacktmp			equ #7fb0; Temporary stack location when calling routines that assume no lower ram
+v_curpage			equ #7fb2; Currently paged location
+v_paging			equ #7fb3; Bank Paging status (output)
+v_fail_ic			equ #7fb6; Failed IC bitmap (48K)
 v_fail_ic_uncontend	equ #7fb7; Failed IC bitmap, uncontended memory banks 0,2,4,8 (128k)
 v_fail_ic_contend	equ #7fb8; Failed IC bitmap, contended memory banks 1,3,5,7 (128k)
-v_128type		equ #7fb9; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
-v_test_rtn		equ #7fba;	Address of test routine for extra memory (48/128)
-v_keybuffer		equ #7fbc; Keyboard bitmap (8 bytes)
-v_rand_addr		equ #7fc4;	Random fill test base addr
-v_rand_seed		equ #7fc6;	Random fill test rand seed
-v_rand_reps		equ #7fc8;	Random fill test repetitions
+v_128type			equ #7fb9; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
+v_test_rtn			equ #7fba;	Address of test routine for extra memory (48/128)
+v_keybuffer			equ #7fbc; Keyboard bitmap (8 bytes)
+v_rand_addr			equ #7fc4;	Random fill test base addr
+v_rand_seed			equ #7fc6;	Random fill test rand seed
+v_rand_reps			equ #7fc8;	Random fill test repetitions
+v_cmoscpupresent 	equ	#7fca;	Stores CPU type - 0=NMOS, 1=CMOS

@@ -23,15 +23,22 @@ if [ $? -eq 0 ]; then
             echo =========================
             ./build.sh
             if [ $? -eq 0 ]; then
-                cd ../ROMCheck
-                echo ============================
-                echo Building ROM Checker utility
-                echo ============================
+                cd ../Spectranet
+                echo ================================
+                echo Building Spectranet test modules
+                echo ================================
                 ./build.sh
                 if [ $? -eq 0 ]; then
-                    cd ..
-                    echo All builds complete
-                    exit
+                    cd ../ROMCheck
+                    echo ============================
+                    echo Building ROM Checker utility
+                    echo ============================
+                    ./build.sh
+                    if [ $? -eq 0 ]; then
+                        cd ..
+                        echo All builds complete
+                        exit
+                    fi
                 fi
             fi
         fi

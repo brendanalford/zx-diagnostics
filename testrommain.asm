@@ -150,7 +150,13 @@ start
 	ld a, 0
 	ld i, a
 	im 1
+; 	Workaround for Unrainer GAL's on 128 machines - force screen
+;   page to 0 on startup
 
+	xor a 
+	ld bc, 0x7ffd
+	out (c), a
+	
 ;	Blank the screen, (and all lower RAM)
 
 	BLANKMEM 16384, 16384, 0
@@ -1574,14 +1580,14 @@ initialize_no_ram_check
 	ld a, 2
 	ld (v_scroll), a
 	ld a, 21
-	ld (v_scroll_lines), a
+	ld (v_scrl_lines), a
 
 	ld a, 6
 	ld (v_width), a
 	ld a, 0xff
 	ld (v_scroll), a
 	cpl
-	ld (v_scroll_lines), a
+	ld (v_scrl_lines), a
 
 	ld hl, 0
 	ld (v_paging), hl

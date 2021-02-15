@@ -28,6 +28,7 @@
 rom_signature_table
 
 	defw 0x44e2, str_rom48k, test_48k, 0x0000
+	defw 0xfb67, str_rom48kproto, test_48k, 0x0000
 	defw 0x5eb1, str_rom48kesp, test_48k, 0x0000
 	defw 0x62c7, str_rom128k, test_128k, rom_table_rom128k
 	defw 0xdbaa, str_romplus2, test_plus2, rom_table_romplus2
@@ -197,6 +198,10 @@ str_rom48k
 
 	defb	TKN_SPECTRUM, " 16/48K ", TKN_ROM, 0
 
+str_rom48kproto 
+
+	defb	TKN_SPECTRUM, " Prototype ", TKN_ROM, 0
+	
 str_rom48kesp
 
 	defb	TKN_SPECTRUM, " 48K (", TKN_SPANISH, ") ", TKN_ROM, 0

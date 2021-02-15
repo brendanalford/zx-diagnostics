@@ -27,7 +27,7 @@
 
 	define LEFT			8
 	;define	RIGHT		9
-	;define	DOWN		10
+	define	CRLF		10
 	;define	UP			11
 	define	CR			13
 	define	TAB			14
@@ -67,7 +67,7 @@ tkn_microdigital
 
 	defb "Microdigital", 0
 
-	define ATTR_TRANS	0xff
+	define ATRB_TRANS	0xff
 
 ;	define PROPORTIONAL_PRINT_SUPPORT
 
@@ -128,9 +128,9 @@ print_nextchar
 	cp 0
 	jp z, print_done
 
-;	Check for carriage return
+;	Check for newline (CR/LF)
 
-	cp '\n'
+	cp CRLF
 	jr nz, print_chk_tok_spectrum
 	call newline
 	jr print_nextchar
@@ -459,7 +459,7 @@ print_scroll
 
 	ld a, (v_scroll)
 	ld b, a
-	ld a, (v_scroll_lines)
+	ld a, (v_scrl_lines)
 	add a, b
 	ld b, a
 	ld a, (v_row)
@@ -706,7 +706,7 @@ putchar
 ;	Now calculate attribute address
 
 	ld a, (v_attr)
-	cp ATTR_TRANS
+	cp ATRB_TRANS
 	jr z, .putchar.end
 
 	ld a, (v_row)
@@ -926,7 +926,7 @@ nl_scroll
 
 	ld a, (v_scroll)
 	ld b, a
-	ld a, (v_scroll_lines)
+	ld a, (v_scrl_lines)
 	add a, b
 	ld b, a
 	ld a, (v_row)
@@ -1012,7 +1012,7 @@ print_footer
 
 str_footer
 
-	defb	AT, 22, 0, VERSION_STRING
+	defb	AT, 22, 0, VERS_STRING
 	defb 	AT, 23, 11 * 6, "http://git.io/vkf1o", 0
 	;defb 	AT, 23, 18, PAPER, 2, INK, 7, TEXTBOLD, " Beta version! http://git.io/vkf1o ", TEXTNORM, INK, 0, PAPER, 7
 

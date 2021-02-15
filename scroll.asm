@@ -19,13 +19,13 @@
 ;	
 
 ;
-;	Scrolls the screen according to the values in v_scroll and v_scroll_lines.
+;	Scrolls the screen according to the values in v_scroll and v_scrl_lines.
 ;
 prt_scroll
 
 	ld a, (v_scroll)
 	ld h, a
-	ld a, (v_scroll_lines)
+	ld a, (v_scrl_lines)
 	ld l, a
 	
 scroll_up
