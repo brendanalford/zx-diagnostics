@@ -912,7 +912,7 @@ str_ulaplus3
 
 str_ts2068
 
-	defb "TS2048/TS2068 ASIC", 0
+	defb "TC2048/TS2068 ASIC", 0
 
 str_ula48notr6
 
