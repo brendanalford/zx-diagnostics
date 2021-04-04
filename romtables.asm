@@ -208,7 +208,7 @@ str_rom48kesp
 
 str_rom128k
 
-	defb	TKN_SPECTRUM, " 128K ", TKN_ROM, 0
+	defb	TKN_SPECTRUM, " 128K (UK) ", TKN_ROM, 0
 
 str_romplus2
 
