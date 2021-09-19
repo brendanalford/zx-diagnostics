@@ -418,7 +418,7 @@ str_testcardattr
 
 str_year
 
-	defb	BRIGHT, 0, 0x83, 0x81, BRIGHT, 1, 0x82, 0x89, 0
+	defb	BRIGHT, 0, 0x83, 0x81, BRIGHT, 1, 0x83, 0x82, 0
 
 str_pageout_msg
 
