@@ -1,0 +1,10 @@
+*.bin
+*.tap
+*.lst
+*.txt
+*.module
+*.bak
+*.zip
+Release-v*.zip
+.vscode/*
+TestTape/bin
