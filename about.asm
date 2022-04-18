@@ -85,13 +85,6 @@ about
 
 .checkhw_5
 
-	cp 6
-	jr nz, .checkhw_6
-	ld hl, str_vtx 
-	jr print_hw	
-
-.checkhw_6
-
 	ld hl, str_no_hardware
 
 print_hw
@@ -190,10 +183,6 @@ str_dand
 str_css
 
 	defb "CSS 128K ROM Board\n\n", 0
-
-str_vtx
-
-	defb "Prism VTX5000\n\n", 0
 
 str_no_hardware
 
