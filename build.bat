@@ -64,3 +64,10 @@ cd ..
 echo Aborting main build.
 
 :done
+REM
+REM These are used to pass various binary/tape images to an emulator for testing. They can be 
+REM modified based on your own chosen emulator or workflow.
+REM 
+REM curl --request POST --data-binary "@testrom.bin" "http://localhost:49152/services/media/bin?autostart=true&isDiagnosticRom=true"
+REM curl --request POST --data-binary "@TestTape/testram.tap" "http://localhost:49152/services/media/tap?autostart=true"
+REM curl --request POST --data-binary "@ROMCheck/romcheck.tap" "http://localhost:49152/services/media/tap?autostart=true"
