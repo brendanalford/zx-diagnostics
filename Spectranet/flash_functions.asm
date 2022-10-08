@@ -239,50 +239,117 @@ write_page_giveup
 	scf
 	ret
 
+;---------------------------------------------------------------------------
+; F_FlashIdentify
+; Attempt to identify the flash ROM IC present on the spectranet
+; sets a system variable in SRAM containing the device ID which should be
+; 0x20 for an Am29F010, or 0xB5/B6/B7 for an SST39SF010A/020A/040
+F_FlashIdentify:
+	push bc
+	ld bc, PAGEB
+	ld a,5
+	out (c),a	; flash A12-A15 bits to 5
+	ld a, 0xAA	; unlock code 1
+	ld (0x2555), a	; unlock addr 1
+	ld a,2
+	out (c),a	; flash A12-A15 bits to 2
+	ld a, 0x55	; unlock code 2
+	ld (0x2AAA), a	; unlock addr 2
+    ld a,5
+	out (c),a	; flash A12-A15 bits to 2
+    ld a, 0x90	; ID code
+	ld (0x2555), a	; ID
+	ld a,0
+	out (c),a	; flash A12-A15 bits to 0
+    ld a, (0x0001)	; read device ID
+    ld (v_flashid),a	; store device ID in SRAM
+    ;ld (0x401F),a ; DEBUG
+    ;ld a,0x55 ; DEBUG
+    ;ld (0x411F),a ; DEBUG
+    ld a, 0xF0	; reset code
+	ld (0x0000),a	; reset flash
+    ld a,(v_pgb)
+    out (c),a	; restore page B
+	pop bc
+	ret
 
 ;---------------------------------------------------------------------------
 ; F_FlashEraseSector
-; Simple flash writer for the Am29F010 (and probably any 1 megabit flash
-; with 16kbyte sectors)
+; Simple flash writer for the Am29F010 and SST39SF010/020/040
+; Erases one 16k sector or four 4k sectors based on detected device
 ;
 ; Parameters: A = page to erase (based on 4k Spectranet pages, but
 ; erases a 16k sector)
 ; Carry flag is set if an error occurs.
 F_FlashEraseSector:
+	; preserve page to start the erase from in C
+	ld c,a
 
-        ; Page in the appropriate sector first 4k into page area B.
-        ; Page to start the erase from is in A.
-        call SETPAGEA 	; page into page area B
+	call F_FlashIdentify
 
-        ld a, 0xAA      ; unlock code 1
-        ld (0x555), a   ; unlock addr 1
-        ld a, 0x55      ; unlock code 2
-        ld (0x2AA), a   ; unlock addr 2
-        ld a, 0x80      ; erase cmd 1
-        ld (0x555), a   ; erase cmd addr 1
-        ld a, 0xAA      ; erase cmd 2
-        ld (0x555), a   ; erase cmd addr 2
-        ld a, 0x55      ; erase cmd 3
-        ld (0x2AA), a   ; erase cmd addr 3
-        ld a, 0x30      ; erase cmd 4
-        ld (0x1000), a  ; erase sector address
+	ld a,(v_flashid)	; load flash type
+	ld b,4 ; erase four 4k sectors
+	
+	; this could potentially give a false positive if a ROM contains these values in the second byte
+	; a more robust check would be to also test the manufacturer ID is 0xBF (SST)
+	cp 0xB5	; SST39SF010A
+	jr z, .eraseLoop
+	cp 0xB6	; SST39SF020A
+	jr z, .eraseLoop
+	cp 0xB7	; SST39SF040
+	jr z, .eraseLoop
 
-        ld hl, 0x1000
-.wait1:
-        bit 7, (hl)     ; test DQ7 - should be 1 when complete
-        jr nz,  .complete1
-        bit 5, (hl)     ; test DQ5 - should be 1 to continue
-        jr z,  .wait1
-        bit 7, (hl)     ; test DQ7 again
-		jr z,  .borked1
+	ld b,1 ; else erase one 16k sector
+.eraseLoop:
+	call F_doErase
+	inc c
+	djnz .eraseLoop
+	ret
 
-.complete1:
-        or 0            ; clear carry flag
-        ret
+F_doErase:
+	push bc
+	ld l,c
+	ld bc, PAGEB
+	ld a,5
+	out (c),a	; flash A12-A15 bits to 5
+	ld a, 0xAA	; unlock code 1
+	ld (0x2555), a	; unlock addr 1
+	ld a,2
+	out (c),a	; flash A12-A15 bits to 2
+	ld a, 0x55	; unlock code 2
+	ld (0x2AAA), a	; unlock addr 2
+	ld a,5
+	out (c),a	; flash A12-A15 bits to 5
+	ld a, 0x80	; erase cmd 1
+	ld (0x2555), a	; erase cmd addr 1
+	ld a, 0xAA	; erase cmd 2
+	ld (0x2555), a	; erase cmd addr 2
+	ld a,2
+	out (c),a	; flash A12-A15 bits to 2
+	ld a, 0x55	; erase cmd 3
+	ld (0x2AAA), a	; erase cmd addr 3
+	ld a,l
+	out (c),a	; flash A12-A15 bits to 4k page number
+	ld (v_pgb), a ; update pageB sysvar
+	ld a, 0x30	; erase cmd 4
+	ld (0x2000), a	; erase sector address
+	pop bc
+	ld hl, 0x2000
+.wait1: 
+	bit 7, (hl)	; test DQ7 - should be 1 when complete
+	jr nz,  .complete1
+	bit 5, (hl)	; test DQ5 - should be 1 to continue
+	jr z,  .wait1
+	bit 7, (hl)	; test DQ7 again
+	jr z,  .borked1
 
-.borked1:
-        scf             ; carry flag = error
-        ret
+.complete1: 
+	or 0		; clear carry flag
+	ret
+
+.borked1: 
+	scf		; carry flag = error
+	ret
 
 ;---------------------------------------------------------------------------
 ; F_FlashWriteByte
@@ -292,43 +359,56 @@ F_FlashEraseSector:
 ; On return, carry flag set = error
 ; Page the appropriate flash area into one of the paging areas to write to
 ; it, and the address should be in that address space.
-F_FlashWriteByte:
-        push bc
-        ld c, a         ; save A
+F_FlashWriteByte: 
+	push hl
+	push bc
+	ld l, a		; save A
+    
+	ld bc, PAGEB
+    
+    ld a, 5
+    out (c),a	; flash A12-A15 bits to 5
+	ld a, 0xAA	; unlock 1
+	ld (0x2555), a	; unlock address 1
+    
+    ld a, 2
+    out (c),a	; flash A12-A15 bits to 2
+	ld a, 0x55	; unlock 2
+	ld (0x2AAA), a	; unlock address 2
+    
+    ld a, 5
+    out (c),a	; flash A12-A15 bits to 5
+	ld a, 0xA0	; Program
+	ld (0x2555), a	; Program address
+    
+    ld a, (v_pgb)
+    out (c),a	; restore page B
+    
+	ld a, l		; retrieve A
+	ld (de), a	; program it
 
-        ld a, 0xAA      ; unlock 1
-        ld (0x555), a   ; unlock address 1
-        ld a, 0x55      ; unlock 2
-        ld (0x2AA), a   ; unlock address 2
-        ld a, 0xA0      ; Program
-        ld (0x555), a   ; Program address
-        ld a, c         ; retrieve A
-        ld (de), a      ; program it
+.wait3: 
+	ld a, (de)	; read programmed address
+	ld b, a		; save status
+	xor l		
+	bit 7, a	; If bit 7 = 0 then bit 7 = data	
+	jr z,  .byteComplete3
 
-.wait3:
+	bit 5, b	; test DQ5
+	jr z,  .wait3
 
-		ld a, (de)      ; read programmed address
-        ld b, a         ; save status
-        xor c
-        bit 7, a        ; If bit 7 = 0 then bit 7 = data
-        jr z,  .byteComplete3
-
-        bit 5, b        ; test DQ5
-        jr z,  .wait3
-
-        ld a, (de)      ; read programmed address
-        xor c
-        bit 7, a        ; Does DQ7 = programmed data? 0 if true
-        jr nz,  .borked3
+	ld a, (de)	; read programmed address
+	xor l		
+	bit 7, a	; Does DQ7 = programmed data? 0 if true
+	jr nz,  .borked3
 
 .byteComplete3:
-
-        pop bc
-        or 0            ; clear carry flag
-        ret
+	pop bc
+	pop hl
+	or 0		; clear carry flag
+	ret
 
 .borked3:
-
 	push de
 	ld hl, str_byteverifyfail
 	call PRINT42
@@ -350,6 +430,7 @@ F_FlashWriteByte:
 	call PUTCHAR42
 	pop de
     pop bc
+    pop hl
     scf             ; error = set carry flag
     ret
 
@@ -445,3 +526,8 @@ str_eraseerror
 str_writeerror
 
 	defb "\nError writing Flash sector, aborting.\n",0
+
+; extra spectranet defines and sysvars
+PAGEB: equ 0x013B       ; CPLD page area B 4k page
+v_pgb: equ 0x3F07       ; pgb sysvar
+v_flashid: equ 0x3FF6   ; flashid sysvar
