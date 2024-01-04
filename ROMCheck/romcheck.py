@@ -20,7 +20,7 @@ romChecksumData = [
     ('Spectrum +2 (Grey) Spanish ROM', 0xc563, 0xadbb, 0x0000),
     ('Spectrum +2 (Grey) French ROM', 0xda64, 0x9a23, 0x0000),
     ('Spectrum +2A (v4.1) ROM', 0x26f5, 0x4d5b, 0xb3e4, 0x5d75, 0x0000),
-    ('Spectrum +3 (v4.0) ROM', 0x1f83, 0x4e7b, 0x3388, 0x5d75, 0x0000),
+    ('Spectrum +3 (v4.0) ROM', 0x1f83, 0x4e7b, 0x3388, 0x4f34, 0x0000),
     ('Spectrum +2A/+3 (v4.0) Spanish ROM', 0x95b8, 0xba48, 0x05c5, 0xd49d, 0x0000),
     ('Spectrum +2A/+3 (v4.1) Spanish ROM', 0x29c0, 0x89c8, 0xf579, 0x8a84, 0x0000),
     ('Spectrum 128 Derby (v1.4) ROM', 0x5129, 0x8c11, 0x000),
@@ -75,7 +75,7 @@ def main(argv):
     print (f'Total 16K ROM banks: {bankCount}')
     for bank in range (0, int(bankCount)):
         bankCRCValues[bank] = crc16(romBytes, bank * 0x4000, 0x3fc0)
-        print (f'Bank {bank + 1}: 0x{bankCRCValues[bank]:04X}')
+        print (f'Bank {bank + 1} checksum: {bankCRCValues[bank]:04X}')
     
     print ('\nChecking against known ROM checksums...\n')
 
@@ -94,7 +94,7 @@ def main(argv):
                 if (bankCRCValues[index] == checksumEntry[index + 1]):
                     print(f'Bank {index + 1} matches')
                 else:
-                    print(f'Bank {index} mismatch, expected {checksumEntry[index + 1]}, got {bankCRCValues[index]}')
+                    print(f'Bank {index + 1} mismatch, expected {checksumEntry[index + 1]:04X}, got {bankCRCValues[index]:04X}')
                     allBanksMatch = False
 
         if romMatch:
