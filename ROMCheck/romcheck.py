@@ -75,7 +75,6 @@ def main(argv):
     print (f'Total 16K ROM banks: {bankCount}')
     for bank in range (0, int(bankCount)):
         bankCRCValues[bank] = crc16(romBytes, bank * 0x4000, 0x3fc0)
-        # print ('Bank {0}: 0x{1:04X}'.format(bank + 1, bankCRCValues[bank]))
         print (f'Bank {bank + 1}: 0x{bankCRCValues[bank]:04X}')
     
     print ('\nChecking against known ROM checksums...\n')
