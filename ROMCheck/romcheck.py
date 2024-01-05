@@ -10,33 +10,33 @@
 import sys
 
 romChecksumData = [
-    ('Spectrum 48K ROM', 0x44e2, 0x0000),
-    ('Prototype 48K ROM', 0xfb67, 0x0000),
-    ('Spectrum 48K Spanish ROM', 0x5eb1, 0x0000),
-    ('Spectrum 128K UK ROM', 0x62c7, 0xbe09, 0x0000),
-    ('Spectrum +2 (Grey) ROM', 0xdbaa, 0x27f9, 0x0000),
-    ('Spectrum 128k Spanish ROM (v1)', 0xe157, 0x8413, 0x0000),
-    ('Spectrum 128k Spanish ROM (v2)', 0x7a1f, 0x8413, 0x0000),
-    ('Spectrum +2 (Grey) Spanish ROM', 0xc563, 0xadbb, 0x0000),
-    ('Spectrum +2 (Grey) French ROM', 0xda64, 0x9a23, 0x0000),
-    ('Spectrum +2A (v4.1) ROM', 0x26f5, 0x4d5b, 0xb3e4, 0x5d75, 0x0000),
-    ('Spectrum +3 (v4.0) ROM', 0x1f83, 0x4e7b, 0x3388, 0x4f34, 0x0000),
-    ('Spectrum +2A/+3 (v4.0) Spanish ROM', 0x95b8, 0xba48, 0x05c5, 0xd49d, 0x0000),
-    ('Spectrum +2A/+3 (v4.1) Spanish ROM', 0x29c0, 0x89c8, 0xf579, 0x8a84, 0x0000),
-    ('Spectrum 128 Derby (v1.4) ROM', 0x5129, 0x8c11, 0x000),
-    ('Spectrum 128 Derby (v4.02) ROM', 0xe9f5, 0xbe09, 0x000),
-    ('Spectrum +3E (v1.38) ROM', 0xdba9, 0xa8e8, 0xe579, 0x4f34, 0x0000),
-    ('Spectrum +3E (v1.38) Spanish ROM', 0x3710, 0xa6d0, 0xff63, 0x8a84, 0x0000),
-    ('Spectrum +3E (v1.43) ROM', 0x1d79, 0x7899, 0x8571, 0x4f34, 0x0000),
-    ('Spectrum +3E (v1.43) Spanish ROM', 0xf1c0, 0x9035, 0x2876, 0x8a84, 0x0000),
-    ('Orel BK-08 ROM', 0x26f0, 0x0000),
-    ('Spectrum 48K Beckman ROM', 0x5129, 0x0000),
-    ('TK-95 ROM', 0x55b9, 0x0000),
-    ('TK-90x (v1) ROM', 0xf9e4, 0x0000),
-    ('TK-90x (v2) ROM', 0x6074, 0x0000),
-    ('TC2048 ROM', 0xac0c, 0x0000),
-    ('TS2068 ROM', 0x3246, 0x0000),
-    ('Gosh Wonderful 48K ROM', 0x8116, 0x0000)
+    ('Spectrum 48K ROM', 0x44e2),
+    ('Prototype 48K ROM', 0xfb67),
+    ('Spectrum 48K Spanish ROM', 0x5eb1),
+    ('Spectrum 128K UK ROM', 0x62c7, 0xbe09),
+    ('Spectrum +2 (Grey) ROM', 0xdbaa, 0x27f9),
+    ('Spectrum 128k Spanish ROM (v1)', 0xe157, 0x8413),
+    ('Spectrum 128k Spanish ROM (v2)', 0x7a1f, 0x8413),
+    ('Spectrum +2 (Grey) Spanish ROM', 0xc563, 0xadbb),
+    ('Spectrum +2 (Grey) French ROM', 0xda64, 0x9a23),
+    ('Spectrum +2A (v4.1) ROM', 0x26f5, 0x4d5b, 0xb3e4, 0x5d75),
+    ('Spectrum +3 (v4.0) ROM', 0x1f83, 0x4e7b, 0x3388, 0x4f34),
+    ('Spectrum +2A/+3 (v4.0) Spanish ROM', 0x95b8, 0xba48, 0x05c5, 0xd49d),
+    ('Spectrum +2A/+3 (v4.1) Spanish ROM', 0x29c0, 0x89c8, 0xf579, 0x8a84),
+    ('Spectrum 128 Derby (v1.4) ROM', 0x5129, 0x8c11),
+    ('Spectrum 128 Derby (v4.02) ROM', 0xe9f5, 0xbe09),
+    ('Spectrum +3E (v1.38) ROM', 0xdba9, 0xa8e8, 0xe579, 0x4f34),
+    ('Spectrum +3E (v1.38) Spanish ROM', 0x3710, 0xa6d0, 0xff63, 0x8a84),
+    ('Spectrum +3E (v1.43) ROM', 0x1d79, 0x7899, 0x8571, 0x4f34),
+    ('Spectrum +3E (v1.43) Spanish ROM', 0xf1c0, 0x9035, 0x2876, 0x8a84),
+    ('Orel BK-08 ROM', 0x26f0),
+    ('Spectrum 48K Beckman ROM', 0x5129),
+    ('TK-95 ROM', 0x55b9),
+    ('TK-90x (v1) ROM', 0xf9e4),
+    ('TK-90x (v2) ROM', 0x6074),
+    ('TC2048 ROM', 0xac0c),
+    ('TS2068 ROM', 0x3246),
+    ('Gosh Wonderful 48K ROM', 0x8116)
 ]
 
 def crc16(data : bytearray, offset , length):
@@ -70,9 +70,12 @@ def main(argv):
         print('ERROR: Image must be a multiple of 16K.')
         exit()
 
+    # Calculate the number of 16K banks in the image and compute
+    # a checksum for each
     bankCount = int(len(romBytes) / 0x4000)
     bankCRCValues = [0] * bankCount
     print (f'Total 16K ROM banks: {bankCount}')
+    
     for bank in range (0, int(bankCount)):
         bankCRCValues[bank] = crc16(romBytes, bank * 0x4000, 0x3fc0)
         print (f'Bank {bank + 1} checksum: {bankCRCValues[bank]:04X}')
@@ -83,24 +86,27 @@ def main(argv):
     allBanksMatch = True
     for checksumEntry in romChecksumData:
 
+        # Different number of banks to current image to check against, can't be a match
+        if len(bankCRCValues) != len(checksumEntry) - 1:
+            continue
+        
         if bankCRCValues[0] == checksumEntry[1]:
             print(f'First 16K bank matches {checksumEntry[0]}')
             romMatch = True
-
+            
+            # Check all remaining banks to ensure that they match
             for index in range (1, bankCount):
-                if checksumEntry[index + 1] == 0:
-                    print('Too many 16K banks found for this image, continuing...')
-                    break
                 if (bankCRCValues[index] == checksumEntry[index + 1]):
                     print(f'Bank {index + 1} matches')
                 else:
                     print(f'Bank {index + 1} mismatch, expected {checksumEntry[index + 1]:04X}, got {bankCRCValues[index]:04X}')
-                    allBanksMatch = False
+                    romMatch = False
 
+        # Matched a known checksum set, break out
         if romMatch:
             break
 
-    if romMatch and allBanksMatch:
+    if romMatch:
         print(f'All ROM bank checksums match. Image verified as {checksumEntry[0]}.')
     else:
         print('This image is not known to this utility.')
