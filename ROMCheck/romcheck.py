@@ -10,6 +10,7 @@
 import sys
 
 romChecksumData = [
+    # 16K Bankable ROMS (Spectrum main rom images)
     ('Spectrum 48K ROM', 0x44e2),
     ('Prototype 48K ROM', 0xfb67),
     ('Spectrum 48K Spanish ROM', 0x5eb1),
@@ -36,7 +37,24 @@ romChecksumData = [
     ('TK-90x (v2) ROM', 0x6074),
     ('TC2048 ROM', 0xac0c),
     ('TS2068 ROM', 0x3246),
-    ('Gosh Wonderful 48K ROM', 0x8116)
+    ('Gosh Wonderful 48K ROM', 0x8116),
+    ('Delta 48K ROM', 0xface),
+    ('Inves 48K ROM', 0x719A),
+
+    # 8K ROMS
+
+    ('ZX81 Original (550) ROM', 0xa99c),
+    ('ZX81 Kludged (550) ROM', 0x1052),
+    ('ZX81 Improved (622) ROM', 0x7d71),
+    ('ZX81 Fixed (649) ROM', 0x4316),
+    ('Ringo R-470 (ZX81 Clone) ROM', 0x7be7),
+    ('Lambda 8300 (ZX81 Clone) ROM', 0xd984),
+
+    ('Sinclair Spectrum Test ROM Cartridge', 0xaf96),
+    ('Spectrum +2 (Grey) Factory Test ROM', 0x5bad),
+
+    # 4K ROMS
+    ('ZX80 ROM', 0x9d46)
 ]
 
 def crc16(data : bytearray, offset , length):
@@ -59,6 +77,8 @@ def main(argv):
         print ("Incorrect number of arguments. Please provide filename of ROM file to checksum")
         exit()
     
+    romSize = 0x4000
+
     fileName = argv[0]
     try:
         romFile = open(fileName, 'rb')
@@ -66,18 +86,24 @@ def main(argv):
     except:
         print (f'ERROR: Could not open {fileName}.')
         exit()
-    if len(romBytes) % 0x4000 != 0:
-        print('ERROR: Image must be a multiple of 16K.')
-        exit()
 
-    # Calculate the number of 16K banks in the image and compute
+    if len(romBytes) == 0x1000:
+        romSize = 0x1000
+    elif len(romBytes) == 0x2000:
+        romSize = 0x2000
+    else:
+        if len(romBytes) % romSize != 0:
+            print('ERROR: Image must be a multiple of 16K.')
+            exit()
+
+    # Calculate the number of banks in the image and compute
     # a checksum for each
-    bankCount = int(len(romBytes) / 0x4000)
+    bankCount = int(len(romBytes) / romSize)
     bankCRCValues = [0] * bankCount
-    print (f'Total 16K ROM banks: {bankCount}')
+    print (f'Total {int(romSize / 0x400)}K ROM banks: {bankCount}')
     
     for bank in range (0, int(bankCount)):
-        bankCRCValues[bank] = crc16(romBytes, bank * 0x4000, 0x3fc0)
+        bankCRCValues[bank] = crc16(romBytes, bank * romSize, romSize - 0x40)
         print (f'Bank {bank + 1} checksum: {bankCRCValues[bank]:04X}')
     
     print ('\nChecking against known ROM checksums...\n')
@@ -91,7 +117,7 @@ def main(argv):
             continue
         
         if bankCRCValues[0] == checksumEntry[1]:
-            print(f'First 16K bank matches {checksumEntry[0]}')
+            print(f'First bank matches {checksumEntry[0]}')
             romMatch = True
             
             # Check all remaining banks to ensure that they match
