@@ -38,6 +38,8 @@ romChecksumData = [
     ('TC2048 ROM', 0xac0c),
     ('TS2068 ROM', 0x3246),
     ('Gosh Wonderful 48K ROM', 0x8116),
+    ('Looking Glass 48K ROM', 0x2552),
+    ('Jonathan G Harston (JGH) 48K ROM', 0xa6f2),
     ('Delta 48K ROM', 0xface),
     ('Inves 48K ROM', 0x719A),
 
@@ -54,7 +56,17 @@ romChecksumData = [
     ('Spectrum +2 (Grey) Factory Test ROM', 0x5bad),
 
     # 4K ROMS
-    ('ZX80 ROM', 0x9d46)
+    ('ZX80 ROM', 0x9d46),
+
+    # Add on ROMs
+    ('Comprocsys ASZMIC E07 (ZX81) ROM', 0x32E8),
+    ('Memotech Memopak HRG (ZX81) ROM', 0xa617),
+
+    # Interface ROMs
+    ('Larken ZX81 Disk Interface ROM', 0xcd10),
+    ('Multiface One ROM', 0x3731),
+    ('Multiface 128 ROM', 0xbb02),
+    ('Multiface 3 ROM', 0xb2ee)
 ]
 
 def crc16(data : bytearray, offset , length):
@@ -87,13 +99,15 @@ def main(argv):
         print (f'ERROR: Could not open {fileName}.')
         exit()
 
-    if len(romBytes) == 0x1000:
+    if len (romBytes) == 0x800:
+        romSize = 0x800
+    elif len(romBytes) == 0x1000:
         romSize = 0x1000
     elif len(romBytes) == 0x2000:
         romSize = 0x2000
     else:
         if len(romBytes) % romSize != 0:
-            print('ERROR: Image must be a multiple of 16K.')
+            print('ERROR: Image must be a multiple of 1K.')
             exit()
 
     # Calculate the number of banks in the image and compute
@@ -109,7 +123,6 @@ def main(argv):
     print ('\nChecking against known ROM checksums...\n')
 
     romMatch = False
-    allBanksMatch = True
     for checksumEntry in romChecksumData:
 
         # Different number of banks to current image to check against, can't be a match
