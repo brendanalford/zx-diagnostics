@@ -161,7 +161,7 @@ str_hardware
 str_diagboard
 
 	IFNDEF SLAMTEST
-	defb "Alioth Diagboard\n\n", 0
+	defb "Alioth/ProjectSPECCY Diagboard\n\n", 0
 	ENDIF
 
 	IFDEF SLAMTEST

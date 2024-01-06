@@ -21,6 +21,6 @@
 ; 	Define the central version string used throughout the test ROM
 ;	and tape test variants.
 
-	define VERSION	"v0.38"
+	define VERSION	"v1.00"
 
 	define VERS_STRING TAB, 48, VERSION, " D. Smith, B. Alford"
