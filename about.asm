@@ -82,7 +82,7 @@ about
 	jr nz, .checkhw_5
 	ld hl, str_css
 	jr print_hw
-	
+
 .checkhw_5
 
 	ld hl, str_no_hardware
@@ -203,3 +203,4 @@ str_anykey
 str_free_sp_2
 
 	defb " bytes \n\n", 0
+	defb "For Mum, 1936-2021"

@@ -845,7 +845,7 @@ str_ulaint_test
 
 str_ulaintfail
 
-	defb AT, 8, 13 * 6, ATTR, ATTR_TRANS, TEXTBOLD, "FAIL FAIL FAIL", TEXTNORM, ATTR, 56, 0
+	defb AT, 8, 13 * 6, ATTR, ATRB_TRANS, TEXTBOLD, "FAIL FAIL FAIL", TEXTNORM, ATTR, 56, 0
 
 str_ulaselecttest
 
@@ -912,7 +912,7 @@ str_ulaplus3
 
 str_ts2068
 
-	defb "TS2048/TS2068 ASIC", 0
+	defb "TC2048/TS2068 ASIC", 0
 
 str_ula48notr6
 

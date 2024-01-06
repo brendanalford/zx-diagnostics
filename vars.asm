@@ -30,7 +30,7 @@ v_attr						equ #7c02; 1
 v_pr_ops					equ #7c03; bit 0: bold on/off, bit 1: inverse on/off
 v_width						equ #7c04; 1
 v_scroll					equ #7c05; 1
-v_scroll_lines  			equ #7c06; 1
+v_scrl_lines  			equ #7c06; 1
 
 ;	Miscellaneous
 
@@ -54,6 +54,8 @@ v_fail_ic_contend			equ #7c38; Failed IC bitmap, contended memory banks 1,3,5,7 
 v_fail_rom					equ #7c39; Failed ROM indication
 v_128type					equ #7c3a; 0 - 128K toastrack, 1 - grey +2, 2 - +2A or +3
 v_testcard_flags			equ #7c3b; bit 0 - AY present. bit 1 - quiet mode
+									 ; bit 1 - Stop beeper tone
+									 ; bit 2 - YM2149 detected true/false
 v_ulacycles					equ #7c3c; ULA cycles x 6 since last interrupt
 v_ulafloatbus				equ #7c3e; ULA floating bus detected (0 no, 1 yes)
 v_ulapluspresent			equ #7c3f; ULAPLus hardware detected (0 no, 1 yes)

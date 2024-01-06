@@ -108,6 +108,15 @@ print_pageout_msg
 
 	call print
 
+; 	Print the result of the YM check 
+
+	ld hl, v_testcard_flags
+	bit 2, (hl)
+	jr z, tone_start 
+
+	ld hl, str_ym_detected
+	call print  
+
 ; 	Start the tone
 
 tone_start
@@ -330,6 +339,23 @@ ay_reset_loop
 ; 	AY Present, set flag.
 
 	set 0, (hl)
+
+;	YM2149 chips allow writing to/reading from unused register bits. Let's test that.
+	ld bc, AY_REG
+	ld a, 13	; Noise register - 5 bits
+	out (c),a 
+	ld bc, AY_DATA 
+	ld a, 0xe0
+	out (c), a 
+
+	ld bc, AY_REG 
+	in a, (c)
+	bit 7, a 
+	ret z 
+
+;	We were able to set the MSB of the noise register, so this is a YM2149.
+
+	set 2, (hl)
 	ret
 
 ;
@@ -392,7 +418,7 @@ str_testcardattr
 
 str_year
 
-	defb	BRIGHT, 0, 0x83, 0x81, BRIGHT, 1, 0x82, 0x89, 0
+	defb	BRIGHT, 0, 0x83, 0x81, BRIGHT, 1, 0x83, 0x85, 0
 
 str_pageout_msg
 
@@ -405,6 +431,10 @@ str_pageout_noay_msg
 str_aytest_msg
 
 	defb	AT, 22, 0, PAPER, 0, INK, 7, BRIGHT, 1, "    AY Test active, hold BREAK to exit.   ", 0
+
+str_ym_detected
+
+	defb 	AT, 23, 76, PAPER, 0, INK, 7, BRIGHT, 1, TEXTBOLD, " YM2149 detected!", 0
 
 str_testcard_banner
 

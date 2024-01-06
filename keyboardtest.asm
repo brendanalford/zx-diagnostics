@@ -53,6 +53,8 @@ keyb_test_init
 	ld hl, str_exit
 	call print
 
+keyb_test_reset
+
 ;	Paint keyboard
 
 	xor a
@@ -178,35 +180,57 @@ check_key_release
 	in a, (0xfe)
 	and 0x1f
 	cp 0x1f
-	jr nz, check_break
+	jr nz, check_break_or_space
 
 ;	No keys now pressed, set H' to 0
 	exx
 	ld h, 0
 	exx
 
-check_break
+check_break_or_space
 
 	ld a, 0x7f
 	in a, (0xfe)
 	rra
 	jr c, no_break					; Space not pressed
-	ld a, 0xfe
-	in a, (0xfe)
-	rra
-	jr c, no_break					; Caps shift not pressed
 
-;	BREAK pressed, don't exit until its been held for
-;	a certain amount of time (IY=0x3f)
+;	BREAK or SPACE pressed, don't exit until its been held for
+;	a certain amount of time (IY=0xff)
 
 	inc iy
 	ld a, iyl
-	cp 0x3f
+	cp 0xff
 	jr nz, keyb_loop
+
+; 	Was BREAK held down?
+
+	ld a, 0xfe
+	in a, (0xfe)
+	rra
+	jp c, reset_keyboard			; Caps shift not pressed
 
 ;	OK, now exit
 
 	call diagrom_exit
+
+reset_keyboard
+
+;	Indicate we're in reset via a short beep
+
+	ld a, 7
+	ld l, a
+	ld bc, 0x0023
+	ld de, 0x0100
+	call beep
+
+reset_keyboard_2
+
+	ld a, 0x7f
+	in a, (0xfe)
+	bit 0, a
+	jr z, reset_keyboard_2
+
+	jp keyb_test_reset
 
 no_break
 
@@ -220,7 +244,8 @@ str_keyb_header
 
 str_exit
 
-	defb AT, 2, 0, "Press all keys to test, hold BREAK to exit", 0
+	defb AT, 2, 60, "Press all keys to test"
+	defb AT, 3, 24, "Hold SPACE to reset, BREAK to exit", 0
 
 str_keyboard
 

@@ -28,6 +28,7 @@
 rom_signature_table
 
 	defw 0x44e2, str_rom48k, test_48k, 0x0000
+	defw 0xfb67, str_rom48kproto, test_48k, 0x0000
 	defw 0x5eb1, str_rom48kesp, test_48k, 0x0000
 	defw 0x62c7, str_rom128k, test_128k, rom_table_rom128k
 	defw 0xdbaa, str_romplus2, test_plus2, rom_table_romplus2
@@ -79,7 +80,7 @@ rom_signature_table
 
 ;	Timex 2048/2068
 
-	defw 0xac0c, str_romts2048, test_48kgeneric, 0x0000
+	defw 0xac0c, str_romtc2048, test_48kgeneric, 0x0000
 	defw 0x3246, str_romts2068, test_48kgeneric, 0x0000
 
 ; 	Gosh Wonderful ROM (assume 48K)
@@ -197,13 +198,17 @@ str_rom48k
 
 	defb	TKN_SPECTRUM, " 16/48K ", TKN_ROM, 0
 
+str_rom48kproto 
+
+	defb	TKN_SPECTRUM, " Prototype ", TKN_ROM, 0
+	
 str_rom48kesp
 
 	defb	TKN_SPECTRUM, " 48K (", TKN_SPANISH, ") ", TKN_ROM, 0
 
 str_rom128k
 
-	defb	TKN_SPECTRUM, " 128K ", TKN_ROM, 0
+	defb	TKN_SPECTRUM, " 128K (UK) ", TKN_ROM, 0
 
 str_romplus2
 
@@ -293,9 +298,9 @@ str_rom48gw03
 
 	defb	"Gosh Wonderful 48K ", TKN_ROM, 0
 
-str_romts2048
+str_romtc2048
 
-	defb	"Timex TS2048 ", TKN_ROM, 0
+	defb	"Timex TC2048 ", TKN_ROM, 0
 
 str_romts2068
 

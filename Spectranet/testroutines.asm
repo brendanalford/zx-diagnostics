@@ -15,65 +15,24 @@
 ;	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;	Lesser General Public License for more details.
 ;
-;	defines.asm
+;	testroutines.asm
 ;
 
 
 ;
-;	Definitions and macros used by the testing ROM.
+;	Test routines used by the Spectranet version of the RAM tests.
+;	Ported from the macros in defines.asm to save space.
 ;
 
-	define   LED_PORT	63
-	define   ULA_PORT	254
-	define   ROMPAGE_PORT   31
-	define	 SMART_ROM_PORT 0xfafb
-	define   BORDERRED	2
-	define   BORDERGRN	4
-	define 	 BORDERYEL	6
-	define	 BORDERWHT	7
-	define   ERR_FLASH	0xaa   ; alternate lights
 
-;	AY register defines
-
-	define	 AY_REG		0xfffd
-	define	 AY_DATA	0xbffd
-
-	define	 AYREG_A_LO	0x00
-	define	 AYREG_A_HI	0x01
-	define	 AYREG_B_LO	0x02
-	define	 AYREG_B_HI	0x03
-	define	 AYREG_C_LO	0x04
-	define	 AYREG_C_HI	0x05
-	define	 AYREG_MIX	0x07
-	define	 AYREG_A_VOL	0x08
-	define	 AYREG_B_VOL	0x09
-	define	 AYREG_C_VOL	0x0a
-
-	define	 AYCMD_DELAY	0xf0
-	define 	 AYCMD_LOOP	0xff
-
-;	ROM checksum values
-
-	define	CRC_48K		0xfd5e
-	define	CRC_128K	0xeffc
-	define	CRC_PLUS2	0x2aa3
-
-;	Diagnostic board types
-
-	define HW_TYPE_NONE			0
-	define HW_TYPE_DIAGBOARD	1
-	define HW_TYPE_SMART		2
-	define HW_TYPE_ZXC3			3
-	define HW_TYPE_DANDANATOR	4
-	define HW_TYPE_CSS			5
-	
 ;
-;	Macro to run a RAM walk test
+;	Run a RAM walk test
+;	Inputs:
+;	HL: Start address
+;	DE: Length of memory to test
 ;
-	MACRO WALKLOOP start, length
 
-	ld hl, start
-	ld de, length
+walkloop
 
 .walk.loop
 
@@ -109,9 +68,6 @@
 	ld bc, ix
 	or b
 
-;	Out straight to LED's, don't flash
-
-	out (LED_PORT), a
 	ld b, a
 	ld a, 1	; Bit 0 of ixl: walk test fail
 	or c
@@ -124,34 +80,57 @@
 .walk.done
 .walk.exit
 
-	ENDM
+	ret
 
 ;
-;	Macro to blank (or fill) an area of memory
+;	Routine to blank (or fill) an area of memory
+;	Inputs:
+;	HL: Start memory location
+;	DE: Length of memory to blank
+;	B:  Pattern to fill with
 ;
-	MACRO BLANKMEM start, len, pattern
 
-	ld hl, start
-	ld de, start+1
-	ld bc, len
-	ld a, pattern
+blankmem
+
+.blankloop
+
+	ld (hl), b
+	inc hl
+	dec de
+	ld a, d
+	or e
+	jr nz, .blankloop
+
+	ret
+
+;
+;	Inversion testing - pattern A.
+;	Inputs:
+;	HL: Start memory location
+;	BC: Length of memory to blank
+;	D:  Pattern to fill with
+;
+altpata
+
+	push hl
+	push de
+	push bc
+
+	ld a, d
 	ld (hl), a
+	ld de, hl
+	inc de
 	ldir
 
-	ENDM
-
-;
-;	Macro used during inversion testing
-;
-	MACRO ALTPATA start,len,fill
-
-	BLANKMEM start, len, fill
-	ld hl, start
-	ld bc, len
+	pop bc
+	pop de
+	pop hl
+	push hl
+	push bc
 
 .altpat1.wrloop1
 
-	ld a, fill
+	ld a, d
 	cpl
 	ld (hl), a
 	inc hl
@@ -162,14 +141,14 @@
 	or c
 	jr nz, .altpat1.wrloop1
 
-.altpat1.rd
+	pop bc
+	pop hl
 
-	ld hl, start
-	ld bc, len
+.altpat1.rd
 
 .altpat1.rdloop1
 
-	ld a, fill
+	ld a, d
 	cpl
 	cp (hl)
 	jr nz, .altpat1.borked
@@ -197,9 +176,6 @@
 
 	or b
 
-;	OUT to led's
-
-	out (LED_PORT), a
 	ld b, a
 	ld a, 2	; Bit 0 of ixl: inversion test fail
 	or c
@@ -213,20 +189,37 @@
 .altpat1.done
 .altpat1.exit
 
-	ENDM
+	ret
 
 ;
-;	Macro used during inversion testing
+;	Inversion testing - pattern B.
+;	Inputs:
+;	HL: Start memory location
+;	BC: Length of memory to blank
+;	D:  Pattern to fill with
 ;
-	MACRO ALTPATB start,len,fill
 
-	BLANKMEM start, len, fill
-	ld hl, start
-	ld bc, len
+altpatb
+
+	push hl
+	push de
+	push bc
+
+	ld a, d
+	ld (hl), a
+	ld de, hl
+	inc de
+	ldir
+
+	pop bc
+	pop de
+	pop hl
+	push hl
+	push bc
 
 .altpat2.wrloop1
 
-	ld a, fill
+	ld a, d
 	cpl
 	inc hl
 	ld (hl), a
@@ -239,12 +232,12 @@
 
 .altpat2.rd
 
-	ld hl, start
-	ld bc, len
+	pop bc
+	pop hl
 
 .altpat2.rdloop1
 
-	ld a, fill
+	ld a, d
 	cp (hl)
 	jr nz, .altpat2.borked
 	inc hl
@@ -270,7 +263,7 @@
 
 	ld d, a
 	or b
-	out (LED_PORT), a
+
 	ld b, a
 	ld a, 2	; Bit 0 of l': inversion test fail
 	or c
@@ -283,7 +276,7 @@
 .altpat2.done
 .altpat2.exit
 
-	ENDM
+	ret
 
 ;
 ;	Algorithm March X
@@ -294,14 +287,17 @@
 ;
 ; 	Credit - Karl (PokeMon) on WoS for the algorithm description
 ;
+;	Inputs:
+;	HL: Start address
+;	BC: Range to test
 
-	MACRO MARCHTEST start, len
+marchtest
 
 	; Step 1 - write 0 with up addressing order
 	; No errors expected with this part :)
 
-	ld hl, start
-	ld bc, len
+	push hl
+	push bc
 
 .marchtest1.loop
 
@@ -314,15 +310,17 @@
 
 	; Step 2 - read 0 and write 1 with up addressing order
 
-	ld hl, start
-	ld bc, len
+	pop bc
+	pop hl
+	push hl
+	push bc
 
 .marchtest2.loop
 	ld a, (hl)
 	cp 0
 	jr z, .marchtest2.next
 
-	MARCHBORKED
+	call marchborked
 
 .marchtest2.next
 	ld a, 0xff
@@ -335,9 +333,13 @@
 
 .marchtest3.start
 
+	pop bc
+	pop hl
+	push hl
+	push bc
+
 	; Step 3 - read 1 and write 0 with down addressing order
-	ld hl, start
-	ld bc, len - 1
+	dec bc
 	add hl, bc
 
 .marchtest3.loop
@@ -347,7 +349,7 @@
 	jr z, .marchtest3.next
 
 	xor a
-	MARCHBORKED
+	call marchborked
 
 .marchtest3.next
 
@@ -361,8 +363,11 @@
 
 .marchtest4.start
 	; Step 4 - read 0 with down addressing order
-	ld hl, start
-	ld bc, len - 1
+
+	pop bc
+	pop hl
+
+	dec bc
 	add hl, bc
 
 .marchtest4.loop
@@ -371,7 +376,7 @@
 	cp 0
 	jr z, .marchtest4.next
 
-	MARCHBORKED
+	call marchborked
 
 .marchtest4.next
 
@@ -383,9 +388,10 @@
 
 .marchtest.done
 
-	ENDM
+	ret
 
-	MACRO MARCHBORKED
+
+marchborked
 
 	exx
 	ld b, a
@@ -395,18 +401,18 @@
 	ld a, BORDERRED
 	out (ULA_PORT), a
 	exx
-
-	ENDM
+	ret
 
 ;
 ;	Generate a pseudo random 16-bit number.
 ; 	see http://map.tni.nl/sources/external/z80bits.html#3.2 for the
 ; 	basis of the random fill
-; 	BC = seed
+;
+;	Inputs:
+; 	BC: seed
 ;
 
-	MACRO RAND16
-
+rand16
 
 	ld d, b
 	ld e, c
@@ -429,25 +435,28 @@
 	ld b, h
 	ld c, l
 
-	ENDM
+	ret
 
 ;
 ;	Random fill test in increasing order
-;	Args: addr - base address, reps - half memory size being tested,
-;	      seed - PRNG seed to use
-;
-;	Register usage:
-;	SP  = start address
-; BC' = number of 16-bit words to test with
+;	Inputs:
+;	HL: Base address
+;	DE: Half memory size being tested
+;	BC: PRNG seed to use
 
-	MACRO RANDFILLUP addr, reps, seed
+randfillup
 
-	ld sp, addr
+	ld (v_stacktmp), sp
+	ld (v_rand_addr), hl
+	ld (v_rand_reps), de
+	ld (v_rand_seed), bc
+
+	ld sp, (v_rand_addr)
 	exx
-	ld bc, seed
+	ld bc, (v_rand_seed)
 	ld hl, 0
 	exx
-	ld bc, reps
+	ld bc, (v_rand_reps)
 
 .randfill.up.loop
 
@@ -465,13 +474,30 @@
 	or c
 	jp nz, .randfill.up.loop
 
+;	Delay for a second or so if we are soak testing.
+; This will hopefully reveal any memory refresh issues.
+.randfill.up.soak
+
+		ld a, iyl
+		or iyh
+		jr z, .randfill.up.test
+
+		ld bc, 0xffff
+
+.randfill.up.delay
+
+		dec bc
+		ld a, c
+		or b
+		jr nz, .randfill.up.delay
+
 .randfill.up.test
 
-	ld sp, addr
+	ld sp, (v_rand_addr)
 	exx
-	ld bc, seed
+	ld bc, (v_rand_seed)
 	exx
-	ld bc, reps
+	ld bc, (v_rand_reps)
 	ld l, 0
 
 .randfill.up.testloop
@@ -481,10 +507,10 @@
 	pop de	; Pop memory off the stack to test into DE
 	ld a, h
 	xor d
-	jp nz, .randfill.up.borked
+	jr nz, .randfill.up.borked
 	ld a, l
 	xor e
-	jp nz, .randfill.up.borked
+	jr nz, .randfill.up.borked
 	jr .randfill.up.next
 
 .randfill.up.borked
@@ -500,21 +526,24 @@
 	dec bc
 	ld a, b
 	or c
-	jp nz, .randfill.up.testloop
+	jr nz, .randfill.up.testloop
 
 	ld a, l
 	cp 0
-	jp z, .randfill.up.done
+	jr nz, .randfill.up.borkedreport
+	jr .randfill.up.done
 
 .randfill.up.borkedreport
 
-; 	Store dodgy bit in ixh
+; Store dodgy bit in ixh
 
 	ld bc, ix
-	; And in D for borkedloop
+
+; And in D for borkedloop
+
 	ld d, a
 	or b
-	out (LED_PORT), a
+
 	ld b, a
 	ld a, 4	; Bit 0 of l': random test fail
 	or c
@@ -528,7 +557,8 @@
 .randfill.up.done
 .randfill.up.exit
 
-	ENDM
+	ld sp, (v_stacktmp)
+	ret
 
 ;
 ;	Random fill test in descendingvorder
@@ -536,13 +566,26 @@
 ;	      seed - PRNG seed to use
 ;
 
-	MACRO RANDFILLDOWN addr, reps, seed
 
-	ld sp, addr
+;
+;	Random fill test in descending order
+;	Inputs:
+;	HL:	 Base address
+;	DE': Half memory size being tested
+;	BC:  PRNG seed to use
+
+randfilldown
+
+	ld (v_stacktmp), sp
+	ld (v_rand_addr), hl
+	ld (v_rand_reps), de
+	ld (v_rand_seed), bc
+
+	ld sp, (v_rand_addr)
 	exx
-	ld bc, seed
+	ld bc, (v_rand_seed)
 	exx
-	ld bc, reps
+	ld bc, (v_rand_reps)
 
 	; Adjust stack pointer as we won't be popping values off in
 	; the normal sense when testing
@@ -561,13 +604,30 @@
 	or c
 	jp nz, .randfill.down.loop
 
+;	Delay for a second or so if we are soak testing.
+; This will hopefully reveal any memory refresh issues.
+.randfill.down.soak
+
+		ld a, iyl
+		or iyh
+		jr z, .randfill.down.test
+
+		ld bc, 0xffff
+
+.randfill.down.delay
+
+		dec bc
+		ld a, c
+		or b
+		jr nz, .randfill.down.delay
+
 .randfill.down.test
 
-	ld sp, addr
+	ld sp, (v_rand_addr)
 	exx
-	ld bc, seed
+	ld bc, (v_rand_seed)
 	exx
-	ld bc, reps
+	ld bc, (v_rand_reps)
 	ld l, 0
 
 .randfill.down.testloop
@@ -581,11 +641,11 @@
 	dec sp
 
 	ld a, h
-	cp d
-	jp nz, .randfill.down.borked
+	xor d
+	jr nz, .randfill.down.borked
 	ld a, l
-	cp e
-	jp nz, .randfill.down.borked
+	xor e
+	jr nz, .randfill.down.borked
 	jr .randfill.down.next
 
 .randfill.down.borked
@@ -605,12 +665,12 @@
 
 	ld a, l
 	cp 0
-
+	jr nz, .randfill.down.borkedreport
 	jp .randfill.down.done
 
 .randfill.down.borkedreport
 
-; 	Store dodgy bit in ixh
+; Store dodgy bit in ixh
 
 	ld bc, ix
 
@@ -618,7 +678,7 @@
 
 	ld d, a
 	or b
-	out (LED_PORT), a
+
 	ld b, a
 	ld a, 4	; Bit 0 of l': random test fail
 	or c
@@ -632,32 +692,17 @@
 .randfill.down.done
 .randfill.down.exit
 
-	ENDM
-
-;
-;	Saves the location of the stack pointer to
-;	memory
-;
-
-	MACRO SAVESTACK
-	ld (v_stacktmp), sp
-	ENDM
-
-;
-;	Restores the location of the stack pointer from
-;	memory
-;
-
-	MACRO RESTORESTACK
 	ld sp, (v_stacktmp)
-	ENDM
+	ret
+
 
 ;
-;	Macro to interpret the results of a 48k memory test
+;	Routine to interpret the results of a 48k memory test
 ;	and store the result, write result to screen etc
 ;
 
-	MACRO TESTRESULT
+testresult
+
 	ld bc, ix
 	ld a, b
 	cp 0
@@ -666,7 +711,7 @@
 .test.pass
 
 	ld hl, str_testpass
-	call print
+	call outputstring
 	call newline
 
 	jr .test.end
@@ -677,52 +722,56 @@
 	or b
 	ld (v_fail_ic), a
 	ld hl, str_testfail
-	call print
+	call outputstring
 	call newline
 
 .test.end
 
-	ENDM
-
+	ret
 
 ;
-;	Macro to interpret the results of a 128k memory test
+;	Routine to interpret the results of a 128k memory test
 ;	and store the result
 ;
 
-	MACRO TESTRESULT128
+testresult128
 
 	ld bc, ix
 	ld a, (v_fail_ic)
 	or b
 	ld (v_fail_ic), a
 
-	ENDM
+	ret
 
 ;
 ;	Blanks the H register.
 ;
 
-	MACRO PREPAREHREG
+preparehreg
 
 	exx
-	xor a
+	ld a, 0
 	ld h, a
 	exx
 
-	ENDM
+	ret
 
 ;
-;	Macro to sound a tone.
-;	Inputs: L=border colour.
+;	Routine to sound a tone.
+;	Inputs:
+;	BC: frequence
+;	DE: length
+;	L:  border colour.
 ;
-	MACRO BEEP freq, length
 
-	ld de, length
+beep
+
+	push bc
 
 .tone.duration
 
-	ld bc, freq			; bc = twice tone freq in Hz
+	pop bc
+	push bc
 
 .tone.period
 
@@ -745,50 +794,13 @@
 	or e
 	jr nz, .tone.duration
 
-	ENDM
+	pop bc
+	ret
 
-;
-;	Macro to sound a tone while cycling border colours.
-;	Inputs: L=border colour.
-;
-	MACRO COLORBEEP freq, length
-
-	ld de, length
-
-.tone.duration
-
-	ld bc, freq			; bc = twice tone freq in Hz
-
-.tone.period
-
-	dec bc
-	ld a, b
-	or c
-	jr nz, .tone.period
-
-;	Toggle speaker output, preserve border
-
-	ld a, l
-	inc a
-	and 0x17
-	xor 0x10
-	ld l, a
-	out (0xfe), a
-
-;	Generate tone for desired duration
-
-	dec de
-	ld a, d
-	or e
-	jr nz, .tone.duration
-
-	ENDM
-
-
-;	A quick macro to write a value in a to four consecutive
+;	A quick routine to write a value in a to four consecutive
 ;	memory locations starting at HL.
 
-	MACRO LDHL4TIMES
+ldhl4times
 
 	ld (hl), a
 	inc hl
@@ -798,4 +810,4 @@
 	inc hl
 	ld (hl), a
 
-	ENDM
+	ret

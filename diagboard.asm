@@ -116,16 +116,17 @@ romhw_pagein_css
 romhw_pageout
 
 	ld a, (v_testhwtype)
-	cp 1
+	cp HW_TYPE_DIAGBOARD
 	jr z, romhw_pageout_diagboard
-	cp 2
+	cp HW_TYPE_SMART
 	jr z, romhw_pageout_smart
-	cp 3
+	cp HW_TYPE_ZXC3
 	jr z, romhw_pageout_zxc
-	cp 4
+	cp HW_TYPE_DANDANATOR
 	jr z, romhw_pageout_dand
-	cp 5
+	cp HW_TYPE_CSS
 	jr z, romhw_pageout_css
+
 	ld a, 0xff
 	ret
 
@@ -292,7 +293,6 @@ romhw_test
 
 	ld a, %00100000
 	out (ROMPAGE_PORT), a
-
 	call check_magic_string
 	jr z, romhw_test_smart
 
@@ -436,9 +436,9 @@ romhw_test_css
 	in a, (c)
 	call check_magic_string
 	jr z, romhw_not_found
+
 	ld bc, 0x5fff
 	in a, (c)
-
 	ld a, HW_TYPE_CSS
 	ld (v_testhwtype), a
 	ret
@@ -493,6 +493,7 @@ check_magic_string
 
 	ld hl, v_rom_magic_loc
 	ld a, (hl)
+
 	cp 'T'
 	ret nz
 	inc hl

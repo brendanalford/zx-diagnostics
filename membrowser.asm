@@ -1083,6 +1083,7 @@ ld_buffer_8_bytes_hl_2
 	pop hl
 	pop de
 	pop bc
+	ei
 	ret
 	
 ld_buffer_8_bytes_hl_end
