@@ -1352,7 +1352,7 @@ diaghw_ok
 waitloop
 
 	call check_spc_key
-	jp z, testcard
+	jp z, page_speccy_rom
 	ld a, c
 	ld (v_row), a
 	ld a, 41 * 6
