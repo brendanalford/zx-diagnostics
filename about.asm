@@ -156,12 +156,12 @@ str_creditsbanner
 
 str_hardware
 
-	defb 	AT, 2, 0, "Hardware: ", 0
+	defb 	AT, 2, 0, "Hardware: \n", 0
 
 str_diagboard
 
 	IFNDEF SLAMTEST
-	defb "Alioth/ProjectSPECCY Diagboard\n\n", 0
+	defb "Alioth/ByteDelight/SteamCard Diagboard\n\n", 0
 	ENDIF
 
 	IFDEF SLAMTEST

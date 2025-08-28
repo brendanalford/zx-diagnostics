@@ -79,11 +79,11 @@
 		end
 	end
 
-	if (string.match(branch, "develop")) then
-		sj.insert_define("DEVELOP_BUILD", "true")
-	elseif (string.match(branch, "stable")) then 
-		sj.insert_define("STABLE_BUILD", "true")
-	end
+		if (string.match(branch, "develop")) then
+			sj.insert_define("DEVELOP_BUILD", "true")
+		elseif (string.match(branch, "stable")) then 
+			sj.insert_define("STABLE_BUILD", "true")
+		end
 
 	sj.insert_define("GIT_BRANCH", '"' .. branch .. '"');
 	sj.insert_define("GIT_COMMIT", '"' .. commit .. '"');
