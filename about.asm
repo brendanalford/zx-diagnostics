@@ -203,4 +203,5 @@ str_anykey
 str_free_sp_2
 
 	defb " bytes \n\n", 0
-	defb "For Mum, 1936-2021"
+	defb "For Mum 1936-2021 and Dad 1934-2024 "
+	defb "For Ben Versteeg, 1976-2025"
