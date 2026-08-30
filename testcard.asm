@@ -84,6 +84,12 @@ testcard_col
 	ld bc, 0x100
 	ldir
 
+;	Code for tape version - do vertical text in the colour bars
+
+	IFDEF TESTCARD_TAPE
+	call test_card_vertical_text
+	ENDIF 
+
 ; 	Do the Diagnostics banner
 
 	ld hl, str_testcard_banner
@@ -418,7 +424,7 @@ str_testcardattr
 
 str_year
 
-	defb	BRIGHT, 0, 0x83, 0x81, BRIGHT, 1, 0x83, 0x85, 0
+	defb	BRIGHT, 0, 0x83, 0x81, BRIGHT, 1, 0x83, 0x87, 0
 
 str_pageout_msg
 
