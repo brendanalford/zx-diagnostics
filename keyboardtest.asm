@@ -53,7 +53,7 @@ keyb_test_init
 	ld hl, str_exit
 	call print
 
-keyb_test_reset
+
 
 ;	Paint keyboard
 
@@ -66,6 +66,8 @@ keyb_test_reset
 
 	ld hl, str_keyboard
 	call print
+
+keyb_test_reset
 
 ;	Paint the keys
 
